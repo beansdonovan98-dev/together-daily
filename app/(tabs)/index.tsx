@@ -1,5 +1,5 @@
 import { PrivateGate } from "@/components/together-access";
-import { ScreenContainer } from "@/components/screen-container";
+import { AppFrame } from "@/components/app-frame";
 import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { trpc } from "@/lib/trpc";
 import { File } from "expo-file-system";
@@ -65,12 +65,12 @@ function TodayContent({ userId, memberName, coupleName, inviteCode, memberCount 
     save({ coverPhoto: { id: saved.id, url: saved.url, storageKey: saved.storageKey, fileName: saved.fileName, mimeType: saved.mimeType, uploadedAt: saved.createdAt } });
   };
 
-  if (daily.isLoading) return <ScreenContainer><View style={styles.loading}><Text style={styles.muted}>Preparing today’s space…</Text></View></ScreenContainer>;
-  if (daily.isError) return <ScreenContainer><View style={styles.loading}><Text style={styles.muted}>We could not load today’s check-in.</Text></View></ScreenContainer>;
+  if (daily.isLoading) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Preparing today’s space…</Text></View></AppFrame>;
+  if (daily.isError) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>We could not load today’s check-in.</Text></View></AppFrame>;
 
   const completedTodos = todos.filter((item: any) => item.completed).length;
   return (
-    <ScreenContainer containerClassName="bg-background" className="flex-1">
+    <AppFrame>
       <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
           <View><Text style={styles.eyebrow}>{prettyDate(date).toUpperCase()}</Text><Text style={styles.title}>{coupleName}</Text></View>
@@ -111,7 +111,7 @@ function TodayContent({ userId, memberName, coupleName, inviteCode, memberCount 
           <View style={styles.addRow}><TextInput value={todoText} onChangeText={setTodoText} onSubmitEditing={addTodo} returnKeyType="done" placeholder="Add something for today" placeholderTextColor="#A399AA" style={styles.addInput} /><TouchableOpacity style={styles.addButton} onPress={addTodo}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View>
         </View>
       </ScrollView>
-    </ScreenContainer>
+    </AppFrame>
   );
 }
 
