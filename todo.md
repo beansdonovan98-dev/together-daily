@@ -36,3 +36,4 @@
 - [x] Remove the Questions tab and the first-tab “How are you arriving today?” mood-and-energy check-in.
 - [x] Create a fresh navigable Daily Log page for every calendar day with preserved history access.
 - [x] Add a Good Habits page with shared daily check-offs, Beans and Princess progress, streaks, and history.
+- [x] Add shared daily counters for six hugs, six kisses, and six “I love you”s.
