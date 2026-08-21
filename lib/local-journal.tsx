@@ -10,9 +10,9 @@ export const PARTNERS = {
   princess: { id: "princess" as const, name: "Princess", color: "#D56B88", soft: "#FCEAF0", avatar: "P" },
 };
 
-type RecordType = "chat" | "loveNote" | "intimacy" | "habit" | "dateIdea";
+type RecordType = "chat" | "loveNote" | "intimacy" | "steamyChat" | "habit" | "dateIdea";
 export type LocalRecord = { id: string; authorId: PartnerId; recordType: RecordType; content: Record<string, unknown>; createdAt: string };
-export type LocalMedia = { id: string; kind: "cover" | "photo"; url: string; fileName: string; mimeType: string; caption: string; createdAt: string; dailyDate: string; uploadedBy?: PartnerId };
+export type LocalMedia = { id: string; kind: "cover" | "photo" | "private"; url: string; fileName: string; mimeType: string; caption: string; createdAt: string; dailyDate: string; uploadedBy?: PartnerId };
 type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[] };
 type RoomPrefs = { roomCode: string | null; memberId: PartnerId | null };
 

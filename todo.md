@@ -29,3 +29,4 @@
 - [x] Restyle the shared workspace to match the uploaded screenshot reference while keeping the timeline unfilled and reusable.
 - [x] Add distinct Beans and Princess answer areas for every shared daily question.
 - [x] Add a separate private, consent-forward Steamy section with safe-mode controls, preferences, prompts, and shared notes.
+- [x] Expand Steamy into a locked mature-only chat and separate private gallery for Beans and Princess’ own uploaded media.
