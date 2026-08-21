@@ -1,17 +1,8 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
+/** Core account table managed by the included OAuth flow. */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -22,7 +13,82 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+/** A private journal that can be joined by exactly two invited partners. */
+export const coupleSpaces = mysqlTable(
+  "couple_spaces",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    displayName: varchar("displayName", { length: 120 }).notNull(),
+    inviteCode: varchar("inviteCode", { length: 16 }).notNull(),
+    settings: text("settings").notNull(),
+    createdBy: int("createdBy").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("couple_spaces_invite_code_unique").on(table.inviteCode)],
+);
+
+export const coupleMembers = mysqlTable(
+  "couple_members",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    coupleId: int("coupleId").notNull(),
+    userId: int("userId").notNull(),
+    displayName: varchar("displayName", { length: 80 }).notNull(),
+    avatarEmoji: varchar("avatarEmoji", { length: 12 }).default("💜").notNull(),
+    accentColor: varchar("accentColor", { length: 16 }).default("#8D5BA6").notNull(),
+    joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("couple_members_user_unique").on(table.userId),
+    uniqueIndex("couple_members_pair_unique").on(table.coupleId, table.userId),
+  ],
+);
+
+/** One mutable, structured journal entry is stored for every couple and calendar date. */
+export const dailyLogs = mysqlTable(
+  "daily_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    coupleId: int("coupleId").notNull(),
+    date: varchar("date", { length: 10 }).notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("daily_logs_couple_date_unique").on(table.coupleId, table.date)],
+);
+
+/** Shared, chronological records cover chat, love notes, habits, plans, and opt-in intimacy notes. */
+export const sharedRecords = mysqlTable("shared_records", {
+  id: int("id").autoincrement().primaryKey(),
+  coupleId: int("coupleId").notNull(),
+  authorId: int("authorId").notNull(),
+  recordType: mysqlEnum("recordType", ["chat", "loveNote", "intimacy", "habit", "dateIdea"]).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Private photo metadata; the binary file is kept in managed object storage. */
+export const mediaItems = mysqlTable("media_items", {
+  id: int("id").autoincrement().primaryKey(),
+  coupleId: int("coupleId").notNull(),
+  dailyLogId: int("dailyLogId"),
+  uploadedBy: int("uploadedBy").notNull(),
+  kind: mysqlEnum("kind", ["cover", "photo"]).notNull(),
+  url: text("url").notNull(),
+  storageKey: varchar("storageKey", { length: 512 }).notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  mimeType: varchar("mimeType", { length: 120 }).notNull(),
+  caption: text("caption"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type CoupleSpace = typeof coupleSpaces.$inferSelect;
+export type CoupleMember = typeof coupleMembers.$inferSelect;
+export type DailyLog = typeof dailyLogs.$inferSelect;
+export type SharedRecord = typeof sharedRecords.$inferSelect;
+export type MediaItem = typeof mediaItems.$inferSelect;

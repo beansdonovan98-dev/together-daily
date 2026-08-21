@@ -1,0 +1,21 @@
+# Project TODO
+
+- [x] Normalize the supplied JSON schema and identify every reusable collection.
+- [x] Produce a cleared, import-ready JSON template with neutral settings and empty personal data.
+- [x] Remove space-themed content from the cleared template and add explicit upload-ready cover and photo fields.
+- [x] Build secure sign-in, couple-space creation, and private partner invite flow.
+- [x] Add shared cloud data models and authorization checks for a two-person couple space.
+- [x] Implement daily log creation and date-based rollover from the reusable template.
+- [x] Build the Today dashboard with editable cover image, progress, relationship pulse, and fast actions.
+- [x] Implement individual check-ins for moods, energy, highlights, gratitude, love notes, and appreciation answers.
+- [x] Implement shared timeline, daily notes, meals, water, and relationship tracking.
+- [x] Implement a shared to-do list with assignment, completion, and carry-forward behavior.
+- [x] Implement automatically refreshed private chat, reactions, and Love Poke messages.
+- [x] Implement daily appreciation questions, deep connection questions, and question rotation.
+- [x] Implement an opt-in, consent-forward private intimacy area.
+- [x] Implement photo-library uploads, memory captions, a gallery, and daily cover-photo selection.
+- [x] Create relationship trends for mood frequency, habits, and streaks.
+- [x] Install and configure supported mobile photo selection dependencies.
+- [x] Generate and apply custom Together Daily launcher branding.
+- [x] Add deterministic tests for daily rollover, access control, pairing, and template normalization.
+- [x] Validate primary flows with unit tests and complete the mobile project checklist.

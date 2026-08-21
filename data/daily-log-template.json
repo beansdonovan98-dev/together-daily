@@ -1,0 +1,181 @@
+{
+  "version": "1.4-template",
+  "exportDate": null,
+  "settings": {
+    "pageTitle": "Together Daily",
+    "pageIcon": "💜",
+    "anniversaryDate": null,
+    "partners": {
+      "partner1": {
+        "id": "partner1",
+        "name": "Partner One",
+        "nickname": "",
+        "avatarEmoji": "💜",
+        "accentColor": "#8D5BA6"
+      },
+      "partner2": {
+        "id": "partner2",
+        "name": "Partner Two",
+        "nickname": "",
+        "avatarEmoji": "🩷",
+        "accentColor": "#D56B88"
+      }
+    },
+    "activePartner": null,
+    "theme": "together-light",
+    "showStreaks": true,
+    "chatSoundEnabled": true
+  },
+  "mediaUploadSettings": {
+    "acceptedMimeTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maxPhotosPerDay": 30,
+    "maxUploadSizeBytes": 5242880
+  },
+  "dailyLogTemplate": {
+    "id": null,
+    "date": null,
+    "title": "Daily Check-in",
+    "rating": null,
+    "weather": null,
+    "tags": [],
+    "pinned": false,
+    "coverPhoto": null,
+    "sharedHighlight": "",
+    "questionId": null,
+    "questionText": "",
+    "loveNotePartner1": "",
+    "loveNotePartner2": "",
+    "todos": [],
+    "meals": {
+      "breakfast": "",
+      "breakfastDone": false,
+      "lunch": "",
+      "lunchDone": false,
+      "dinner": "",
+      "dinnerDone": false,
+      "prepGrocery": "",
+      "prepGroceryDone": false
+    },
+    "water": {
+      "slots": [],
+      "glassesLogged": 0,
+      "dailyGoalGlasses": 8
+    },
+    "notesList": [],
+    "timelineEvents": [],
+    "partner1": {
+      "completed": false,
+      "mood": null,
+      "moodNote": "",
+      "energyLevel": null,
+      "highlight": "",
+      "gratitude": [],
+      "questionAnswer": "",
+      "loveNoteToPartner": ""
+    },
+    "partner2": {
+      "completed": false,
+      "mood": null,
+      "moodNote": "",
+      "energyLevel": null,
+      "highlight": "",
+      "gratitude": [],
+      "questionAnswer": "",
+      "loveNoteToPartner": ""
+    },
+    "photos": [],
+    "sharedNotes": ""
+  },
+  "photoTemplate": {
+    "id": null,
+    "url": null,
+    "storageKey": null,
+    "fileName": null,
+    "mimeType": null,
+    "caption": "",
+    "authorId": null,
+    "timestamp": null,
+    "uploadedAt": null
+  },
+  "coverPhotoTemplate": {
+    "id": null,
+    "url": null,
+    "storageKey": null,
+    "fileName": null,
+    "mimeType": null,
+    "altText": "",
+    "uploadedBy": null,
+    "uploadedAt": null
+  },
+  "logs": [],
+  "chatMessages": [],
+  "questions": [
+    {
+      "id": "q1",
+      "category": "connection",
+      "text": "What was a small moment today where you felt deeply loved or appreciated?",
+      "revealed": false
+    },
+    {
+      "id": "q2",
+      "category": "fun",
+      "text": "If we could teleport to anywhere for a two-hour dinner tonight, where are we going?",
+      "revealed": false
+    },
+    {
+      "id": "q3",
+      "category": "memories",
+      "text": "What is your favorite quiet, unscripted memory of us from this past year?",
+      "revealed": false
+    },
+    {
+      "id": "q4",
+      "category": "future",
+      "text": "What is one new experience you want us to try together before the year ends?",
+      "revealed": false
+    },
+    {
+      "id": "q5",
+      "category": "gratitude",
+      "text": "What habit or quality in me has positively influenced your own life recently?",
+      "revealed": false
+    },
+    {
+      "id": "q6",
+      "category": "fun",
+      "text": "If we were a comedy duo in a 1990s sitcom, what would our recurring catchphrase or gag be?",
+      "revealed": false
+    },
+    {
+      "id": "q7",
+      "category": "connection",
+      "text": "How can I support you or lighten your mental load over the next 48 hours?",
+      "revealed": false
+    },
+    {
+      "id": "q8",
+      "category": "future",
+      "text": "Describe our dream Sunday morning five years from now in three vivid sentences.",
+      "revealed": false
+    },
+    {
+      "id": "q9",
+      "category": "fun",
+      "text": "Which song instantly puts you in our favorite road-trip mood?",
+      "revealed": false
+    },
+    {
+      "id": "q10",
+      "category": "memories",
+      "text": "What did you honestly think in the first ten minutes after we first met?",
+      "revealed": false
+    }
+  ],
+  "habits": [],
+  "loveNotes": [],
+  "dateIdeas": []
+}

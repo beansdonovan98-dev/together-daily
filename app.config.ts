@@ -32,7 +32,7 @@ const env = {
   appSlug: "together-daily",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "",
+  logoUrl: "/manus-storage/together-daily-icon_4d2e6d4a.png",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -51,7 +51,8 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
     "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Together Daily uses your photo library so you can privately share cover photos and memories with your partner."
       }
   },
   android: {
@@ -86,6 +87,12 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can share private memories and daily cover photos."
+      }
+    ],
     [
       "expo-audio",
       {

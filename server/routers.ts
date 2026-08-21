@@ -1,28 +1,108 @@
+import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const.js";
+import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { storagePut } from "./storage";
+
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD calendar date.");
+const jsonObjectSchema = z.record(z.string(), z.unknown());
+const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
+const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+
+function safeFileName(fileName: string) {
+  const normalized = fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+  return normalized.slice(-120) || "photo.jpg";
+}
 
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  couple: router({
+    mine: protectedProcedure.query(({ ctx }) => db.getCoupleSpaceForUser(ctx.user.id)),
+    create: protectedProcedure
+      .input(
+        z.object({
+          displayName: z.string().trim().max(120),
+          memberName: z.string().trim().max(80),
+          avatarEmoji: z.string().trim().max(12).default("💜"),
+          accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#8D5BA6"),
+        }),
+      )
+      .mutation(({ ctx, input }) => db.createCoupleSpace(ctx.user.id, input)),
+    join: protectedProcedure
+      .input(
+        z.object({
+          inviteCode: z.string().trim().min(6).max(16),
+          memberName: z.string().trim().max(80),
+          avatarEmoji: z.string().trim().max(12).default("🩷"),
+          accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#D56B88"),
+        }),
+      )
+      .mutation(({ ctx, input }) => db.joinCoupleSpace(ctx.user.id, input)),
+  }),
+
+  daily: router({
+    get: protectedProcedure.input(z.object({ date: dateSchema })).query(({ ctx, input }) => db.getDailyLogForUser(ctx.user.id, input.date)),
+    update: protectedProcedure
+      .input(z.object({ date: dateSchema, content: jsonObjectSchema }))
+      .mutation(({ ctx, input }) => db.updateDailyLogForUser(ctx.user.id, input.date, input.content)),
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(90).optional() }).optional())
+      .query(({ ctx, input }) => db.listDailyLogsForUser(ctx.user.id, input?.limit)),
+  }),
+
+  records: router({
+    list: protectedProcedure
+      .input(z.object({ recordType: recordTypeSchema, limit: z.number().int().min(1).max(200).optional() }))
+      .query(({ ctx, input }) => db.listSharedRecordsForUser(ctx.user.id, input.recordType, input.limit)),
+    create: protectedProcedure
+      .input(z.object({ recordType: recordTypeSchema, content: jsonObjectSchema }))
+      .mutation(({ ctx, input }) => db.createSharedRecordForUser(ctx.user.id, input)),
+  }),
+
+  media: router({
+    list: protectedProcedure
+      .input(z.object({ date: dateSchema.optional() }).optional())
+      .query(({ ctx, input }) => db.listMediaForUser(ctx.user.id, input?.date)),
+    upload: protectedProcedure
+      .input(
+        z.object({
+          date: dateSchema,
+          kind: z.enum(["cover", "photo"]),
+          fileName: z.string().min(1).max(255),
+          mimeType: imageMimeTypeSchema,
+          base64: z.string().min(1).max(7_000_000),
+          caption: z.string().max(500).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const bytes = Buffer.from(input.base64, "base64");
+        if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Please choose a photo smaller than 5 MB.");
+        const log = await db.getDailyLogForUser(ctx.user.id, input.date);
+        const fileName = safeFileName(input.fileName);
+        const storageKey = `couples/${log.coupleId}/photos/${Date.now()}-${fileName}`;
+        const stored = await storagePut(storageKey, bytes, input.mimeType);
+        return db.createMediaItemForUser(ctx.user.id, {
+          dailyLogId: log.id,
+          kind: input.kind,
+          url: stored.url,
+          storageKey: stored.key,
+          fileName,
+          mimeType: input.mimeType,
+          caption: input.caption,
+        });
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
