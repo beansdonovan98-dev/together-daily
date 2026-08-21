@@ -26,3 +26,4 @@
 - [x] Add no-sign-in shared-room access so Beans and Princess can use the journal simultaneously from separate browsers.
 - [x] Apply Beans purple and Princess pink identity colors consistently across shared journal views.
 - [x] Turn Shared Log into a continuous time-stamped stream that both Beans and Princess can add to throughout the day.
+- [x] Restyle the shared workspace to match the uploaded screenshot reference while keeping the timeline unfilled and reusable.

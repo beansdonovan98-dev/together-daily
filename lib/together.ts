@@ -1,14 +1,16 @@
 export const COLORS = {
-  plum: "#281C32",
-  orchid: "#8D5BA6",
-  rose: "#D56B88",
-  blush: "#FDF3F6",
-  lavender: "#F1EAF7",
-  sage: "#6F9277",
-  gold: "#D69A3E",
-  slate: "#665F6B",
-  white: "#FFFFFF",
-  border: "#E8DEE9",
+  plum: "#F7F2F8",
+  orchid: "#A421FF",
+  rose: "#EE43B8",
+  blush: "#09080B",
+  lavender: "#21142B",
+  sage: "#53C58D",
+  gold: "#D9B45F",
+  slate: "#ADA3B1",
+  white: "#151217",
+  border: "#302833",
+  surface: "#1A161D",
+  ink: "#0E0C10",
 };
 
 export function localDateKey(date = new Date()) {
