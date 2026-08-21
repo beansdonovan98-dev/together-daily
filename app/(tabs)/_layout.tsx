@@ -11,6 +11,7 @@ export default function TabLayout() {
     <Tabs.Screen name="index" options={{title:"Today",tabBarIcon:({color})=><IconSymbol size={25} name="house.fill" color={color}/>}} />
     <Tabs.Screen name="log" options={{title:"Log",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
     <Tabs.Screen name="connect" options={{title:"Connect",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
+    <Tabs.Screen name="steamy" options={{title:"Steamy",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="memories" options={{title:"Photos",tabBarIcon:({color})=><IconSymbol size={24} name="photo.on.rectangle.angled" color={color}/>}} />
     <Tabs.Screen name="chat" options={{title:"Chat",tabBarIcon:({color})=><IconSymbol size={24} name="bubble.left.and.bubble.right.fill" color={color}/>}} />
   </Tabs>;

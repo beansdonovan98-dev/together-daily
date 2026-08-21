@@ -28,3 +28,4 @@
 - [x] Turn Shared Log into a continuous time-stamped stream that both Beans and Princess can add to throughout the day.
 - [x] Restyle the shared workspace to match the uploaded screenshot reference while keeping the timeline unfilled and reusable.
 - [x] Add distinct Beans and Princess answer areas for every shared daily question.
+- [x] Add a separate private, consent-forward Steamy section with safe-mode controls, preferences, prompts, and shared notes.

@@ -9,6 +9,7 @@ const NAVIGATION = [
   { href: "/", label: "Today", glyph: "✦" },
   { href: "/log", label: "Daily Log", glyph: "☰" },
   { href: "/connect", label: "Questions", glyph: "☁" },
+  { href: "/steamy", label: "Steamy", glyph: "♥" },
   { href: "/memories", label: "Photos", glyph: "▧" },
   { href: "/chat", label: "Couple Chat", glyph: "◌" },
 ];
