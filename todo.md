@@ -34,3 +34,5 @@
 - [x] Move Couple Chat into the protected Steamy section and remove it from the main workspace navigation.
 - [x] Replace the relationship tracker with a live days, weeks, months, and hours counter from August 9, 2019.
 - [x] Remove the Questions tab and the first-tab “How are you arriving today?” mood-and-energy check-in.
+- [x] Create a fresh navigable Daily Log page for every calendar day with preserved history access.
+- [x] Add a Good Habits page with shared daily check-offs, Beans and Princess progress, streaks, and history.
