@@ -37,3 +37,4 @@
 - [x] Create a fresh navigable Daily Log page for every calendar day with preserved history access.
 - [x] Add a Good Habits page with shared daily check-offs, Beans and Princess progress, streaks, and history.
 - [x] Add shared daily counters for six hugs, six kisses, and six “I love you”s.
+- [x] Replace Steamy’s opt-in prompts with a locked private mature-only Cum Log and shared entry history.
