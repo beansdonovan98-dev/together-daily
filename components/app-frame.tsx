@@ -1,5 +1,6 @@
 import { ScreenContainer } from "@/components/screen-container";
 import { COLORS } from "@/lib/together";
+import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import { type ReactNode } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
@@ -16,6 +17,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { width } = useWindowDimensions();
   const isDesktopWeb = Platform.OS === "web" && width >= 960;
+  const { roomCode, memberId, isSyncing } = useLocalJournal();
+  const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
 
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
@@ -25,7 +28,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             <View>
               <Text style={styles.brandEyebrow}>PRIVATE · TWO PEOPLE</Text>
               <Text style={styles.brand}>Together{`\n`}Daily</Text>
-              <Text style={styles.brandCopy}>A gentle daily place, saved in this browser.</Text>
+              <Text style={styles.brandCopy}>A shared daily place for Beans and Princess.</Text>
             </View>
             <View style={styles.navigation}>
               {NAVIGATION.map((item) => {
@@ -39,8 +42,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
               })}
             </View>
             <View style={styles.privacyNote}>
-              <Text style={styles.privacyTitle}>Local by design</Text>
-              <Text style={styles.privacyCopy}>Your entries stay in this browser unless you export them.</Text>
+              <View style={styles.identityRow}><View style={[styles.identityDot,{backgroundColor:member.color}]} /><Text style={styles.privacyTitle}>{member.name}</Text></View>
+              <Text style={styles.privacyCopy}>{isSyncing?"Syncing shared room…":`Shared room · ${roomCode ?? ""}`}</Text>
             </View>
           </View>
           <View style={styles.desktopContent}>{children}</View>
@@ -67,5 +70,7 @@ const styles = StyleSheet.create({
   privacyNote: { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.16)", paddingTop: 18 },
   privacyTitle: { color: COLORS.white, fontSize: 13, fontWeight: "800", marginBottom: 5 },
   privacyCopy: { color: "#D9CCD9", fontSize: 12, lineHeight: 17 },
+  identityRow: { flexDirection:"row", alignItems:"center", gap:8 },
+  identityDot: { width:10, height:10, borderRadius:5, marginBottom:5 },
   desktopContent: { flex: 1, width: "100%", maxWidth: 1180, alignSelf: "center", backgroundColor: COLORS.blush, paddingTop: 24 },
 });

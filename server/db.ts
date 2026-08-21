@@ -4,6 +4,7 @@ import {
   coupleMembers,
   coupleSpaces,
   dailyLogs,
+  guestRooms,
   mediaItems,
   sharedRecords,
   type InsertUser,
@@ -352,4 +353,39 @@ export async function listMediaForUser(userId: number, date?: string) {
   }
   const log = await getDailyLogForUser(userId, date);
   return db.select().from(mediaItems).where(eq(mediaItems.dailyLogId, log.id)).orderBy(desc(mediaItems.createdAt));
+}
+
+function createGuestRoomCode() {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
+}
+
+export async function createGuestRoom(journalState: JsonObject) {
+  const db = requireDb(await getDb());
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const roomCode = createGuestRoomCode();
+    try {
+      const result = await db.insert(guestRooms).values({ roomCode, journalState: JSON.stringify(journalState) });
+      const created = await db.select().from(guestRooms).where(eq(guestRooms.id, Number(result[0].insertId))).limit(1);
+      return { roomCode: created[0].roomCode, journalState: parseObject(created[0].journalState), updatedAt: created[0].updatedAt };
+    } catch (error) {
+      if (attempt === 2) throw error;
+    }
+  }
+  throw new Error("Unable to create a shared room.");
+}
+
+export async function getGuestRoom(roomCode: string) {
+  const db = requireDb(await getDb());
+  const found = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode.trim().toUpperCase())).limit(1);
+  if (!found[0]) throw new Error("That shared room code was not found.");
+  return { roomCode: found[0].roomCode, journalState: parseObject(found[0].journalState), updatedAt: found[0].updatedAt };
+}
+
+export async function updateGuestRoom(roomCode: string, journalState: JsonObject) {
+  const db = requireDb(await getDb());
+  const normalizedCode = roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  await db.update(guestRooms).set({ journalState: JSON.stringify(journalState) }).where(eq(guestRooms.roomCode, normalizedCode));
+  return { roomCode: normalizedCode, journalState, updatedAt: new Date() };
 }

@@ -85,6 +85,19 @@ export const mediaItems = mysqlTable("media_items", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+/** A no-sign-in shared journal room. The unguessable room code acts as the invite credential. */
+export const guestRooms = mysqlTable(
+  "guest_rooms",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    roomCode: varchar("roomCode", { length: 16 }).notNull(),
+    journalState: text("journalState").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("guest_rooms_room_code_unique").on(table.roomCode)],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type CoupleSpace = typeof coupleSpaces.$inferSelect;
@@ -92,3 +105,4 @@ export type CoupleMember = typeof coupleMembers.$inferSelect;
 export type DailyLog = typeof dailyLogs.$inferSelect;
 export type SharedRecord = typeof sharedRecords.$inferSelect;
 export type MediaItem = typeof mediaItems.$inferSelect;
+export type GuestRoom = typeof guestRooms.$inferSelect;

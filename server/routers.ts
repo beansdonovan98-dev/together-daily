@@ -103,6 +103,15 @@ export const appRouter = router({
         });
       }),
   }),
+
+  guestRoom: router({
+    create: publicProcedure.input(z.object({ journalState: jsonObjectSchema })).mutation(({ input }) => db.createGuestRoom(input.journalState)),
+    get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
+    join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).mutation(({ input }) => db.getGuestRoom(input.roomCode)),
+    update: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema }))
+      .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState)),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

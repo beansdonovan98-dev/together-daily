@@ -1,12 +1,12 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
-import { useLocalJournal } from "@/lib/local-journal";
+import { type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SharedLogScreen() { return <PrivateGate>{({ userId }) => <SharedLogContent userId={userId} />}</PrivateGate>; }
-function SharedLogContent({ userId }: { userId: number }) {
+function SharedLogContent({ userId }: { userId: PartnerId }) {
   const date = localDateKey(); const { getDay, updateDay, allDays } = useLocalJournal(); const [highlight, setHighlight] = useState(""); const [note, setNote] = useState(""); const [task, setTask] = useState("");
   const content = asObject(getDay(date)); const todos = Array.isArray(content.todos) ? content.todos : []; const save = (patch: Record<string, unknown>) => updateDay(date, patch);
   const addTask = () => { if (!task.trim()) return; save({ todos: [...todos, { id: `todo-${Date.now()}`, text: task.trim(), completed: false, assignedTo: "both" }] }); setTask(""); };
