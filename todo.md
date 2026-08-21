@@ -33,3 +33,4 @@
 - [x] Replace the daily appreciation question with a relationship tracker, separate Beans and Princess love notes, and a shared meal planner.
 - [x] Move Couple Chat into the protected Steamy section and remove it from the main workspace navigation.
 - [x] Replace the relationship tracker with a live days, weeks, months, and hours counter from August 9, 2019.
+- [x] Remove the Questions tab and the first-tab “How are you arriving today?” mood-and-energy check-in.
