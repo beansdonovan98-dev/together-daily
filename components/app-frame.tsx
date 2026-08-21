@@ -11,7 +11,6 @@ const NAVIGATION = [
   { href: "/connect", label: "Questions", glyph: "☁" },
   { href: "/steamy", label: "Steamy", glyph: "♥" },
   { href: "/memories", label: "Photos", glyph: "▧" },
-  { href: "/chat", label: "Couple Chat", glyph: "◌" },
 ];
 
 export function AppFrame({ children }: { children: ReactNode }) {
