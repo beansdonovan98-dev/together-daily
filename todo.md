@@ -66,3 +66,4 @@
 - [x] Add a reset-to-default control for shared personalization.
 - [x] Add reusable shared color-theme presets.
 - [x] Add an Are you sure confirmation before resetting personalization.
+- [x] Let partners name and save their own shared custom color themes.
