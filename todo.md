@@ -80,3 +80,5 @@
 - [x] Add edit and safe delete controls for shared saved cleaning templates.
 - [x] Remove the bottom two sections from Steamy.
 - [x] Replace Photos with a shared Purchase tab for Groceries, For the House, and Misc. lists.
+- [x] Remove the live-sharing notice from Today.
+- [x] Add two independently captionable daily cover-photo spaces on Today.
