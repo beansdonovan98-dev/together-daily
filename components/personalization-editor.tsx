@@ -26,6 +26,13 @@ const SUBHEADING_FIELDS = [
 
 const ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#C6A04C", "#90B99D", "#66B7DD", "#E6A267"];
 const BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#16111A", "#102019", "#111827", "#251316"];
+const SAVED_THEMES = [
+  { name: "Together", accent: "#8D5BA6", background: "#0D0B0F" },
+  { name: "Blush Twilight", accent: "#D56B88", background: "#251316" },
+  { name: "Golden Keep", accent: "#C6A04C", background: "#18101E" },
+  { name: "Sage Afterglow", accent: "#90B99D", background: "#102019" },
+  { name: "Blue Hour", accent: "#66B7DD", background: "#111827" },
+] as const;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 export function getSubheading(customSubheadings: Record<string, string>, key: keyof typeof SUBHEADING_DEFAULTS) {
@@ -38,6 +45,7 @@ export function PersonalizationEditor() {
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
   const [accentDraft, setAccentDraft] = useState(theme.accentColor ?? COLORS.orchid);
   const [backgroundDraft, setBackgroundDraft] = useState(theme.backgroundColor ?? COLORS.blush);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); } }, [customSubheadings, open, theme.accentColor, theme.backgroundColor]);
 
@@ -52,6 +60,13 @@ export function PersonalizationEditor() {
     setSubheadingDrafts({});
     setAccentDraft(COLORS.orchid);
     setBackgroundDraft(COLORS.blush);
+    setConfirmReset(false);
+  };
+
+  const applyTheme = (accentColor: string, backgroundColor: string) => {
+    setAccentDraft(accentColor);
+    setBackgroundDraft(backgroundColor);
+    setTheme({ accentColor, backgroundColor });
   };
 
   return <View style={styles.card}>
@@ -61,9 +76,10 @@ export function PersonalizationEditor() {
     {open ? <View style={styles.editor}>
       <Text style={styles.helper}>Edit the descriptive words beneath the section titles. Leave one blank to restore its original words. Your color choices are shared with your room.</Text>
       {SUBHEADING_FIELDS.map((field) => <View key={field.key} style={styles.field}><Text style={styles.label}>{field.label}</Text><TextInput value={subheadingDrafts[field.key] ?? ""} onChangeText={(value) => setSubheadingDrafts((current) => ({ ...current, [field.key]: value }))} placeholder={SUBHEADING_DEFAULTS[field.key]} placeholderTextColor="#7F7582" maxLength={80} style={styles.input} /></View>)}
+      <Text style={styles.sectionLabel}>SAVED COLOR THEMES</Text><View style={styles.themeGrid}>{SAVED_THEMES.map((themeOption) => { const active = accentDraft === themeOption.accent && backgroundDraft === themeOption.background; return <TouchableOpacity key={themeOption.name} accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accent, themeOption.background)} style={[styles.themeButton, active && { borderColor: themeOption.accent }]}><View style={styles.themeColors}><View style={[styles.themeColor,{backgroundColor:themeOption.accent}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.background}]}/></View><Text style={[styles.themeName,active&&{color:themeOption.accent}]}>{themeOption.name}</Text></TouchableOpacity>; })}</View>
       <Text style={styles.sectionLabel}>ACCENT COLOR</Text><View style={styles.swatches}>{ACCENT_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setAccentDraft(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accentDraft === color && styles.swatchActive]} />)}</View><TextInput value={accentDraft} onChangeText={setAccentDraft} placeholder="#8D5BA6" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
       <Text style={styles.sectionLabel}>BACKGROUND COLOR</Text><View style={styles.swatches}>{BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setBackgroundDraft(color)} accessibilityLabel={`Choose ${color} background`} style={[styles.swatch, { backgroundColor: color }, backgroundDraft === color && styles.swatchActive]} />)}</View><TextInput value={backgroundDraft} onChangeText={setBackgroundDraft} placeholder="#0D0B0F" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
-      <View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={reset}><Text style={styles.resetText}>Reset to defaults</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={save}><Text style={styles.saveText}>Save personalization</Text></TouchableOpacity></View>
+      {confirmReset ? <View style={styles.confirmCard}><Text style={styles.confirmTitle}>Reset all personalization?</Text><Text style={styles.confirmCopy}>Your custom descriptions, accent color, and background color will return to the original Together Daily look for both partners.</Text><View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={() => setConfirmReset(false)}><Text style={styles.resetText}>Keep mine</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.confirmButton} onPress={reset}><Text style={styles.confirmText}>Yes, reset</Text></TouchableOpacity></View></View> : <View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={() => setConfirmReset(true)}><Text style={styles.resetText}>Reset to defaults</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={save}><Text style={styles.saveText}>Save personalization</Text></TouchableOpacity></View>}
     </View> : null}
   </View>;
 }
@@ -80,6 +96,11 @@ const styles = StyleSheet.create({
   label: { color: COLORS.plum, fontSize: 11, fontWeight: "800" },
   input: { minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 10, fontSize: 13 },
   sectionLabel: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: .9, marginTop: 5 },
+  themeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  themeButton: { minWidth: "30%", flexGrow: 1, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 8, gap: 6 },
+  themeColors: { flexDirection: "row", gap: 4 },
+  themeColor: { height: 8, flex: 1, borderRadius: 4 },
+  themeName: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
   swatches: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
   swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: "transparent" },
   swatchActive: { borderColor: COLORS.white },
@@ -89,4 +110,9 @@ const styles = StyleSheet.create({
   resetText: { color: COLORS.slate, fontSize: 11, fontWeight: "900" },
   saveButton: { flex: 1, minHeight: 42, borderRadius: 11, backgroundColor: COLORS.orchid, alignItems: "center", justifyContent: "center" },
   saveText: { color: COLORS.white, fontSize: 13, fontWeight: "900" },
+  confirmCard: { gap: 8, borderRadius: 12, borderWidth: 1, borderColor: "#7D4357", backgroundColor: "#1F1117", padding: 12 },
+  confirmTitle: { color: COLORS.plum, fontSize: 14, fontWeight: "900" },
+  confirmCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
+  confirmButton: { flex: 1, minHeight: 42, borderRadius: 11, backgroundColor: COLORS.rose, alignItems: "center", justifyContent: "center" },
+  confirmText: { color: COLORS.white, fontSize: 12, fontWeight: "900" },
 });
