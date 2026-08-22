@@ -111,6 +111,27 @@ export const appRouter = router({
     get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
+    uploadPrivateMedia: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(3_500_000), caption: z.string().max(500).optional() }))
+      .mutation(async ({ input }) => {
+        const bytes = Buffer.from(input.base64, "base64");
+        if (bytes.byteLength > 2.5 * 1024 * 1024) throw new Error("Please choose a smaller private photo.");
+        const fileName = safeFileName(input.fileName);
+        const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/private/${Date.now()}-${fileName}`, bytes, input.mimeType);
+        const media = {
+          id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          kind: "private",
+          url: stored.url,
+          storageKey: stored.key,
+          fileName,
+          mimeType: input.mimeType,
+          caption: input.caption ?? "",
+          createdAt: new Date().toISOString(),
+          dailyDate: input.dailyDate,
+          uploadedBy: input.partnerId,
+        };
+        return db.addGuestRoomPrivateMedia({ roomCode: input.roomCode, partnerId: input.partnerId, media });
+      }),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),

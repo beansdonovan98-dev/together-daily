@@ -102,3 +102,4 @@
 - [x] Add shared editable identity emoji fields for Daddy and Princess in Themes.
 - [x] Expand Themes with richer accent, background, profile, and ready-made color selections.
 - [x] Add visual previews and color accessibility contrast guidance in Themes.
+- [x] Restore reliable saving of pictures in the Steamy private gallery.

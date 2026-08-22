@@ -464,3 +464,23 @@ export async function updateGuestRoom(roomCode: string, journalState: JsonObject
   if (actorId && notificationType) await notifyGuestRoomPartner(normalizedCode, actorId, notificationType);
   return { roomCode: normalizedCode, journalState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }
+
+export async function addGuestRoomPrivateMedia(input: {
+  roomCode: string;
+  partnerId: GuestRoomMemberId;
+  media: JsonObject;
+}) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before adding private media.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const media = Array.isArray(journalState.media) ? journalState.media : [];
+  const nextState = { ...journalState, media: [input.media, ...media] };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), media: input.media };
+}
