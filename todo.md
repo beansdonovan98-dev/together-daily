@@ -41,3 +41,4 @@
 - [x] Fix Android APK scrolling, touch controls, and navigation interactions that are unresponsive after installation.
 - [x] Remove the duplicate Android bottom navigation and keep only the top section navigation.
 - [x] Add clear two-device shared-room instructions so the user can invite their wife with the room code.
+- [x] Add one-tap copy and native share actions for the shared-room invite code.
