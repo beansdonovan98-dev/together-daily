@@ -115,3 +115,4 @@
 - [x] Stop Today Love Notes from clearing after each typed letter.
 - [x] Verify and complete private-gallery GIF upload and animated display support.
 - [x] Restore preview persistence for private-gallery and Today cover-photo uploads.
+- [x] Repair the still-failing private-gallery upload and verify its saved media record persists.

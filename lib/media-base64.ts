@@ -30,7 +30,7 @@ async function readWebUriAsBase64(uri: string) {
 
 /** Reads an ImagePicker asset without depending on native-only filesystem paths. */
 export async function readPickedImageAsBase64(uri: string, providedBase64?: string | null) {
-  if (providedBase64) return providedBase64;
+  if (providedBase64) return providedBase64.startsWith("data:") ? base64FromDataUrl(providedBase64) : providedBase64;
   if (Platform.OS === "web") return readWebUriAsBase64(uri);
   return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
 }
