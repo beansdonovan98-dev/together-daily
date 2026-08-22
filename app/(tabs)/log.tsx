@@ -2,10 +2,11 @@ import { AppFrame } from "@/components/app-frame";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
+import { sortTimelineEntriesOldestFirst } from "@/lib/timeline-utils";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type EventStyle = { id: string; label: string; emoji: string; color: string };
 type TimelineEntry = { id: string; text: string; type: string; emoji?: string; color?: string; authorId: PartnerId; createdAt: string };
@@ -44,17 +45,22 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, customSubheadings, theme } = useLocalJournal();
+  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
   const [customColor, setCustomColor] = useState(COLORS.orchid);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editEmoji, setEditEmoji] = useState("✦");
+  const [editColor, setEditColor] = useState(COLORS.orchid);
 
   useEffect(() => { ensureDay(date); }, [date, ensureDay]);
 
   const content = asObject(getDay(date));
   const entries = useMemo(
-    () => (Array.isArray(content.timelineEvents) ? [...content.timelineEvents] : []).sort((a: TimelineEntry, b: TimelineEntry) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as TimelineEntry[],
+    () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
     [content.timelineEvents],
   );
   const me = PARTNERS[userId];
@@ -65,6 +71,29 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     if (!text) return;
     addDailyLogEvent(date, { id: `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }, activeStyle);
     setDraft("");
+  };
+
+  const beginEdit = (entry: TimelineEntry) => {
+    const style = getEventStyle(entry);
+    setEditingId(entry.id);
+    setEditText(entry.text);
+    setEditLabel(style.label);
+    setEditEmoji(style.emoji);
+    setEditColor(style.color);
+  };
+
+  const saveEdit = (entry: TimelineEntry) => {
+    const text = editText.trim();
+    if (!text) return;
+    updateDailyLogEvent(date, entry.id, { text, type: editLabel.trim() || "Custom moment", emoji: editEmoji.trim() || "✦", color: editColor });
+    setEditingId(null);
+  };
+
+  const confirmDelete = (entry: TimelineEntry) => {
+    Alert.alert("Delete this event?", "This removes the event from today’s shared timeline for both of you.", [
+      { text: "Keep", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteDailyLogEvent(date, entry.id) },
+    ]);
   };
 
   return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
@@ -117,9 +146,10 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
       {entries.length ? <View style={styles.entries}>{entries.map((entry) => {
         const author = PARTNERS[entry.authorId];
         const style = getEventStyle(entry);
+        const editing = editingId === entry.id;
         return <View key={entry.id} style={[styles.entry, { borderColor: style.color, borderLeftColor: author.color }]}>
           <View style={styles.entryMeta}><Text style={[styles.timePill, { color: author.color }]}>{dateTimeLabel(entry.createdAt)}</Text><View style={[styles.category, { backgroundColor: `${style.color}20`, borderColor: style.color }]}><Text style={[styles.categoryText, { color: style.color }]}>{style.emoji} {style.label}</Text></View><View style={[styles.partnerPill, { backgroundColor: author.soft }]}><Text style={[styles.partnerPillText, { color: author.color }]}>{entry.authorId === "beans" ? "♛ Beans" : "♥ Princess"}</Text></View></View>
-          <Text style={[styles.entryTitle, { color: author.color }]}>{entry.text}</Text>
+          {editing ? <View style={styles.editPanel}><TextInput value={editText} onChangeText={setEditText} placeholder="What happened?" placeholderTextColor="#7F7582" multiline style={styles.editTextInput}/><View style={styles.editStyleRow}><TextInput value={editEmoji} onChangeText={(value) => setEditEmoji(value.slice(0, 4))} placeholder="✦" placeholderTextColor="#7F7582" maxLength={4} style={styles.editEmojiInput}/><TextInput value={editLabel} onChangeText={setEditLabel} placeholder="Event type" placeholderTextColor="#7F7582" maxLength={28} style={styles.editLabelInput}/></View><View style={styles.editColorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`Use ${option.name} color for this event`} onPress={() => setEditColor(option.value)} style={[styles.editColorSwatch, { backgroundColor: option.value }, editColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{editColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View><View style={styles.editActions}><TouchableOpacity accessibilityRole="button" onPress={() => setEditingId(null)} style={styles.cancelEditButton}><Text style={styles.cancelEditText}>Cancel</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => saveEdit(entry)} style={[styles.saveEditButton, { backgroundColor: author.color }]}><Text style={styles.saveEditText}>Save changes</Text></TouchableOpacity></View></View> : <><Text style={[styles.entryTitle, { color: author.color }]}>{entry.text}</Text><View style={styles.entryActions}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${entry.text}`} onPress={() => beginEdit(entry)} style={styles.editAction}><Text style={styles.editActionText}>EDIT</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${entry.text}`} onPress={() => confirmDelete(entry)} style={styles.deleteAction}><Text style={styles.deleteActionText}>DELETE</Text></TouchableOpacity></View></>}
         </View>;
       })}</View> : <View style={styles.empty}><Text style={styles.emptyMark}>+</Text><Text style={styles.emptyTitle}>Start the stream.</Text><Text style={styles.emptyCopy}>A moment, a plan, a feeling, a shower, or a little memory can go here whenever it happens.</Text></View>}
     </View>
@@ -190,6 +220,23 @@ const styles = StyleSheet.create({
   partnerPill: { borderRadius: 7, paddingVertical: 4, paddingHorizontal: 7, marginLeft: "auto" },
   partnerPillText: { fontSize: 9, fontWeight: "900" },
   entryTitle: { fontSize: 16, fontWeight: "800", lineHeight: 23, marginTop: 10 },
+  entryActions: { flexDirection: "row", gap: 8, marginTop: 12 },
+  editAction: { borderRadius: 8, borderWidth: 1, borderColor: "#687B92", paddingHorizontal: 10, paddingVertical: 6 },
+  editActionText: { color: "#A9CDEC", fontSize: 9, fontWeight: "900", letterSpacing: .8 },
+  deleteAction: { borderRadius: 8, borderWidth: 1, borderColor: "#864B59", paddingHorizontal: 10, paddingVertical: 6 },
+  deleteActionText: { color: "#E69AAA", fontSize: 9, fontWeight: "900", letterSpacing: .8 },
+  editPanel: { gap: 9, marginTop: 11 },
+  editTextInput: { minHeight: 66, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 10, color: COLORS.plum, textAlignVertical: "top", fontSize: 14 },
+  editStyleRow: { flexDirection: "row", gap: 8 },
+  editEmojiInput: { width: 48, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 9, color: COLORS.plum, fontSize: 18, textAlign: "center", paddingHorizontal: 5, paddingVertical: 6 },
+  editLabelInput: { flex: 1, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 9, color: COLORS.plum, fontSize: 13, paddingHorizontal: 10, paddingVertical: 6 },
+  editColorRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  editColorSwatch: { width: 25, height: 25, borderRadius: 13, justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: "transparent" },
+  editActions: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
+  cancelEditButton: { borderRadius: 9, borderWidth: 1, borderColor: "#584E5C", paddingHorizontal: 12, paddingVertical: 8 },
+  cancelEditText: { color: COLORS.slate, fontSize: 11, fontWeight: "900" },
+  saveEditButton: { borderRadius: 9, paddingHorizontal: 12, paddingVertical: 8 },
+  saveEditText: { color: COLORS.white, fontSize: 11, fontWeight: "900" },
   empty: { paddingVertical: 30, paddingHorizontal: 22, alignItems: "center", borderTopWidth: 1, borderTopColor: "#2B252F", marginTop: 15 },
   emptyMark: { color: COLORS.orchid, fontSize: 27, lineHeight: 29 },
   emptyTitle: { color: COLORS.plum, fontWeight: "800", fontSize: 18, marginTop: 6 },

@@ -84,3 +84,5 @@
 - [x] Add two independently captionable daily cover-photo spaces on Today.
 - [x] Keep Grocery items until they are purchased, then automatically clear them the following day.
 - [x] Fix the partner invite so it shares a clear app-access path and room code instead of relying on the Notes share target.
+- [x] Show Daily Log events from earliest to latest.
+- [x] Add edit and delete controls for Daily Log events.
