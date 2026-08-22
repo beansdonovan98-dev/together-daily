@@ -69,3 +69,5 @@
 - [x] Let partners name and save their own shared custom color themes.
 - [x] Add rename and safe delete controls for shared saved color themes.
 - [x] Show Beans or Princess as the creator of each saved shared color theme.
+- [x] Move all theme personalization into a dedicated Themes tab.
+- [x] Reorder navigation so Themes is second to last and Past Days follows Photos as the final tab.
