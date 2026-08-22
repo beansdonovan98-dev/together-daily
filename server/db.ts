@@ -359,14 +359,39 @@ function createGuestRoomCode() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
 }
 
-export async function createGuestRoom(journalState: JsonObject) {
+type GuestRoomMemberId = "beans" | "princess";
+
+function parseGuestRoomMembers(value: string): GuestRoomMemberId[] {
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((member): member is GuestRoomMemberId => member === "beans" || member === "princess");
+  } catch {
+    return [];
+  }
+}
+
+function toGuestRoomResponse(room: typeof guestRooms.$inferSelect) {
+  return {
+    roomCode: room.roomCode,
+    journalState: parseObject(room.journalState),
+    memberIds: parseGuestRoomMembers(room.memberIds),
+    updatedAt: room.updatedAt,
+  };
+}
+
+export async function createGuestRoom(journalState: JsonObject, memberId: GuestRoomMemberId) {
   const db = requireDb(await getDb());
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const roomCode = createGuestRoomCode();
     try {
-      const result = await db.insert(guestRooms).values({ roomCode, journalState: JSON.stringify(journalState) });
+      const result = await db.insert(guestRooms).values({
+        roomCode,
+        journalState: JSON.stringify(journalState),
+        memberIds: JSON.stringify([memberId]),
+      });
       const created = await db.select().from(guestRooms).where(eq(guestRooms.id, Number(result[0].insertId))).limit(1);
-      return { roomCode: created[0].roomCode, journalState: parseObject(created[0].journalState), updatedAt: created[0].updatedAt };
+      return toGuestRoomResponse(created[0]);
     } catch (error) {
       if (attempt === 2) throw error;
     }
@@ -378,7 +403,26 @@ export async function getGuestRoom(roomCode: string) {
   const db = requireDb(await getDb());
   const found = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode.trim().toUpperCase())).limit(1);
   if (!found[0]) throw new Error("That shared room code was not found.");
-  return { roomCode: found[0].roomCode, journalState: parseObject(found[0].journalState), updatedAt: found[0].updatedAt };
+  return toGuestRoomResponse(found[0]);
+}
+
+export async function joinGuestRoom(roomCode: string, memberId: GuestRoomMemberId) {
+  const db = requireDb(await getDb());
+  const normalizedCode = roomCode.trim().toUpperCase();
+  const found = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
+  if (!found[0]) throw new Error("That shared room code was not found.");
+
+  const currentMembers = parseGuestRoomMembers(found[0].memberIds);
+  if (!currentMembers.includes(memberId) && currentMembers.length >= 2) {
+    throw new Error("That private room already has two connected partners.");
+  }
+
+  const memberIds = currentMembers.includes(memberId) ? currentMembers : [...currentMembers, memberId];
+  if (memberIds.length !== currentMembers.length) {
+    await db.update(guestRooms).set({ memberIds: JSON.stringify(memberIds) }).where(eq(guestRooms.roomCode, normalizedCode));
+  }
+
+  return { ...toGuestRoomResponse(found[0]), memberIds };
 }
 
 export async function updateGuestRoom(roomCode: string, journalState: JsonObject) {
@@ -387,5 +431,5 @@ export async function updateGuestRoom(roomCode: string, journalState: JsonObject
   const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!existing[0]) throw new Error("That shared room code was not found.");
   await db.update(guestRooms).set({ journalState: JSON.stringify(journalState) }).where(eq(guestRooms.roomCode, normalizedCode));
-  return { roomCode: normalizedCode, journalState, updatedAt: new Date() };
+  return { roomCode: normalizedCode, journalState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }

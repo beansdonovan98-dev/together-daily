@@ -10,6 +10,7 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD cal
 const jsonObjectSchema = z.record(z.string(), z.unknown());
 const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
 const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+const guestMemberIdSchema = z.enum(["beans", "princess"]);
 
 function safeFileName(fileName: string) {
   const normalized = fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
@@ -105,9 +106,9 @@ export const appRouter = router({
   }),
 
   guestRoom: router({
-    create: publicProcedure.input(z.object({ journalState: jsonObjectSchema })).mutation(({ input }) => db.createGuestRoom(input.journalState)),
+    create: publicProcedure.input(z.object({ journalState: jsonObjectSchema, memberId: guestMemberIdSchema })).mutation(({ input }) => db.createGuestRoom(input.journalState, input.memberId)),
     get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
-    join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).mutation(({ input }) => db.getGuestRoom(input.roomCode)),
+    join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState)),

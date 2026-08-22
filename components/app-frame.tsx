@@ -3,6 +3,7 @@ import { COLORS } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import QRCode from "react-native-qrcode-svg";
 import { type ReactNode, useState } from "react";
 import { Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -17,10 +18,13 @@ const NAVIGATION = [
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, isSyncing } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
-  const partnerToInvite = memberId === "princess" ? "Beans" : "Princess";
+  const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
+  const partnerConnected = roomMembers.includes(partnerToInvite.id);
+  const roomInviteLink = roomCode ? `manustogetherdaily://join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
 
   const showInviteFeedback = (message: string) => {
     setInviteFeedback(message);
@@ -42,9 +46,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
     if (!roomCode) return;
 
     const installInstruction = Platform.OS === "web"
-      ? "Open Together Daily, choose \"I have a room code\", select Princess, and enter the code below."
-      : "Install or open the same Together Daily APK, choose \"I have a room code\", select Princess, and enter the code below.";
-    const message = `Join me in our private Together Daily room.\n\n${installInstruction}\n\nRoom code: ${roomCode}`;
+      ? `Open Together Daily, choose \"I have a room code\", select ${partnerToInvite.name}, and enter the code below.`
+      : `Install or open the same Together Daily APK, choose \"I have a room code\", select ${partnerToInvite.name}, and enter the code below.`;
+    const message = `Join me in our private Together Daily room.\n\n${installInstruction}\n\nRoom code: ${roomCode}\nJoin link: ${roomInviteLink}`;
 
     try {
       await Share.share({ message, title: "Together Daily room invite" });
@@ -86,7 +90,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
           </View>
           {roomCode ? (
             <View style={styles.inviteRow}>
-              <Text style={styles.inviteHint}>To add {partnerToInvite}: install the same APK → choose “I have a room code” → enter <Text style={styles.inviteCode}>{roomCode}</Text>.</Text>
+              <View style={[styles.connectionStatus, partnerConnected && { borderColor: partnerToInvite.color, backgroundColor: `${partnerToInvite.color}22` }]}>
+                <View style={[styles.connectionDot, { backgroundColor: partnerConnected ? partnerToInvite.color : COLORS.gold }]} />
+                <Text style={[styles.connectionText, partnerConnected && { color: partnerToInvite.color }]}>{partnerConnected ? `${partnerToInvite.name.toUpperCase()} CONNECTED` : `WAITING FOR ${partnerToInvite.name.toUpperCase()}`}</Text>
+              </View>
+              <Text style={styles.inviteHint}>To add {partnerToInvite.name}: install the same APK → choose “I have a room code” → enter <Text style={styles.inviteCode}>{roomCode}</Text>.</Text>
               <View style={styles.inviteActions}>
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
                   <Text style={styles.inviteActionText}>COPY CODE</Text>
@@ -94,7 +102,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share room invite" onPress={shareRoomCode} style={[styles.inviteAction, styles.shareAction]}>
                   <Text style={styles.shareActionText}>SHARE INVITE</Text>
                 </TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show room QR code" onPress={() => setShowQr((visible) => !visible)} style={[styles.inviteAction, styles.qrAction]}>
+                  <Text style={styles.qrActionText}>{showQr ? "HIDE QR" : "SHOW QR"}</Text>
+                </TouchableOpacity>
               </View>
+              {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily with your room code ready to join.</Text></View></View> : null}
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
@@ -135,11 +147,21 @@ const styles = StyleSheet.create({
   inviteRow: { paddingHorizontal: 20, paddingBottom: 10 },
   inviteHint: { color: "#B8ABB9", fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
   inviteCode: { color: COLORS.gold, fontWeight: "900", letterSpacing: 1.1 },
+  connectionStatus: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#6A5B43", backgroundColor: "rgba(198,160,76,0.10)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
+  connectionDot: { width: 7, height: 7, borderRadius: 4 },
+  connectionText: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
   inviteActions: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   inviteAction: { borderWidth: 1, borderColor: "#C6A04C", borderRadius: 8, paddingHorizontal: 9, paddingVertical: 6 },
   inviteActionText: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   shareAction: { borderColor: COLORS.orchid, backgroundColor: "rgba(141,91,166,0.15)" },
   shareActionText: { color: COLORS.plum, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  qrAction: { borderColor: PARTNERS.princess.color, backgroundColor: "rgba(213,107,136,0.12)" },
+  qrActionText: { color: PARTNERS.princess.color, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  qrPanel: { marginTop: 12, borderRadius: 14, padding: 12, backgroundColor: "#171218", borderWidth: 1, borderColor: "#3D2E43", flexDirection: "row", gap: 13, alignItems: "center" },
+  qrCodeWrap: { borderRadius: 10, backgroundColor: "#FFF9F6", padding: 8 },
+  qrCopy: { flex: 1 },
+  qrTitle: { color: COLORS.plum, fontSize: 14, fontWeight: "900" },
+  qrText: { color: COLORS.slate, fontSize: 10, lineHeight: 15, marginTop: 4, fontFamily: "monospace" },
   inviteFeedback: { color: COLORS.sage, fontSize: 10, fontWeight: "800", marginTop: 7 },
   content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
 });

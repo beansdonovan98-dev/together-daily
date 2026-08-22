@@ -92,6 +92,7 @@ export const guestRooms = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     roomCode: varchar("roomCode", { length: 16 }).notNull(),
     journalState: text("journalState").notNull(),
+    memberIds: varchar("memberIds", { length: 64 }).notNull().default("[]"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

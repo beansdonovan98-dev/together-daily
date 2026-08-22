@@ -42,3 +42,5 @@
 - [x] Remove the duplicate Android bottom navigation and keep only the top section navigation.
 - [x] Add clear two-device shared-room instructions so the user can invite their wife with the room code.
 - [x] Add one-tap copy and native share actions for the shared-room invite code.
+- [x] Add a scannable room-invite QR code for the partner join flow.
+- [x] Show a clear Princess Connected confirmation when both partners have joined the shared room.
