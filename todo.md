@@ -39,3 +39,5 @@
 - [x] Add shared daily counters for six hugs, six kisses, and six “I love you”s.
 - [x] Replace Steamy’s opt-in prompts with a locked private mature-only Cum Log and shared entry history.
 - [x] Fix Android APK scrolling, touch controls, and navigation interactions that are unresponsive after installation.
+- [x] Remove the duplicate Android bottom navigation and keep only the top section navigation.
+- [x] Add clear two-device shared-room instructions so the user can invite their wife with the room code.

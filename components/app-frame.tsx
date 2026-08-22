@@ -18,6 +18,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { roomCode, memberId, isSyncing } = useLocalJournal();
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
+  const partnerToInvite = memberId === "princess" ? "Beans" : "Princess";
 
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
@@ -35,7 +36,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
-        <View style={styles.identityStrip}><View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} /><Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>♛ Beans</Text><Text style={styles.identityDivider}>·</Text><View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} /><Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>♥ Princess</Text><Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text><View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View></View>
+        <View style={styles.identityArea}><View style={styles.identityStrip}><View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} /><Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>♛ Beans</Text><Text style={styles.identityDivider}>·</Text><View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} /><Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>♥ Princess</Text><Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text><View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View></View>{roomCode ? <Text style={styles.inviteHint}>To add {partnerToInvite}: install the same APK → choose “I have a room code” → enter <Text style={styles.inviteCode}>{roomCode}</Text>.</Text> : null}</View>
         <View style={styles.content}>{children}</View>
       </View>
     </ScreenContainer>
@@ -61,12 +62,15 @@ const styles = StyleSheet.create({
   tabActiveText: { color: COLORS.white },
   badge: { backgroundColor: "rgba(255,255,255,0.17)", borderRadius: 7, paddingHorizontal: 5, paddingVertical: 2 },
   badgeText: { color: COLORS.white, fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
-  identityStrip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#211C24", backgroundColor: "#0C0A0E" },
+  identityArea: { borderBottomWidth: 1, borderBottomColor: "#211C24", backgroundColor: "#0C0A0E" },
+  identityStrip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 7 },
   identityDot: { width: 7, height: 7, borderRadius: 4 },
   identityName: { fontSize: 11, fontWeight: "900" },
   identityDivider: { color: "#554C58", marginHorizontal: 1 },
   identityRoom: { color: COLORS.slate, marginLeft: "auto", fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
   currentChip: { marginLeft: 4, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 7 },
   currentChipText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
+  inviteHint: { color: "#B8ABB9", fontFamily: "monospace", fontSize: 10, lineHeight: 15, paddingHorizontal: 20, paddingBottom: 10 },
+  inviteCode: { color: COLORS.gold, fontWeight: "900", letterSpacing: 1.1 },
   content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
 });
