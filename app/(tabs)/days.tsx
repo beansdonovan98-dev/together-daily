@@ -1,5 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
-import { getHeader } from "@/components/header-editor";
+import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
@@ -20,7 +20,7 @@ export default function PastDaysScreen() {
 
 function PastDaysContent() {
   const today = localDateKey();
-  const { ready, allDays, ensureDay, media, customHeaders } = useLocalJournal();
+  const { ready, allDays, ensureDay, media, customSubheadings, theme } = useLocalJournal();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,9 +35,10 @@ function PastDaysContent() {
     return <ArchivedDayDetail day={selectedDay} media={media.filter((item) => item.dailyDate === selectedDay.date && item.kind !== "private")} onBack={() => setSelectedDate(null)} />;
   }
 
-  return <AppFrame><ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
     <Text style={styles.eyebrow}>OUR ARCHIVE</Text>
-    <Text style={styles.title}>{getHeader(customHeaders, "pastDays")}</Text>
+    <Text style={styles.title}>Past Days</Text>
+    <Text style={styles.copy}>{getSubheading(customSubheadings, "pastDays")}</Text>
     <Text style={styles.copy}>Open any previous date to revisit its log, love notes, meals, to-dos, habits, and photos. Nothing is cleared from your history.</Text>
 
     <View style={styles.todayCard}>
@@ -66,6 +67,7 @@ function PastDayCard({ day, onPress }: { day: ArchiveDay; onPress: () => void })
 }
 
 function ArchivedDayDetail({ day, media, onBack }: { day: ArchiveDay; media: ReturnType<typeof useLocalJournal>["media"]; onBack: () => void }) {
+  const { theme } = useLocalJournal();
   const timeline = Array.isArray(day.timelineEvents) ? [...day.timelineEvents] : [];
   const loveNotes = asObject(day.loveNotes);
   const meals = asObject(day.meals);
@@ -79,7 +81,7 @@ function ArchivedDayDetail({ day, media, onBack }: { day: ArchiveDay; media: Ret
   const sharedNotes = String(day.sharedNotes ?? "").trim();
   const sharedHighlight = String(day.sharedHighlight ?? "").trim();
 
-  return <AppFrame><ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to Past Days" style={styles.backButton} onPress={onBack}><Text style={styles.backText}>← PAST DAYS</Text></TouchableOpacity>
     <Text style={styles.eyebrow}>SAVED DAY</Text>
     <Text style={styles.detailTitle}>{prettyDate(day.date)}</Text>

@@ -61,3 +61,5 @@
 - [x] Remove “Share a loving moment” from the default Good Habits list.
 - [x] Add a seven-day visual shared-affection streak calendar to Good Habits.
 - [x] Add shared editable section headers for app personalization.
+- [x] Replace editable section headers with editable descriptive subheadings.
+- [x] Add shared accent-color and background-theme personalization controls.

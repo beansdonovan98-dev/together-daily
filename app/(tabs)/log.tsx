@@ -1,5 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
-import { getHeader } from "@/components/header-editor";
+import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
@@ -44,7 +44,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, customHeaders } = useLocalJournal();
+  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -67,12 +67,12 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     setDraft("");
   };
 
-  return <AppFrame><ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
     <View style={styles.hero}>
       <Text style={styles.heroMark}>♥</Text>
       <View style={styles.heroCopy}>
         <Text style={styles.heroEyebrow}>{prettyDate(date).toUpperCase()}</Text>
-        <Text style={styles.heroTitle}>{getHeader(customHeaders, "dailyLog")}</Text>
+        <Text style={styles.heroTitle}>Our Daily Log</Text>
         <Text style={styles.heroSub}>{roomCode ? `Shared room · ${isSyncing ? "syncing" : "live"}` : "A private timeline for the two of you"}</Text>
       </View>
     </View>
@@ -92,7 +92,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     </View>
 
     <View style={styles.stream}>
-      <View style={styles.streamTop}><View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: "#21142B" }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>◷</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Log</Text><Text style={styles.sectionSub}>Timeline stream · add as often as you want</Text></View></View><View style={styles.liveTag}><View style={styles.liveDot}/><Text style={styles.liveText}>LIVE</Text></View></View>
+      <View style={styles.streamTop}><View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: "#21142B" }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>◷</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Log</Text><Text style={styles.sectionSub}>{getSubheading(customSubheadings,"dailyLog")}</Text></View></View><View style={styles.liveTag}><View style={styles.liveDot}/><Text style={styles.liveText}>LIVE</Text></View></View>
 
       <View style={[styles.composer, { borderColor: me.color }]}>
         <View style={styles.composerHeader}><View style={[styles.authorBadge, { backgroundColor: me.soft }]}><Text style={[styles.authorBadgeText, { color: me.color }]}>{userId === "beans" ? "♛ Beans" : "♥ Princess"}</Text></View><Text style={styles.composerTime}>NOW</Text></View>

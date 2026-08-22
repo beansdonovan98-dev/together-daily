@@ -19,7 +19,7 @@ const NAVIGATION = [
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -29,6 +29,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
   const isTodaySection = pathname === "/" || pathname === "/index";
   const roomInviteLink = roomCode ? `manustogetherdaily://join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
+  const accentColor = theme.accentColor ?? COLORS.orchid;
+  const backgroundColor = theme.backgroundColor ?? COLORS.blush;
 
   const showInviteFeedback = (message: string) => {
     setInviteFeedback(message);
@@ -94,7 +96,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
-      <View style={styles.frame}>
+      <View style={[styles.frame, { backgroundColor }]}>
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
@@ -105,7 +107,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs} style={styles.tabScroller}>
           {NAVIGATION.map((item) => {
             const active = pathname === item.href || (item.href === "/" && pathname === "/index");
-            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
+            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
         <View style={styles.identityArea}>
