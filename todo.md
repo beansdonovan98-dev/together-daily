@@ -71,3 +71,4 @@
 - [x] Show Beans or Princess as the creator of each saved shared color theme.
 - [x] Move all theme personalization into a dedicated Themes tab.
 - [x] Reorder navigation so Themes is second to last and Past Days follows Photos as the final tab.
+- [x] Add a shared Cleaning tab after Photos and before Themes.

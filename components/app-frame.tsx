@@ -14,6 +14,7 @@ const NAVIGATION = [
   { href: "/habits", label: "Habits", glyph: "✓" },
   { href: "/steamy", label: "Steamy", glyph: "♥" },
   { href: "/memories", label: "Photos", glyph: "▧" },
+  { href: "/cleaning", label: "Cleaning", glyph: "✦" },
   { href: "/themes", label: "Themes", glyph: "◐" },
   { href: "/days", label: "Past Days", glyph: "▤" },
 ];
