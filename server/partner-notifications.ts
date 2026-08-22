@@ -4,7 +4,7 @@ export type PartnerNotificationId = "beans" | "princess";
 type PartnerNotification = { title: string; body: string; path: string };
 
 function partnerName(partnerId: PartnerNotificationId) {
-  return partnerId === "beans" ? "Beans" : "Princess";
+  return partnerId === "beans" ? "Daddy" : "Princess";
 }
 
 /** Notification copy intentionally excludes journal, chat, photo, and intimate content. */

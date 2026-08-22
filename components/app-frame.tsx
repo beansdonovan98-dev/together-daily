@@ -122,7 +122,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
-            <View><Text style={styles.brand}>Together Daily</Text><Text style={styles.brandSub}>BEANS + PRINCESS</Text></View>
+            <View><Text style={styles.brand}>Together Daily</Text><Text style={styles.brandSub}>DADDY + PRINCESS</Text></View>
           </View>
           <View style={styles.liveStatus}><View style={[styles.liveDot, { backgroundColor: isSyncing ? COLORS.gold : COLORS.sage }]} /><Text style={styles.liveText}>{isSyncing ? "SYNCING" : "LIVE"}</Text></View>
         </View>
@@ -135,7 +135,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <View style={styles.identityArea}>
           <View style={styles.identityStrip}>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>♛ Beans</Text>
+            <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>♛ Daddy</Text>
             <Text style={styles.identityDivider}>·</Text>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} />
             <Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>♥ Princess</Text>

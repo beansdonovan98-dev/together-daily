@@ -90,3 +90,6 @@
 - [x] Add a native time picker to Daily Log event editing.
 - [x] Allow saved Daily Log event types to be deleted.
 - [x] Safeguard Daily Log sorting from 12:01 AM through 11:59 PM.
+- [ ] Resolve the published Together Daily site showing a maintenance page.
+- [x] Restore the Together Daily development server after it stopped responding.
+- [x] Rename Beans to Daddy throughout the app while retaining the purple partner identity.

@@ -8,7 +8,7 @@ const STATE_KEY = "together-daily-journal-v2";
 const ROOM_KEY = "together-daily-room-v1";
 export type PartnerId = "beans" | "princess";
 export const PARTNERS = {
-  beans: { id: "beans" as const, name: "Beans", color: "#8D5BA6", soft: "#F1EAF7", avatar: "B" },
+  beans: { id: "beans" as const, name: "Daddy", color: "#8D5BA6", soft: "#F1EAF7", avatar: "D" },
   princess: { id: "princess" as const, name: "Princess", color: "#D56B88", soft: "#FCEAF0", avatar: "P" },
 };
 

@@ -6,7 +6,7 @@ describe("partner notification content", () => {
   it("keeps a private update discreet and directs the recipient to the protected section", () => {
     expect(buildPartnerNotification("private-update", "beans")).toEqual({
       title: "Together Daily",
-      body: "Beans added a private update.",
+      body: "Daddy added a private update.",
       path: "/steamy",
     });
   });
