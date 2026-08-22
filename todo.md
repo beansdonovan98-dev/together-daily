@@ -44,3 +44,6 @@
 - [x] Add one-tap copy and native share actions for the shared-room invite code.
 - [x] Add a scannable room-invite QR code for the partner join flow.
 - [x] Show a clear Princess Connected confirmation when both partners have joined the shared room.
+- [x] Add privacy-safe push notifications for shared-room activity and partner connection events.
+- [x] Register each partner’s physical device for notifications and persist its room-bound push token.
+- [x] Send privacy-safe partner notifications from shared-room updates and open the relevant screen when tapped.

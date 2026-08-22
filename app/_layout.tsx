@@ -1,11 +1,12 @@
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Platform } from "react-native";
+import * as Notifications from "expo-notifications";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import {
@@ -27,7 +28,23 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+function usePartnerNotificationNavigation() {
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const openNotificationPath = (notification: Notifications.Notification) => {
+      const path = notification.request.content.data?.path;
+      if (typeof path === "string" && path.startsWith("/")) router.push(path as never);
+    };
+
+    const lastResponse = Notifications.getLastNotificationResponse();
+    if (lastResponse?.notification) openNotificationPath(lastResponse.notification);
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => openNotificationPath(response.notification));
+    return () => subscription.remove();
+  }, []);
+}
+
 export default function RootLayout() {
+  usePartnerNotificationNavigation();
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 

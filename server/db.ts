@@ -5,12 +5,14 @@ import {
   coupleSpaces,
   dailyLogs,
   guestRooms,
+  guestRoomPushTokens,
   mediaItems,
   sharedRecords,
   type InsertUser,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { buildPartnerNotification, sendPartnerPushNotifications, type PartnerNotificationEvent } from "./partner-notifications";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -380,6 +382,21 @@ function toGuestRoomResponse(room: typeof guestRooms.$inferSelect) {
   };
 }
 
+async function notifyGuestRoomPartner(roomCode: string, actorId: GuestRoomMemberId, event: PartnerNotificationEvent) {
+  const db = await getDb();
+  if (!db) return;
+
+  const tokens = await db.select().from(guestRoomPushTokens).where(eq(guestRoomPushTokens.roomCode, roomCode));
+  const recipientTokens = tokens.filter((entry) => entry.enabled && entry.partnerId !== actorId).map((entry) => entry.token);
+  if (!recipientTokens.length) return;
+
+  try {
+    await sendPartnerPushNotifications(recipientTokens, buildPartnerNotification(event, actorId));
+  } catch (error) {
+    console.warn("[Push] Partner notification could not be delivered:", error);
+  }
+}
+
 export async function createGuestRoom(journalState: JsonObject, memberId: GuestRoomMemberId) {
   const db = requireDb(await getDb());
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -420,16 +437,30 @@ export async function joinGuestRoom(roomCode: string, memberId: GuestRoomMemberI
   const memberIds = currentMembers.includes(memberId) ? currentMembers : [...currentMembers, memberId];
   if (memberIds.length !== currentMembers.length) {
     await db.update(guestRooms).set({ memberIds: JSON.stringify(memberIds) }).where(eq(guestRooms.roomCode, normalizedCode));
+    await notifyGuestRoomPartner(normalizedCode, memberId, "connection");
   }
 
   return { ...toGuestRoomResponse(found[0]), memberIds };
 }
 
-export async function updateGuestRoom(roomCode: string, journalState: JsonObject) {
+export async function registerGuestRoomPushToken(input: { roomCode: string; partnerId: GuestRoomMemberId; token: string; platform: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const room = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!room[0]) throw new Error("That shared room code was not found.");
+
+  await db.insert(guestRoomPushTokens).values({ ...input, roomCode, enabled: true }).onDuplicateKeyUpdate({
+    set: { platform: input.platform, enabled: true, updatedAt: new Date() },
+  });
+  return { registered: true } as const;
+}
+
+export async function updateGuestRoom(roomCode: string, journalState: JsonObject, actorId?: GuestRoomMemberId, notificationType?: PartnerNotificationEvent) {
   const db = requireDb(await getDb());
   const normalizedCode = roomCode.trim().toUpperCase();
   const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!existing[0]) throw new Error("That shared room code was not found.");
   await db.update(guestRooms).set({ journalState: JSON.stringify(journalState) }).where(eq(guestRooms.roomCode, normalizedCode));
+  if (actorId && notificationType) await notifyGuestRoomPartner(normalizedCode, actorId, notificationType);
   return { roomCode: normalizedCode, journalState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }

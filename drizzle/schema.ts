@@ -99,6 +99,22 @@ export const guestRooms = mysqlTable(
   (table) => [uniqueIndex("guest_rooms_room_code_unique").on(table.roomCode)],
 );
 
+/** Physical-device push tokens are kept private to a shared room and partner identity. */
+export const guestRoomPushTokens = mysqlTable(
+  "guest_room_push_tokens",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    roomCode: varchar("roomCode", { length: 16 }).notNull(),
+    partnerId: mysqlEnum("partnerId", ["beans", "princess"]).notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    platform: varchar("platform", { length: 16 }).notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [uniqueIndex("guest_room_push_tokens_room_partner_token_unique").on(table.roomCode, table.partnerId, table.token)],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type CoupleSpace = typeof coupleSpaces.$inferSelect;
@@ -107,3 +123,4 @@ export type DailyLog = typeof dailyLogs.$inferSelect;
 export type SharedRecord = typeof sharedRecords.$inferSelect;
 export type MediaItem = typeof mediaItems.$inferSelect;
 export type GuestRoom = typeof guestRooms.$inferSelect;
+export type GuestRoomPushToken = typeof guestRoomPushTokens.$inferSelect;

@@ -107,6 +107,13 @@ const config: ExpoConfig = {
       },
     ],
     [
+      "expo-notifications",
+      {
+        color: "#8D5BA6",
+        defaultChannel: "together-daily",
+      },
+    ],
+    [
       "expo-splash-screen",
       {
         image: "./assets/images/splash-icon.png",

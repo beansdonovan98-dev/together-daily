@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "77985963-4369-432c-9cb9-8eb37b5808e8",
-  "prevId": "7541a29b-c4a8-4c48-aee5-ac18d4be0448",
+  "id": "2788364a-f9ec-486d-b62c-0a8a501b6f4f",
+  "prevId": "77985963-4369-432c-9cb9-8eb37b5808e8",
   "tables": {
     "couple_members": {
       "name": "couple_members",
@@ -229,6 +229,93 @@
       "compositePrimaryKeys": {
         "daily_logs_id": {
           "name": "daily_logs_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "guest_room_push_tokens": {
+      "name": "guest_room_push_tokens",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "roomCode": {
+          "name": "roomCode",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "partnerId": {
+          "name": "partnerId",
+          "type": "enum('beans','princess')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "platform": {
+          "name": "platform",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "guest_room_push_tokens_room_partner_token_unique": {
+          "name": "guest_room_push_tokens_room_partner_token_unique",
+          "columns": [
+            "roomCode",
+            "partnerId",
+            "token"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "guest_room_push_tokens_id": {
+          "name": "guest_room_push_tokens_id",
           "columns": [
             "id"
           ]

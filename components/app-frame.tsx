@@ -6,6 +6,7 @@ import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import { type ReactNode, useState } from "react";
 import { Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 
 const NAVIGATION = [
   { href: "/", label: "Today", glyph: "✦" },
@@ -18,9 +19,10 @@ const NAVIGATION = [
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const [pushStatus, setPushStatus] = useState<"idle" | "setting-up" | "enabled">("idle");
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
@@ -59,6 +61,25 @@ export function AppFrame({ children }: { children: ReactNode }) {
       } catch {
         showInviteFeedback("Could not open sharing — try again");
       }
+    }
+  };
+
+  const enablePartnerAlerts = async () => {
+    setPushStatus("setting-up");
+    const result = await registerForPartnerPushNotifications();
+    if (!result.ok) {
+      setPushStatus("idle");
+      showInviteFeedback(result.message);
+      return;
+    }
+
+    try {
+      await registerPushToken(result.token, result.platform);
+      setPushStatus("enabled");
+      showInviteFeedback("Partner alerts are on for this phone");
+    } catch {
+      setPushStatus("idle");
+      showInviteFeedback("Could not save this phone for alerts — try again");
     }
   };
 
@@ -104,6 +125,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 </TouchableOpacity>
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show room QR code" onPress={() => setShowQr((visible) => !visible)} style={[styles.inviteAction, styles.qrAction]}>
                   <Text style={styles.qrActionText}>{showQr ? "HIDE QR" : "SHOW QR"}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Enable partner alerts" disabled={pushStatus !== "idle"} onPress={enablePartnerAlerts} style={[styles.inviteAction, styles.alertAction, pushStatus !== "idle" && styles.disabledAction]}>
+                  <Text style={styles.alertActionText}>{pushStatus === "setting-up" ? "CONNECTING…" : pushStatus === "enabled" ? "ALERTS ON" : "ENABLE ALERTS"}</Text>
                 </TouchableOpacity>
               </View>
               {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily with your room code ready to join.</Text></View></View> : null}
@@ -157,6 +181,9 @@ const styles = StyleSheet.create({
   shareActionText: { color: COLORS.plum, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   qrAction: { borderColor: PARTNERS.princess.color, backgroundColor: "rgba(213,107,136,0.12)" },
   qrActionText: { color: PARTNERS.princess.color, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  alertAction: { borderColor: COLORS.sage, backgroundColor: "rgba(144,185,157,0.10)" },
+  alertActionText: { color: COLORS.sage, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  disabledAction: { opacity: 0.62 },
   qrPanel: { marginTop: 12, borderRadius: 14, padding: 12, backgroundColor: "#171218", borderWidth: 1, borderColor: "#3D2E43", flexDirection: "row", gap: 13, alignItems: "center" },
   qrCodeWrap: { borderRadius: 10, backgroundColor: "#FFF9F6", padding: 8 },
   qrCopy: { flex: 1 },

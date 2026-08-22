@@ -11,6 +11,7 @@ const jsonObjectSchema = z.record(z.string(), z.unknown());
 const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
 const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
 const guestMemberIdSchema = z.enum(["beans", "princess"]);
+const partnerNotificationTypeSchema = z.enum(["connection", "daily-log", "love-note", "todo", "private-update"]);
 
 function safeFileName(fileName: string) {
   const normalized = fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
@@ -109,9 +110,10 @@ export const appRouter = router({
     create: publicProcedure.input(z.object({ journalState: jsonObjectSchema, memberId: guestMemberIdSchema })).mutation(({ input }) => db.createGuestRoom(input.journalState, input.memberId)),
     get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
+    registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
     update: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema }))
-      .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState)),
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
+      .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),
   }),
 });
 
