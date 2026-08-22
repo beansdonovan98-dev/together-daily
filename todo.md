@@ -77,3 +77,4 @@
 - [x] Add always-lbs separate weight-history charts for Beans and Princess.
 - [x] Add reusable weekly cleaning templates.
 - [x] Add shared controls to rename and reorder top navigation tabs.
+- [x] Add edit and safe delete controls for shared saved cleaning templates.
