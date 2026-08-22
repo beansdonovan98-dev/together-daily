@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
+import { localDateKey } from "@/lib/together";
+import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -19,7 +21,7 @@ export type SharedThemePreferences = { accentColor?: string; backgroundColor?: s
 export type NamedColorTheme = { id: string; name: string; accentColor: string; backgroundColor: string; createdBy: PartnerId };
 export type CleaningTemplate = { id: string; name: string; tasks: string[]; createdBy: PartnerId };
 export type PurchaseCategory = "groceries" | "house" | "misc";
-export type PurchaseItem = { id: string; text: string; category: PurchaseCategory; addedBy: PartnerId; purchased: boolean; purchasedBy?: PartnerId };
+export type PurchaseItem = { id: string; text: string; category: PurchaseCategory; addedBy: PartnerId; purchased: boolean; purchasedBy?: PartnerId; purchasedOn?: string };
 type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[]; savedLogStyles?: SavedLogStyle[]; customSubheadings?: Record<string, string>; theme?: SharedThemePreferences; namedColorThemes?: NamedColorTheme[]; cleaningTemplates?: CleaningTemplate[]; purchaseItems?: PurchaseItem[]; tabLabels?: Record<string, string>; tabOrder?: string[]; customHeaders?: Record<string, string> };
 type RoomPrefs = { roomCode: string | null; memberId: PartnerId | null };
 
@@ -34,13 +36,15 @@ function normalizedRoomMembers(value: unknown): PartnerId[] {
 }
 
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null);
+  const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey());
   const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation();
   const remote = trpc.guestRoom.get.useQuery({ roomCode:prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval:3_000, retry:1 });
   useEffect(()=>{Promise.all([AsyncStorage.getItem(STATE_KEY),AsyncStorage.getItem(ROOM_KEY)]).then(([storedState,storedPrefs])=>{if(storedState){try{setState(JSON.parse(storedState))}catch{}} if(storedPrefs){try{setPrefs(JSON.parse(storedPrefs))}catch{}}}).finally(()=>setReady(true));},[]);
   useEffect(()=>{if(!remote.data) return; const next=remote.data.journalState as JournalState; const current=JSON.stringify(state); const incoming=JSON.stringify(next); if(current!==incoming){setState(next); AsyncStorage.setItem(STATE_KEY,incoming).catch(()=>undefined);} const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
   const savePrefs=(next:RoomPrefs)=>{setPrefs(next); AsyncStorage.setItem(ROOM_KEY,JSON.stringify(next)).catch(()=>undefined);};
   const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{setState(next); const serialized=JSON.stringify(next); AsyncStorage.setItem(STATE_KEY,serialized).catch(()=>undefined); if(prefs.roomCode){sync.mutate({roomCode:prefs.roomCode,journalState:next,actorId:prefs.memberId??undefined,notificationType},{onError:(error)=>setSyncError(error.message)});}};
+  useEffect(()=>{const timer=setInterval(()=>setToday(localDateKey()),60_000);return()=>clearInterval(timer);},[]);
+  useEffect(()=>{if(!ready)return;const items=state.purchaseItems??[];const datedItems=items.map((item)=>item.category==="groceries"&&item.purchased&&!item.purchasedOn?{...item,purchasedOn:today}:item);const remaining=clearPurchasedGroceriesFromPreviousDays(datedItems,today);if(JSON.stringify(remaining)===JSON.stringify(items))return;persist({...state,purchaseItems:remaining});},[ready,state,today]);
   const ensureDay=(date:string)=>{if(!state.days[date])persist({...state,days:{...state.days,[date]:blankDay(date)}});};
   const value=useMemo<JournalContextValue>(()=>({
     ready, roomCode:prefs.roomCode, memberId:prefs.memberId, roomMembers, partner:prefs.memberId?PARTNERS[prefs.memberId]:null, isSyncing:sync.isPending||remote.isFetching, syncError,
@@ -64,7 +68,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     deleteCleaningTemplate:(id)=>{const existing=state.cleaningTemplates??[];persist({...state,cleaningTemplates:existing.filter((item)=>item.id!==id)});},
     purchaseItems:state.purchaseItems??[],
     addPurchaseItem:(category,text)=>{const value=text.trim();if(!value)return;const item:PurchaseItem={id:`purchase-${Date.now()}-${Math.random().toString(16).slice(2)}`,text:value,category,addedBy:prefs.memberId??"beans",purchased:false};persist({...state,purchaseItems:[...(state.purchaseItems??[]),item]});},
-    togglePurchaseItem:(id)=>{const items=state.purchaseItems??[];const actor=prefs.memberId??"beans";persist({...state,purchaseItems:items.map((item)=>item.id===id?{...item,purchased:!item.purchased,purchasedBy:item.purchased?undefined:actor}:item)});},
+    togglePurchaseItem:(id)=>{const items=state.purchaseItems??[];const actor=prefs.memberId??"beans";persist({...state,purchaseItems:items.map((item)=>item.id===id?{...item,purchased:!item.purchased,purchasedBy:item.purchased?undefined:actor,purchasedOn:item.purchased?undefined:localDateKey()}:item)});},
     deletePurchaseItem:(id)=>{const items=state.purchaseItems??[];persist({...state,purchaseItems:items.filter((item)=>item.id!==id)});},
     tabLabels:state.tabLabels??{},
     setTabLabel:(key,label)=>{const current=state.tabLabels??{};const next={...current};const trimmed=label.trim();if(trimmed)next[key]=trimmed;else delete next[key];persist({...state,tabLabels:next});},

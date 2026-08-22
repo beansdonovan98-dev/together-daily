@@ -82,3 +82,4 @@
 - [x] Replace Photos with a shared Purchase tab for Groceries, For the House, and Misc. lists.
 - [x] Remove the live-sharing notice from Today.
 - [x] Add two independently captionable daily cover-photo spaces on Today.
+- [x] Keep Grocery items until they are purchased, then automatically clear them the following day.
