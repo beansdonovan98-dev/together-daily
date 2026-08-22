@@ -63,3 +63,4 @@
 - [x] Add shared editable section headers for app personalization.
 - [x] Replace editable section headers with editable descriptive subheadings.
 - [x] Add shared accent-color and background-theme personalization controls.
+- [x] Add a reset-to-default control for shared personalization.

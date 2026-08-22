@@ -33,7 +33,7 @@ export function getSubheading(customSubheadings: Record<string, string>, key: ke
 }
 
 export function PersonalizationEditor() {
-  const { customSubheadings, setCustomSubheading, theme, setTheme } = useLocalJournal();
+  const { customSubheadings, setCustomSubheading, theme, setTheme, resetPersonalization } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
   const [accentDraft, setAccentDraft] = useState(theme.accentColor ?? COLORS.orchid);
@@ -47,6 +47,13 @@ export function PersonalizationEditor() {
     setOpen(false);
   };
 
+  const reset = () => {
+    resetPersonalization();
+    setSubheadingDrafts({});
+    setAccentDraft(COLORS.orchid);
+    setBackgroundDraft(COLORS.blush);
+  };
+
   return <View style={styles.card}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle personalization editor" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}>
       <View><Text style={styles.kicker}>MAKE IT YOURS</Text><Text style={styles.title}>Descriptions & colors</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text>
@@ -56,7 +63,7 @@ export function PersonalizationEditor() {
       {SUBHEADING_FIELDS.map((field) => <View key={field.key} style={styles.field}><Text style={styles.label}>{field.label}</Text><TextInput value={subheadingDrafts[field.key] ?? ""} onChangeText={(value) => setSubheadingDrafts((current) => ({ ...current, [field.key]: value }))} placeholder={SUBHEADING_DEFAULTS[field.key]} placeholderTextColor="#7F7582" maxLength={80} style={styles.input} /></View>)}
       <Text style={styles.sectionLabel}>ACCENT COLOR</Text><View style={styles.swatches}>{ACCENT_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setAccentDraft(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accentDraft === color && styles.swatchActive]} />)}</View><TextInput value={accentDraft} onChangeText={setAccentDraft} placeholder="#8D5BA6" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
       <Text style={styles.sectionLabel}>BACKGROUND COLOR</Text><View style={styles.swatches}>{BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setBackgroundDraft(color)} accessibilityLabel={`Choose ${color} background`} style={[styles.swatch, { backgroundColor: color }, backgroundDraft === color && styles.swatchActive]} />)}</View><TextInput value={backgroundDraft} onChangeText={setBackgroundDraft} placeholder="#0D0B0F" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
-      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={save}><Text style={styles.saveText}>Save personalization</Text></TouchableOpacity>
+      <View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={reset}><Text style={styles.resetText}>Reset to defaults</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={save}><Text style={styles.saveText}>Save personalization</Text></TouchableOpacity></View>
     </View> : null}
   </View>;
 }
@@ -77,6 +84,9 @@ const styles = StyleSheet.create({
   swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: "transparent" },
   swatchActive: { borderColor: COLORS.white },
   hexInput: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 10, fontFamily: "monospace", fontSize: 12 },
-  saveButton: { minHeight: 42, borderRadius: 11, backgroundColor: COLORS.orchid, alignItems: "center", justifyContent: "center", marginTop: 3 },
+  actions: { flexDirection: "row", gap: 8, marginTop: 3 },
+  resetButton: { minHeight: 42, borderRadius: 11, borderWidth: 1, borderColor: "#684C5E", alignItems: "center", justifyContent: "center", paddingHorizontal: 11 },
+  resetText: { color: COLORS.slate, fontSize: 11, fontWeight: "900" },
+  saveButton: { flex: 1, minHeight: 42, borderRadius: 11, backgroundColor: COLORS.orchid, alignItems: "center", justifyContent: "center" },
   saveText: { color: COLORS.white, fontSize: 13, fontWeight: "900" },
 });
