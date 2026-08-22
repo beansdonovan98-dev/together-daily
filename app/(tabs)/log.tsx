@@ -7,7 +7,7 @@ import { sortTimelineEntriesOldestFirst } from "@/lib/timeline-utils";
 import { timestampForEditedTime } from "@/lib/timeline-time";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type EventStyle = { id: string; label: string; emoji: string; color: string };
@@ -68,8 +68,25 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const content = asObject(getDay(date));
   const storedDebrief = String(content.sharedNotes ?? "");
   const [debriefDraft, setDebriefDraft] = useState(storedDebrief);
+  const debriefLoadedDate = useRef<string | null>(null);
+  const pendingDebriefSave = useRef<string | null>(null);
+  const debriefDirty = useRef(false);
   useEffect(() => { ensureDay(date); }, [date, ensureDay]);
-  useEffect(() => { setDebriefDraft(storedDebrief); }, [date, storedDebrief]);
+  useEffect(() => {
+    if (debriefLoadedDate.current !== date) {
+      debriefLoadedDate.current = date;
+      pendingDebriefSave.current = null;
+      debriefDirty.current = false;
+      setDebriefDraft(storedDebrief);
+      return;
+    }
+    if (pendingDebriefSave.current === storedDebrief) {
+      pendingDebriefSave.current = null;
+      debriefDirty.current = false;
+      return;
+    }
+    if (!debriefDirty.current && !pendingDebriefSave.current) setDebriefDraft(storedDebrief);
+  }, [date, storedDebrief]);
 
   const entries = useMemo(
     () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
@@ -86,7 +103,9 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   };
 
   const saveDebrief = () => {
-    updateDay(date, { sharedNotes: debriefDraft.trim() });
+    const nextDebrief = debriefDraft.trim();
+    pendingDebriefSave.current = nextDebrief;
+    updateDay(date, { sharedNotes: nextDebrief });
   };
 
   const beginEdit = (entry: TimelineEntry) => {
@@ -154,7 +173,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     <View style={styles.debrief}>
       <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
       <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
-      <TextInput value={debriefDraft} onChangeText={setDebriefDraft} editable multiline placeholder="Write notes, reflections, or a debrief for today…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={saveDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>Save notes & debrief</Text></TouchableOpacity>
+      <TextInput value={debriefDraft} onChangeText={(value) => { debriefDirty.current = true; setDebriefDraft(value); }} editable multiline placeholder="Write notes, reflections, or a debrief for today…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={saveDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>Save notes & debrief</Text></TouchableOpacity>
     </View>
 
     <View style={styles.stream}>

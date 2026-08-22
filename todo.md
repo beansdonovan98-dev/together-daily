@@ -121,5 +121,7 @@
 - [x] Repair the native private-gallery upload server connection that returns “Failed to fetch.”
 - [x] Reconcile local partner identity with shared-room membership before private-gallery uploads.
 - [x] Repair cover-photo uploads that still fail after room membership reconciliation.
+- [x] Remove all text and caption controls from the daily cover photos.
+- [x] Repair Notes & Debrief so typed content is not overwritten and saves reliably.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
