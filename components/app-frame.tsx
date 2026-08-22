@@ -5,7 +5,7 @@ import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import { type ReactNode, useState } from "react";
-import { Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 
 const NAVIGATION = [
@@ -30,7 +30,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
   const isTodaySection = pathname === "/" || pathname === "/index";
-  const roomInviteLink = roomCode ? `manustogetherdaily://join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
+  const roomInviteLink = roomCode ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const backgroundColor = theme.backgroundColor ?? COLORS.blush;
   const orderedNavigation = [...tabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)), ...NAVIGATION.map((item) => item.id).filter((id) => !tabOrder.includes(id))].map((id) => NAVIGATION.find((item) => item.id === id)!).filter(Boolean);
@@ -51,23 +51,42 @@ export function AppFrame({ children }: { children: ReactNode }) {
     }
   };
 
-  const shareRoomCode = async () => {
+  const inviteMessage = roomCode ? `Join me in our private Together Daily room.\n\nOpen this link, choose Princess, and tap Join our room:\n${roomInviteLink}\n\nRoom code: ${roomCode}` : "";
+
+  const copyFullInvite = async () => {
     if (!roomCode) return;
 
-    const installInstruction = Platform.OS === "web"
-      ? `Open Together Daily, choose \"I have a room code\", select ${partnerToInvite.name}, and enter the code below.`
-      : `Install or open the same Together Daily APK, choose \"I have a room code\", select ${partnerToInvite.name}, and enter the code below.`;
-    const message = `Join me in our private Together Daily room.\n\n${installInstruction}\n\nRoom code: ${roomCode}\nJoin link: ${roomInviteLink}`;
+    try {
+      await Clipboard.setStringAsync(inviteMessage);
+      showInviteFeedback("Full invite copied — paste it in a text");
+    } catch {
+      showInviteFeedback("Could not copy — try again");
+    }
+  };
+
+  const textRoomInvite = async () => {
+    if (!roomCode) return;
+
+    if (Platform.OS === "web") {
+      await copyFullInvite();
+      return;
+    }
 
     try {
-      await Share.share({ message, title: "Together Daily room invite" });
+      await Linking.openURL(`sms:?body=${encodeURIComponent(inviteMessage)}`);
+      showInviteFeedback("Choose Princess in Messages, then send the invite");
     } catch {
-      try {
-        await Clipboard.setStringAsync(message);
-        showInviteFeedback("Invite copied — paste it in a message");
-      } catch {
-        showInviteFeedback("Could not open sharing — try again");
-      }
+      await copyFullInvite();
+    }
+  };
+
+  const shareRoomInvite = async () => {
+    if (!roomCode) return;
+
+    try {
+      await Share.share({ message: inviteMessage, title: "Together Daily room invite" });
+    } catch {
+      await copyFullInvite();
     }
   };
 
@@ -128,7 +147,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
                 <View style={styles.invitePanelLead}>
                   <Text style={styles.invitePanelKicker}>INVITE TOOLS</Text>
-                  <Text style={styles.invitePanelMeta}>Copy code · Share invite · QR</Text>
+                  <Text style={styles.invitePanelMeta}>Text Princess · Copy invite · QR</Text>
                 </View>
                 <Text style={styles.invitePanelChevron}>{inviteToolsOpen ? "⌃" : "⌄"}</Text>
               </TouchableOpacity>
@@ -142,14 +161,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
                     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
                       <Text style={styles.inviteActionText}>COPY CODE</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share room invite" onPress={shareRoomCode} style={[styles.inviteAction, styles.shareAction]}>
-                      <Text style={styles.shareActionText}>SHARE INVITE</Text>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Text Princess the room invite" onPress={textRoomInvite} style={[styles.inviteAction, styles.shareAction]}>
+                      <Text style={styles.shareActionText}>TEXT PRINCESS</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy complete room invitation" onPress={copyFullInvite} style={[styles.inviteAction, styles.copyInviteAction]}>
+                      <Text style={styles.copyInviteText}>COPY INVITE</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share room invitation to another app" onPress={shareRoomInvite} style={styles.inviteAction}>
+                      <Text style={styles.inviteActionText}>OTHER APPS</Text>
                     </TouchableOpacity>
                     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show room QR code" onPress={() => setShowQr((visible) => !visible)} style={[styles.inviteAction, styles.qrAction]}>
                       <Text style={styles.qrActionText}>{showQr ? "HIDE QR" : "SHOW QR"}</Text>
                     </TouchableOpacity>
                   </View>
-                  {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily with your room code ready to join.</Text></View></View> : null}
+                  {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily in her browser with your room code ready to join.</Text></View></View> : null}
                 </View>
               ) : null}
               <View style={[styles.connectionStatus, partnerConnected && { borderColor: partnerToInvite.color, backgroundColor: `${partnerToInvite.color}22` }]}>
@@ -217,6 +242,8 @@ const styles = StyleSheet.create({
   inviteActionText: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   shareAction: { borderColor: COLORS.orchid, backgroundColor: "rgba(141,91,166,0.15)" },
   shareActionText: { color: COLORS.plum, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  copyInviteAction: { borderColor: "#5A8092", backgroundColor: "rgba(102,183,221,0.10)" },
+  copyInviteText: { color: "#9FD5F0", fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   qrAction: { borderColor: PARTNERS.princess.color, backgroundColor: "rgba(213,107,136,0.12)" },
   qrActionText: { color: PARTNERS.princess.color, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   alertAction: { borderColor: COLORS.sage, backgroundColor: "rgba(144,185,157,0.10)" },
