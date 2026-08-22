@@ -93,3 +93,5 @@
 - [ ] Resolve the published Together Daily site showing a maintenance page.
 - [x] Restore the Together Daily development server after it stopped responding.
 - [x] Rename Beans to Daddy throughout the app while retaining the purple partner identity.
+- [x] Add shared editable partner names inside Themes (confirmed).
+- [x] Use 🍆 for Daddy and 🍑 for Princess across the app identity display (confirmed).

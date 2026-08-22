@@ -51,7 +51,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     }
   };
 
-  const inviteMessage = roomCode ? `Join me in our private Together Daily room.\n\nOpen this link, choose Princess, and tap Join our room:\n${roomInviteLink}\n\nRoom code: ${roomCode}` : "";
+  const inviteMessage = roomCode ? `Join me in our private Together Daily room.\n\nOpen this link, choose ${partnerToInvite.name}, and tap Join our room:\n${roomInviteLink}\n\nRoom code: ${roomCode}` : "";
 
   const copyFullInvite = async () => {
     if (!roomCode) return;
@@ -74,7 +74,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
     try {
       await Linking.openURL(`sms:?body=${encodeURIComponent(inviteMessage)}`);
-      showInviteFeedback("Choose Princess in Messages, then send the invite");
+      showInviteFeedback(`Choose ${partnerToInvite.name} in Messages, then send the invite`);
     } catch {
       await copyFullInvite();
     }
@@ -122,7 +122,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
-            <View><Text style={styles.brand}>Together Daily</Text><Text style={styles.brandSub}>DADDY + PRINCESS</Text></View>
+            <View><Text style={styles.brand}>Together Daily</Text><Text style={styles.brandSub}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} + {PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text></View>
           </View>
           <View style={styles.liveStatus}><View style={[styles.liveDot, { backgroundColor: isSyncing ? COLORS.gold : COLORS.sage }]} /><Text style={styles.liveText}>{isSyncing ? "SYNCING" : "LIVE"}</Text></View>
         </View>
@@ -135,10 +135,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <View style={styles.identityArea}>
           <View style={styles.identityStrip}>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>♛ Daddy</Text>
+            <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name}</Text>
             <Text style={styles.identityDivider}>·</Text>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>♥ Princess</Text>
+            <Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name}</Text>
             <Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text>
             <View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View>
           </View>
@@ -147,7 +147,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
                 <View style={styles.invitePanelLead}>
                   <Text style={styles.invitePanelKicker}>INVITE TOOLS</Text>
-                  <Text style={styles.invitePanelMeta}>Text Princess · Copy invite · QR</Text>
+                  <Text style={styles.invitePanelMeta}>Text {partnerToInvite.name} · Copy invite · QR</Text>
                 </View>
                 <Text style={styles.invitePanelChevron}>{inviteToolsOpen ? "⌃" : "⌄"}</Text>
               </TouchableOpacity>
@@ -161,8 +161,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
                     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
                       <Text style={styles.inviteActionText}>COPY CODE</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Text Princess the room invite" onPress={textRoomInvite} style={[styles.inviteAction, styles.shareAction]}>
-                      <Text style={styles.shareActionText}>TEXT PRINCESS</Text>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text ${partnerToInvite.name} the room invite`} onPress={textRoomInvite} style={[styles.inviteAction, styles.shareAction]}>
+                      <Text style={styles.shareActionText}>TEXT {partnerToInvite.name.toUpperCase()}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy complete room invitation" onPress={copyFullInvite} style={[styles.inviteAction, styles.copyInviteAction]}>
                       <Text style={styles.copyInviteText}>COPY INVITE</Text>
