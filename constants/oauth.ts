@@ -17,6 +17,10 @@ const env = {
   deepLinkScheme: schemeFromBundleId,
 };
 
+// Native applications have no browser hostname from which to derive the API.
+// This is the published Together Daily full-stack endpoint used by Android builds.
+const NATIVE_PRODUCTION_API_URL = "https://togdaily-agtvyn2n.manus.space";
+
 export const OAUTH_PORTAL_URL = env.portal;
 export const OAUTH_SERVER_URL = env.server;
 export const APP_ID = env.appId;
@@ -43,6 +47,12 @@ export function getApiBaseUrl(): string {
     if (apiHostname !== hostname) {
       return `${protocol}//${apiHostname}`;
     }
+  }
+
+  // A standalone Android/iOS bundle cannot call a relative `/api/trpc` path.
+  // Route it to the deployed service so shared rooms and all controls work.
+  if (ReactNative.Platform.OS !== "web") {
+    return NATIVE_PRODUCTION_API_URL;
   }
 
   // Fallback to empty (will use relative URL)
