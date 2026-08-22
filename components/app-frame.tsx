@@ -11,7 +11,7 @@ import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 const NAVIGATION = [
   { href: "/", label: "Today", glyph: "✦" },
   { href: "/log", label: "Daily Log", glyph: "☰" },
-  { href: "/days", label: "Pages", glyph: "▤" },
+  { href: "/days", label: "Past Days", glyph: "▤" },
   { href: "/habits", label: "Habits", glyph: "✓" },
   { href: "/steamy", label: "Steamy", glyph: "♥" },
   { href: "/memories", label: "Photos", glyph: "▧" },

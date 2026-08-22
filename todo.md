@@ -49,3 +49,4 @@
 - [x] Send privacy-safe partner notifications from shared-room updates and open the relevant screen when tapped.
 - [x] Remove the “To add Princess” instruction from the first shared-room section.
 - [x] Move Copy Code, Share Invite, and QR tools into the first expandable shared-room panel.
+- [x] Add a Past Days tab with complete archived-day browsing.
