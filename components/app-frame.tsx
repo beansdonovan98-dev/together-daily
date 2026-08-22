@@ -21,6 +21,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { roomCode, memberId, roomMembers, isSyncing, registerPushToken } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
+  const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<"idle" | "setting-up" | "enabled">("idle");
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
@@ -83,6 +84,13 @@ export function AppFrame({ children }: { children: ReactNode }) {
     }
   };
 
+  const toggleInviteTools = () => {
+    setInviteToolsOpen((open) => {
+      if (open) setShowQr(false);
+      return !open;
+    });
+  };
+
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
       <View style={styles.frame}>
@@ -111,25 +119,42 @@ export function AppFrame({ children }: { children: ReactNode }) {
           </View>
           {roomCode ? (
             <View style={styles.inviteRow}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
+                <View style={styles.invitePanelLead}>
+                  <Text style={styles.invitePanelKicker}>INVITE TOOLS</Text>
+                  <Text style={styles.invitePanelMeta}>Copy code · Share invite · QR</Text>
+                </View>
+                <Text style={styles.invitePanelChevron}>{inviteToolsOpen ? "⌃" : "⌄"}</Text>
+              </TouchableOpacity>
+              {inviteToolsOpen ? (
+                <View style={styles.invitePanelBody}>
+                  <View style={styles.roomCodeRow}>
+                    <Text style={styles.roomCodeLabel}>ROOM CODE</Text>
+                    <Text style={styles.roomCodeValue}>{roomCode}</Text>
+                  </View>
+                  <View style={styles.inviteActions}>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
+                      <Text style={styles.inviteActionText}>COPY CODE</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share room invite" onPress={shareRoomCode} style={[styles.inviteAction, styles.shareAction]}>
+                      <Text style={styles.shareActionText}>SHARE INVITE</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show room QR code" onPress={() => setShowQr((visible) => !visible)} style={[styles.inviteAction, styles.qrAction]}>
+                      <Text style={styles.qrActionText}>{showQr ? "HIDE QR" : "SHOW QR"}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily with your room code ready to join.</Text></View></View> : null}
+                </View>
+              ) : null}
               <View style={[styles.connectionStatus, partnerConnected && { borderColor: partnerToInvite.color, backgroundColor: `${partnerToInvite.color}22` }]}>
                 <View style={[styles.connectionDot, { backgroundColor: partnerConnected ? partnerToInvite.color : COLORS.gold }]} />
                 <Text style={[styles.connectionText, partnerConnected && { color: partnerToInvite.color }]}>{partnerConnected ? `${partnerToInvite.name.toUpperCase()} CONNECTED` : `WAITING FOR ${partnerToInvite.name.toUpperCase()}`}</Text>
               </View>
-              <View style={styles.inviteActions}>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
-                  <Text style={styles.inviteActionText}>COPY CODE</Text>
-                </TouchableOpacity>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share room invite" onPress={shareRoomCode} style={[styles.inviteAction, styles.shareAction]}>
-                  <Text style={styles.shareActionText}>SHARE INVITE</Text>
-                </TouchableOpacity>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show room QR code" onPress={() => setShowQr((visible) => !visible)} style={[styles.inviteAction, styles.qrAction]}>
-                  <Text style={styles.qrActionText}>{showQr ? "HIDE QR" : "SHOW QR"}</Text>
-                </TouchableOpacity>
+              <View style={styles.alertRow}>
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel="Enable partner alerts" disabled={pushStatus !== "idle"} onPress={enablePartnerAlerts} style={[styles.inviteAction, styles.alertAction, pushStatus !== "idle" && styles.disabledAction]}>
                   <Text style={styles.alertActionText}>{pushStatus === "setting-up" ? "CONNECTING…" : pushStatus === "enabled" ? "ALERTS ON" : "ENABLE ALERTS"}</Text>
                 </TouchableOpacity>
               </View>
-              {showQr ? <View style={styles.qrPanel}><View style={styles.qrCodeWrap}><QRCode value={roomInviteLink} size={150} color={COLORS.ink} backgroundColor="#FFF9F6" /></View><View style={styles.qrCopy}><Text style={styles.qrTitle}>{partnerToInvite.name}, scan this code</Text><Text style={styles.qrText}>It opens Together Daily with your room code ready to join.</Text></View></View> : null}
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
@@ -167,13 +192,21 @@ const styles = StyleSheet.create({
   identityRoom: { color: COLORS.slate, marginLeft: "auto", fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
   currentChip: { marginLeft: 4, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 7 },
   currentChipText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
-  inviteRow: { paddingHorizontal: 20, paddingBottom: 10 },
-  inviteHint: { color: "#B8ABB9", fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
-  inviteCode: { color: COLORS.gold, fontWeight: "900", letterSpacing: 1.1 },
-  connectionStatus: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#6A5B43", backgroundColor: "rgba(198,160,76,0.10)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
+  inviteRow: { paddingHorizontal: 20, paddingBottom: 10, gap: 8 },
+  invitePanelHeader: { borderRadius: 12, borderWidth: 1, borderColor: "#3D2E43", backgroundColor: "#171218", minHeight: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  invitePanelLead: { gap: 2 },
+  invitePanelKicker: { color: COLORS.gold, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
+  invitePanelMeta: { color: COLORS.slate, fontSize: 10, fontFamily: "monospace" },
+  invitePanelChevron: { color: COLORS.plum, fontSize: 18, fontWeight: "900", paddingHorizontal: 4 },
+  invitePanelBody: { borderRadius: 12, borderWidth: 1, borderColor: "#2F2535", backgroundColor: "#121014", padding: 10, gap: 9 },
+  roomCodeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 9, backgroundColor: "#1B171D", paddingHorizontal: 10, paddingVertical: 8 },
+  roomCodeLabel: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: 0.9 },
+  roomCodeValue: { color: COLORS.gold, fontSize: 12, fontWeight: "900", letterSpacing: 1.3 },
+  connectionStatus: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#6A5B43", backgroundColor: "rgba(198,160,76,0.10)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, flexDirection: "row", alignItems: "center", gap: 6 },
   connectionDot: { width: 7, height: 7, borderRadius: 4 },
   connectionText: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
-  inviteActions: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  inviteActions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
+  alertRow: { flexDirection: "row", alignItems: "center" },
   inviteAction: { borderWidth: 1, borderColor: "#C6A04C", borderRadius: 8, paddingHorizontal: 9, paddingVertical: 6 },
   inviteActionText: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   shareAction: { borderColor: COLORS.orchid, backgroundColor: "rgba(141,91,166,0.15)" },

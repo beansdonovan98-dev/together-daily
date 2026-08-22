@@ -48,3 +48,4 @@
 - [x] Register each partner’s physical device for notifications and persist its room-bound push token.
 - [x] Send privacy-safe partner notifications from shared-room updates and open the relevant screen when tapped.
 - [x] Remove the “To add Princess” instruction from the first shared-room section.
+- [x] Move Copy Code, Share Invite, and QR tools into the first expandable shared-room panel.
