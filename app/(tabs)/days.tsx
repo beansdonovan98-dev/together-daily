@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
+import { getHeader } from "@/components/header-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
@@ -19,7 +20,7 @@ export default function PastDaysScreen() {
 
 function PastDaysContent() {
   const today = localDateKey();
-  const { ready, allDays, ensureDay, media } = useLocalJournal();
+  const { ready, allDays, ensureDay, media, customHeaders } = useLocalJournal();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ function PastDaysContent() {
 
   return <AppFrame><ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
     <Text style={styles.eyebrow}>OUR ARCHIVE</Text>
-    <Text style={styles.title}>Past Days</Text>
+    <Text style={styles.title}>{getHeader(customHeaders, "pastDays")}</Text>
     <Text style={styles.copy}>Open any previous date to revisit its log, love notes, meals, to-dos, habits, and photos. Nothing is cleared from your history.</Text>
 
     <View style={styles.todayCard}>

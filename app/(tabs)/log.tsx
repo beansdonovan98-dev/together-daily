@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
+import { getHeader } from "@/components/header-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
@@ -43,7 +44,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent } = useLocalJournal();
+  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, customHeaders } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -71,7 +72,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
       <Text style={styles.heroMark}>♥</Text>
       <View style={styles.heroCopy}>
         <Text style={styles.heroEyebrow}>{prettyDate(date).toUpperCase()}</Text>
-        <Text style={styles.heroTitle}>Our Daily Log</Text>
+        <Text style={styles.heroTitle}>{getHeader(customHeaders, "dailyLog")}</Text>
         <Text style={styles.heroSub}>{roomCode ? `Shared room · ${isSyncing ? "syncing" : "live"}` : "A private timeline for the two of you"}</Text>
       </View>
     </View>

@@ -59,3 +59,5 @@
 - [x] Verify that Daily Log offers only custom creation and saved reusable styles.
 - [x] Add a consecutive shared daily-affection completion streak tracker.
 - [x] Remove “Share a loving moment” from the default Good Habits list.
+- [x] Add a seven-day visual shared-affection streak calendar to Good Habits.
+- [x] Add shared editable section headers for app personalization.
