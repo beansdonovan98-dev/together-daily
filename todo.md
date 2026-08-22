@@ -57,3 +57,5 @@
 - [x] Add separate Beans and Princess contribution counts beneath Six Little Things.
 - [x] Add reset-safe per-partner Six Little Things completion celebrations.
 - [x] Verify that Daily Log offers only custom creation and saved reusable styles.
+- [x] Add a consecutive shared daily-affection completion streak tracker.
+- [x] Remove “Share a loving moment” from the default Good Habits list.
