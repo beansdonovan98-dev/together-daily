@@ -1,0 +1,165 @@
+{
+  "documentType": "Together Daily full reusable data template",
+  "schemaVersion": "1.0.0",
+  "purpose": "A cleared JSON representation of the Together Daily shared-room journal. It contains no room code, no private photos, no chat, and no personal entries. Managed media is represented by secure storage references only after upload.",
+  "app": {
+    "name": "Together Daily",
+    "relationshipStartDate": "2019-08-09",
+    "accessModel": "private two-partner room code; no sign-in",
+    "partnerIds": ["beans", "princess"],
+    "partnerDefaults": {
+      "beans": { "displayName": "Daddy", "emoji": "🍆", "color": "#8D5BA6" },
+      "princess": { "displayName": "Princess", "emoji": "🍑", "color": "#D56B88" }
+    },
+    "mediaPolicy": {
+      "sharedRoomsUseManagedStorage": true,
+      "allowedImageMimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"],
+      "privateMediaMaximumBytes": 5242880,
+      "notes": "Do not put full base64 image data into a shared room JSON payload. Store only the managed media URL/reference after upload."
+    }
+  },
+  "roomPreferences": {
+    "roomCode": null,
+    "memberId": null,
+    "roomMembers": []
+  },
+  "journalState": {
+    "days": {
+      "YYYY-MM-DD": {
+        "date": "YYYY-MM-DD",
+        "title": "Daily Check-in",
+        "rating": null,
+        "weather": null,
+        "tags": [],
+        "pinned": false,
+        "coverPhoto": {
+          "id": null,
+          "kind": "cover",
+          "url": null,
+          "fileName": null,
+          "mimeType": null,
+          "dailyDate": "YYYY-MM-DD",
+          "uploadedBy": null,
+          "createdAt": null,
+          "captions": { "beans": "", "princess": "" }
+        },
+        "coverPhotoTwo": {
+          "id": null,
+          "kind": "cover",
+          "url": null,
+          "fileName": null,
+          "mimeType": null,
+          "dailyDate": "YYYY-MM-DD",
+          "uploadedBy": null,
+          "createdAt": null,
+          "captions": { "beans": "", "princess": "" }
+        },
+        "sharedHighlight": "",
+        "questionId": "daily-1",
+        "questionText": "What was a small moment today where you felt deeply loved or appreciated?",
+        "todos": [],
+        "meals": {
+          "breakfast": "",
+          "breakfastDone": false,
+          "lunch": "",
+          "lunchDone": false,
+          "dinner": "",
+          "dinnerDone": false,
+          "prepGrocery": "",
+          "prepGroceryDone": false
+        },
+        "water": { "slots": [], "glassesLogged": 0, "dailyGoalGlasses": 8 },
+        "loveNotes": { "beans": "", "princess": "" },
+        "notesList": [],
+        "sharedNotes": "",
+        "timelineEvents": [],
+        "checkIns": {},
+        "photos": []
+      }
+    },
+    "records": [],
+    "media": [],
+    "savedLogStyles": [],
+    "customSubheadings": {},
+    "theme": { "accentColor": "#8D5BA6", "backgroundColor": "#120F14" },
+    "partnerNames": { "beans": "Daddy", "princess": "Princess" },
+    "partnerColors": { "beans": "#8D5BA6", "princess": "#D56B88" },
+    "partnerAvatars": { "beans": "🍆", "princess": "🍑" },
+    "namedColorThemes": [],
+    "cleaningTemplates": [],
+    "purchaseItems": [],
+    "tabLabels": {},
+    "tabOrder": [],
+    "customHeaders": {}
+  },
+  "entryShapes": {
+    "noteBullet": {
+      "id": "debrief-unique-id",
+      "text": "A shared Notes & Debrief bullet",
+      "authorId": "beans",
+      "createdAt": "ISO-8601 timestamp"
+    },
+    "dailyLogEvent": {
+      "id": "event-unique-id",
+      "text": "Timeline entry",
+      "authorId": "beans",
+      "type": "Custom style name",
+      "emoji": "✨",
+      "color": "#8D5BA6",
+      "createdAt": "ISO-8601 timestamp"
+    },
+    "todo": {
+      "id": "todo-unique-id",
+      "text": "Shared task",
+      "completed": false,
+      "assignedTo": "both"
+    },
+    "purchaseItem": {
+      "id": "purchase-unique-id",
+      "text": "Item to buy",
+      "category": "groceries",
+      "addedBy": "beans",
+      "purchased": false,
+      "purchasedBy": null,
+      "purchasedOn": null
+    },
+    "managedMedia": {
+      "id": "media-unique-id",
+      "kind": "private",
+      "url": "/manus-storage/private-media-file",
+      "fileName": "private-photo.jpg",
+      "mimeType": "image/jpeg",
+      "caption": "",
+      "dailyDate": "YYYY-MM-DD",
+      "uploadedBy": "beans",
+      "createdAt": "ISO-8601 timestamp"
+    },
+    "privateChatRecord": {
+      "id": "record-unique-id",
+      "authorId": "beans",
+      "recordType": "steamyChat",
+      "content": { "text": "Private message" },
+      "createdAt": "ISO-8601 timestamp"
+    },
+    "cleaningTemplate": {
+      "id": "clean-template-unique-id",
+      "name": "Weekly reset",
+      "tasks": ["Task one", "Task two"],
+      "createdBy": "beans"
+    },
+    "savedLogStyle": {
+      "id": "log-style-unique-id",
+      "label": "Custom moment",
+      "emoji": "✨",
+      "color": "#8D5BA6",
+      "createdBy": "beans"
+    }
+  },
+  "resetRules": {
+    "dailyPages": "A new YYYY-MM-DD entry is created when either partner uses a new calendar day.",
+    "dailyHabits": "Daily habit counters reset for each new daily page.",
+    "cleaning": "Cleaning resets weekly on Sunday.",
+    "groceries": "Incomplete groceries stay. Purchased groceries clear after the following calendar day.",
+    "privateMedia": "Private gallery media remains until a partner confirms deletion."
+  }
+}
