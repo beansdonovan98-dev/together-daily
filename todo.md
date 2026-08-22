@@ -55,3 +55,5 @@
 - [x] Let partners choose a custom Daily Log emoji and matching color label for each event.
 - [x] Replace pre-made Daily Log styles with custom-only creation and saved reusable styles.
 - [x] Add separate Beans and Princess contribution counts beneath Six Little Things.
+- [x] Add reset-safe per-partner Six Little Things completion celebrations.
+- [x] Verify that Daily Log offers only custom creation and saved reusable styles.
