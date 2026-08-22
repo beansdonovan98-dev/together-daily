@@ -104,3 +104,4 @@
 - [x] Add visual previews and color accessibility contrast guidance in Themes.
 - [x] Restore reliable saving of pictures in the Steamy private gallery.
 - [x] Add confirmed delete controls for Steamy private gallery photos.
+- [x] Add synchronized caption editing for Steamy private gallery photos.
