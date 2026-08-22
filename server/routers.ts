@@ -9,7 +9,7 @@ import { storagePut } from "./storage";
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD calendar date.");
 const jsonObjectSchema = z.record(z.string(), z.unknown());
 const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
-const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const guestMemberIdSchema = z.enum(["beans", "princess"]);
 const partnerNotificationTypeSchema = z.enum(["connection", "daily-log", "love-note", "todo", "private-update"]);
 
@@ -112,10 +112,10 @@ export const appRouter = router({
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
     uploadPrivateMedia: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(3_500_000), caption: z.string().max(500).optional() }))
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(7_000_000), caption: z.string().max(500).optional() }))
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > 2.5 * 1024 * 1024) throw new Error("Please choose a smaller private photo.");
+        if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Please choose a private photo or GIF smaller than 5 MB.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/private/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const media = {

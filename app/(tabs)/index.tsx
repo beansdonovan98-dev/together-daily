@@ -12,7 +12,7 @@ import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 
 const MEALS = [{key:"breakfast",emoji:"☀",label:"Breakfast"},{key:"lunch",emoji:"☕",label:"Lunch"},{key:"dinner",emoji:"☾",label:"Dinner"}] as const;
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
-function mime(value?: string | null): "image/jpeg" | "image/png" | "image/webp" { return value === "image/png" || value === "image/webp" ? value : "image/jpeg"; }
+function mime(value?: string | null): "image/jpeg" | "image/png" | "image/webp" | "image/gif" { return value === "image/png" || value === "image/webp" || value === "image/gif" ? value : "image/jpeg"; }
 
 function calculateTogetherTime(now: Date) {
   const hours = Math.max(0, Math.floor((now.getTime() - RELATIONSHIP_START.getTime()) / 3_600_000));

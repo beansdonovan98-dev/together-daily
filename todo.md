@@ -107,3 +107,4 @@
 - [x] Add synchronized caption editing for Steamy private gallery photos.
 - [x] Stop daily cover photos from disappearing immediately after selection.
 - [x] Fix the daily cover upload error and add change and confirmed remove controls without duplicating captions.
+- [x] Keep private adult-chat messages dark and allow durable private-gallery GIF uploads.
