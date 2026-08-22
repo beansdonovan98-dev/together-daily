@@ -26,6 +26,7 @@ const SUBHEADING_FIELDS = [
 
 const ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#C6A04C", "#90B99D", "#66B7DD", "#E6A267"];
 const BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#16111A", "#102019", "#111827", "#251316"];
+const PROFILE_SWATCHES = ["#8D5BA6", "#D56B88", "#C65A73", "#DB8C3D", "#C6A04C", "#90B99D", "#66B7DD", "#55A7A0"];
 const SAVED_THEMES = [
   { name: "Together", accent: "#8D5BA6", background: "#0D0B0F" },
   { name: "Blush Twilight", accent: "#D56B88", background: "#251316" },
@@ -40,7 +41,7 @@ export function getSubheading(customSubheadings: Record<string, string>, key: ke
 }
 
 export function PersonalizationEditor() {
-  const { customSubheadings, setCustomSubheading, theme, setTheme, partnerNames, setPartnerName, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
+  const { customSubheadings, setCustomSubheading, theme, setTheme, partnerNames, setPartnerName, partnerColors, setPartnerColor, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
   const [accentDraft, setAccentDraft] = useState(theme.accentColor ?? COLORS.orchid);
@@ -51,14 +52,17 @@ export function PersonalizationEditor() {
   const [renameDraft, setRenameDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [partnerNameDrafts, setPartnerNameDrafts] = useState(partnerNames);
+  const [partnerColorDrafts, setPartnerColorDrafts] = useState(partnerColors);
 
-  useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); setPartnerNameDrafts(partnerNames); } }, [customSubheadings, open, partnerNames, theme.accentColor, theme.backgroundColor]);
+  useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); setPartnerNameDrafts(partnerNames); setPartnerColorDrafts(partnerColors); } }, [customSubheadings, open, partnerColors, partnerNames, theme.accentColor, theme.backgroundColor]);
 
   const save = () => {
     SUBHEADING_FIELDS.forEach((field) => setCustomSubheading(field.key, subheadingDrafts[field.key] ?? ""));
     setTheme({ accentColor: HEX.test(accentDraft) ? accentDraft : COLORS.orchid, backgroundColor: HEX.test(backgroundDraft) ? backgroundDraft : COLORS.blush });
     setPartnerName("beans", partnerNameDrafts.beans);
     setPartnerName("princess", partnerNameDrafts.princess);
+    setPartnerColor("beans", partnerColorDrafts.beans);
+    setPartnerColor("princess", partnerColorDrafts.princess);
     setOpen(false);
   };
 
@@ -94,6 +98,7 @@ export function PersonalizationEditor() {
     {open ? <View style={styles.editor}>
       <Text style={styles.helper}>Edit the descriptive words beneath the section titles. Leave one blank to restore its original words. Your color choices are shared with your room.</Text>
       <Text style={styles.sectionLabel}>PARTNER NAMES</Text><View style={styles.partnerNameGrid}><View style={styles.partnerNameCard}><Text style={[styles.partnerNameLabel,{color:PARTNERS.beans.color}]}>🍆 Daddy</Text><TextInput value={partnerNameDrafts.beans} onChangeText={(value) => setPartnerNameDrafts((current) => ({ ...current, beans: value }))} placeholder="Daddy" placeholderTextColor="#7F7582" maxLength={24} style={styles.input}/></View><View style={styles.partnerNameCard}><Text style={[styles.partnerNameLabel,{color:PARTNERS.princess.color}]}>🍑 Princess</Text><TextInput value={partnerNameDrafts.princess} onChangeText={(value) => setPartnerNameDrafts((current) => ({ ...current, princess: value }))} placeholder="Princess" placeholderTextColor="#7F7582" maxLength={24} style={styles.input}/></View></View>
+      <Text style={styles.sectionLabel}>PROFILE COLORS</Text><View style={styles.profileColorList}>{(["beans","princess"] as const).map((partnerId) => { const person = PARTNERS[partnerId]; return <View key={partnerId} style={styles.profileColorCard}><Text style={[styles.partnerNameLabel,{color:partnerColorDrafts[partnerId]}]}>{person.avatar} {partnerNameDrafts[partnerId]}</Text><View style={styles.profileSwatches}>{PROFILE_SWATCHES.map((color) => <TouchableOpacity key={`${partnerId}-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} for ${partnerNameDrafts[partnerId]}`} onPress={() => setPartnerColorDrafts((current) => ({ ...current, [partnerId]: color }))} style={[styles.profileSwatch,{backgroundColor:color},partnerColorDrafts[partnerId]===color&&styles.swatchActive]}/>)}</View><TextInput value={partnerColorDrafts[partnerId]} onChangeText={(value) => setPartnerColorDrafts((current) => ({ ...current, [partnerId]: value }))} placeholder={person.color} autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput}/></View>; })}</View>
       {SUBHEADING_FIELDS.map((field) => <View key={field.key} style={styles.field}><Text style={styles.label}>{field.label}</Text><TextInput value={subheadingDrafts[field.key] ?? ""} onChangeText={(value) => setSubheadingDrafts((current) => ({ ...current, [field.key]: value }))} placeholder={SUBHEADING_DEFAULTS[field.key]} placeholderTextColor="#7F7582" maxLength={80} style={styles.input} /></View>)}
       <Text style={styles.sectionLabel}>SAVED COLOR THEMES</Text><View style={styles.themeGrid}>{SAVED_THEMES.map((themeOption) => { const active = accentDraft === themeOption.accent && backgroundDraft === themeOption.background; return <TouchableOpacity key={themeOption.name} accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accent, themeOption.background)} style={[styles.themeButton, active && { borderColor: themeOption.accent }]}><View style={styles.themeColors}><View style={[styles.themeColor,{backgroundColor:themeOption.accent}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.background}]}/></View><Text style={[styles.themeName,active&&{color:themeOption.accent}]}>{themeOption.name}</Text></TouchableOpacity>; })}</View>
       <Text style={styles.sectionLabel}>ACCENT COLOR</Text><View style={styles.swatches}>{ACCENT_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setAccentDraft(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accentDraft === color && styles.swatchActive]} />)}</View><TextInput value={accentDraft} onChangeText={setAccentDraft} placeholder="#8D5BA6" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
@@ -115,6 +120,10 @@ const styles = StyleSheet.create({
   partnerNameGrid: { flexDirection: "row", gap: 8 },
   partnerNameCard: { flex: 1, gap: 5 },
   partnerNameLabel: { fontSize: 11, fontWeight: "900" },
+  profileColorList: { gap: 10 },
+  profileColorCard: { gap: 6, padding: 10, borderRadius: 11, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014" },
+  profileSwatches: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  profileSwatch: { width: 25, height: 25, borderRadius: 13, borderWidth: 2, borderColor: "transparent" },
   helper: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginBottom: 2 },
   field: { gap: 5 },
   label: { color: COLORS.plum, fontSize: 11, fontWeight: "800" },
