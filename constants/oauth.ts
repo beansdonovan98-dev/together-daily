@@ -1,5 +1,6 @@
 import * as Linking from "expo-linking";
 import * as ReactNative from "react-native";
+import Constants from "expo-constants";
 
 // Extract scheme from bundle ID (last segment timestamp, prefixed with "manus")
 // e.g., "space.manus.my.app.t20240115103045" -> "manus20240115103045"
@@ -20,6 +21,16 @@ const env = {
 // Native applications have no browser hostname from which to derive the API.
 // This is the published Together Daily full-stack endpoint used by Android builds.
 const NATIVE_PRODUCTION_API_URL = "https://togdaily-agtvyn2n.manus.space";
+
+function apiFromExpoDevelopmentHost(hostValue?: string | null) {
+  const host = hostValue?.replace(/^https?:\/\//, "").split("/")[0] ?? "";
+  if (!host) return "";
+
+  const hostname = host.replace(/:\d+$/, "");
+  if (hostname.startsWith("8081-")) return `https://${hostname.replace(/^8081-/, "3000-")}`;
+  if (/^(localhost|\d{1,3}(?:\.\d{1,3}){3})$/.test(hostname)) return `http://${hostname}:3000`;
+  return "";
+}
 
 export const OAUTH_PORTAL_URL = env.portal;
 export const OAUTH_SERVER_URL = env.server;
@@ -48,6 +59,12 @@ export function getApiBaseUrl(): string {
       return `${protocol}//${apiHostname}`;
     }
   }
+
+  // Expo Go and development builds need to use the matching API server, not the public endpoint.
+  const developmentApi = apiFromExpoDevelopmentHost(
+    Constants.expoConfig?.hostUri ?? Constants.expoGoConfig?.debuggerHost,
+  );
+  if (developmentApi) return developmentApi;
 
   // A standalone Android/iOS bundle cannot call a relative `/api/trpc` path.
   // Route it to the deployed service so shared rooms and all controls work.
