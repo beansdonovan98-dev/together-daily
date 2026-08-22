@@ -111,3 +111,5 @@
 - [x] Make both private chat bubbles compact, dark, and readable on mobile.
 - [x] Replace light global Daddy and Princess identity badges with dark readable chips.
 - [x] Restore typing and saving for shared Love Notes on Today.
+- [x] Eliminate remaining light private-chat message blocks and make Today Love Notes immediately typeable.
+- [x] Stop Today Love Notes from clearing after each typed letter.
