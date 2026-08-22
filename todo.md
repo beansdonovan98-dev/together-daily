@@ -105,3 +105,4 @@
 - [x] Restore reliable saving of pictures in the Steamy private gallery.
 - [x] Add confirmed delete controls for Steamy private gallery photos.
 - [x] Add synchronized caption editing for Steamy private gallery photos.
+- [x] Stop daily cover photos from disappearing immediately after selection.

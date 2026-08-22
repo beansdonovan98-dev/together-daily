@@ -132,6 +132,27 @@ export const appRouter = router({
         };
         return db.addGuestRoomPrivateMedia({ roomCode: input.roomCode, partnerId: input.partnerId, media });
       }),
+    uploadDailyCover: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(3_500_000), caption: z.string().max(500).optional() }))
+      .mutation(async ({ input }) => {
+        const bytes = Buffer.from(input.base64, "base64");
+        if (bytes.byteLength > 2.5 * 1024 * 1024) throw new Error("Please choose a smaller cover photo.");
+        const fileName = safeFileName(input.fileName);
+        const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/covers/${input.dailyDate}/${Date.now()}-${fileName}`, bytes, input.mimeType);
+        const media = {
+          id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          kind: "cover",
+          url: stored.url,
+          storageKey: stored.key,
+          fileName,
+          mimeType: input.mimeType,
+          caption: input.caption ?? "",
+          createdAt: new Date().toISOString(),
+          dailyDate: input.dailyDate,
+          uploadedBy: input.partnerId,
+        };
+        return db.addGuestRoomDailyCover({ roomCode: input.roomCode, partnerId: input.partnerId, dailyDate: input.dailyDate, slot: input.slot, media });
+      }),
     deletePrivateMedia: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120) }))
       .mutation(({ input }) => db.deleteGuestRoomPrivateMedia(input)),
