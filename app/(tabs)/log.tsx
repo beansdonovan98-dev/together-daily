@@ -7,7 +7,7 @@ import { sortTimelineEntriesOldestFirst } from "@/lib/timeline-utils";
 import { timestampForEditedTime } from "@/lib/timeline-time";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type EventStyle = { id: string; label: string; emoji: string; color: string };
@@ -66,27 +66,11 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
 
   const content = asObject(getDay(date));
-  const storedDebrief = String(content.sharedNotes ?? "");
-  const [debriefDraft, setDebriefDraft] = useState(storedDebrief);
-  const debriefLoadedDate = useRef<string | null>(null);
-  const pendingDebriefSave = useRef<string | null>(null);
-  const debriefDirty = useRef(false);
+  const legacyDebrief = String(content.sharedNotes ?? "").trim();
+  const debriefNotes = Array.isArray(content.notesList) ? content.notesList.map(asObject).filter((note) => String(note.text ?? "").trim()) : [];
+  const [debriefDraft, setDebriefDraft] = useState("");
   useEffect(() => { ensureDay(date); }, [date, ensureDay]);
-  useEffect(() => {
-    if (debriefLoadedDate.current !== date) {
-      debriefLoadedDate.current = date;
-      pendingDebriefSave.current = null;
-      debriefDirty.current = false;
-      setDebriefDraft(storedDebrief);
-      return;
-    }
-    if (pendingDebriefSave.current === storedDebrief) {
-      pendingDebriefSave.current = null;
-      debriefDirty.current = false;
-      return;
-    }
-    if (!debriefDirty.current && !pendingDebriefSave.current) setDebriefDraft(storedDebrief);
-  }, [date, storedDebrief]);
+  useEffect(() => { setDebriefDraft(""); }, [date]);
 
   const entries = useMemo(
     () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
@@ -102,10 +86,11 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     setDraft("");
   };
 
-  const saveDebrief = () => {
-    const nextDebrief = debriefDraft.trim();
-    pendingDebriefSave.current = nextDebrief;
-    updateDay(date, { sharedNotes: nextDebrief });
+  const addDebrief = () => {
+    const text = debriefDraft.trim();
+    if (!text) return;
+    updateDay(date, { notesList: [...debriefNotes, { id: `debrief-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }], sharedNotes: "" }, "daily-log");
+    setDebriefDraft("");
   };
 
   const beginEdit = (entry: TimelineEntry) => {
@@ -173,7 +158,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     <View style={styles.debrief}>
       <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
       <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
-      <TextInput value={debriefDraft} onChangeText={(value) => { debriefDirty.current = true; setDebriefDraft(value); }} editable multiline placeholder="Write notes, reflections, or a debrief for today…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={saveDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>Save notes & debrief</Text></TouchableOpacity>
+      {legacyDebrief ? <View style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:COLORS.gold}]}>•</Text><Text style={styles.debriefBulletText}>{legacyDebrief}</Text></View> : null}{debriefNotes.length ? <View style={styles.debriefNotes}>{debriefNotes.map((note) => { const authorId = note.authorId === "princess" ? "princess" : "beans"; const author = PARTNERS[authorId]; return <View key={String(note.id)} style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:author.color}]}>•</Text><View style={styles.debriefBulletBody}><Text style={[styles.debriefAuthor,{color:author.color}]}>{author.avatar} {author.name}</Text><Text style={styles.debriefBulletText}>{String(note.text)}</Text></View></View>; })}</View> : null}<View style={styles.debriefComposer}><TextInput value={debriefDraft} onChangeText={setDebriefDraft} onSubmitEditing={addDebrief} returnKeyType="done" multiline placeholder="Add another note or reflection…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={addDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>+ Add bullet</Text></TouchableOpacity></View>
     </View>
 
     <View style={styles.stream}>
@@ -228,8 +213,9 @@ const styles = StyleSheet.create({
   dayNavButton: { flex: 1, minHeight: 40, borderRadius: 11, borderWidth: 1, borderColor: "#3A313E", backgroundColor: COLORS.ink, justifyContent: "center", alignItems: "center" },
   dayNavDisabled: { opacity: .55 },
   dayNavText: { color: COLORS.gold, fontSize: 12, fontWeight: "900" },
-  debrief: { backgroundColor: COLORS.ink, borderWidth: 1, borderColor: "#432759", borderRadius: 20, padding: 17, gap: 16 },
-  debriefInput: { minHeight: 104, borderWidth: 1, borderColor: "#3A313E", borderRadius: 12, backgroundColor: "#120F14", color: COLORS.plum, padding: 12, fontSize: 14, lineHeight: 20 },
+  debrief: { backgroundColor: COLORS.ink, borderWidth: 1, borderColor: "#432759", borderRadius: 20, padding: 17, gap: 12 },
+  debriefNotes: { gap: 8 }, debriefBulletRow: { flexDirection: "row", gap: 9, alignItems: "flex-start", paddingVertical: 4 }, debriefBullet: { fontSize: 19, lineHeight: 20, fontWeight: "900" }, debriefBulletBody: { flex: 1, gap: 2 }, debriefAuthor: { fontSize: 10, fontWeight: "900" }, debriefBulletText: { color: COLORS.plum, fontSize: 14, lineHeight: 20, flex: 1 }, debriefComposer: { gap: 8 },
+  debriefInput: { minHeight: 78, borderWidth: 1, borderColor: "#3A313E", borderRadius: 12, backgroundColor: "#120F14", color: COLORS.plum, padding: 12, fontSize: 14, lineHeight: 20 },
   debriefSaveButton: { minHeight: 42, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, alignSelf: "flex-start" },
   debriefSaveText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
   sectionLead: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
