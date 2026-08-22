@@ -9,7 +9,7 @@ const TABS = [
   { id: "log", label: "Daily Log", glyph: "☰" },
   { id: "habits", label: "Habits", glyph: "✓" },
   { id: "steamy", label: "Steamy", glyph: "♥" },
-  { id: "photos", label: "Photos", glyph: "▧" },
+  { id: "purchase", label: "Purchase", glyph: "▤" },
   { id: "cleaning", label: "Cleaning", glyph: "✦" },
   { id: "themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", label: "Past Days", glyph: "▤" },

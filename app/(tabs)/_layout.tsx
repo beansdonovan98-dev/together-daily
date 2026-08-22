@@ -8,7 +8,8 @@ export default function TabLayout() {
     <Tabs.Screen name="habits" options={{title:"Habits",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="connect" options={{href:null}} />
     <Tabs.Screen name="steamy" options={{title:"Steamy",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
-    <Tabs.Screen name="memories" options={{title:"Photos",tabBarIcon:({color})=><IconSymbol size={24} name="photo.on.rectangle.angled" color={color}/>}} />
+    <Tabs.Screen name="memories" options={{href:null}} />
+    <Tabs.Screen name="purchases" options={{title:"Purchase",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
     <Tabs.Screen name="cleaning" options={{title:"Cleaning",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
     <Tabs.Screen name="themes" options={{title:"Themes",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="days" options={{title:"Past Days",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />

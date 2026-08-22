@@ -78,3 +78,5 @@
 - [x] Add reusable weekly cleaning templates.
 - [x] Add shared controls to rename and reorder top navigation tabs.
 - [x] Add edit and safe delete controls for shared saved cleaning templates.
+- [x] Remove the bottom two sections from Steamy.
+- [x] Replace Photos with a shared Purchase tab for Groceries, For the House, and Misc. lists.
