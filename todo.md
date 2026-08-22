@@ -119,5 +119,6 @@
 - [x] Repair the preview upload API connection that fails with “Failed to fetch.”
 - [x] Complete and checkpoint the interrupted private-gallery image repair.
 - [x] Repair the native private-gallery upload server connection that returns “Failed to fetch.”
+- [x] Reconcile local partner identity with shared-room membership before private-gallery uploads.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
