@@ -87,3 +87,6 @@
 - [x] Show Daily Log events from earliest to latest.
 - [x] Add edit and delete controls for Daily Log events.
 - [x] Allow Daily Log event times to be edited and keep events in chronological order.
+- [x] Add a native time picker to Daily Log event editing.
+- [x] Allow saved Daily Log event types to be deleted.
+- [x] Safeguard Daily Log sorting from 12:01 AM through 11:59 PM.

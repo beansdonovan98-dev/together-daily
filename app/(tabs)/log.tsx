@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
@@ -7,7 +8,7 @@ import { timestampForEditedTime } from "@/lib/timeline-time";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type EventStyle = { id: string; label: string; emoji: string; color: string };
 type TimelineEntry = { id: string; text: string; type: string; emoji?: string; color?: string; authorId: PartnerId; createdAt: string };
@@ -50,7 +51,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, customSubheadings, theme } = useLocalJournal();
+  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -61,6 +62,8 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [editEmoji, setEditEmoji] = useState("✦");
   const [editColor, setEditColor] = useState(COLORS.orchid);
   const [editTime, setEditTime] = useState("");
+  const [editTimeValue, setEditTimeValue] = useState(new Date());
+  const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
 
   useEffect(() => { ensureDay(date); }, [date, ensureDay]);
 
@@ -87,6 +90,8 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     setEditEmoji(style.emoji);
     setEditColor(style.color);
     setEditTime(formatEditableTime(entry.createdAt));
+    setEditTimeValue(new Date(entry.createdAt));
+    setShowNativeTimePicker(false);
   };
 
   const saveEdit = (entry: TimelineEntry) => {
@@ -96,6 +101,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     if (!createdAt) { Alert.alert("Enter a valid time", "Use a time such as 8:30 AM, 3:15 PM, or 15:15."); return; }
     updateDailyLogEvent(date, entry.id, { text, type: editLabel.trim() || "Custom moment", emoji: editEmoji.trim() || "✦", color: editColor, createdAt });
     setEditingId(null);
+    setShowNativeTimePicker(false);
   };
 
   const confirmDelete = (entry: TimelineEntry) => {
@@ -103,6 +109,20 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
       { text: "Keep", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => deleteDailyLogEvent(date, entry.id) },
     ]);
+  };
+
+  const confirmDeleteSavedType = (style: SavedLogStyle) => {
+    Alert.alert("Delete saved event type?", `“${style.emoji} ${style.label}” will be removed from Saved Types. Existing log events will keep their current label and color.`, [
+      { text: "Keep", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteLogStyle(style.id) },
+    ]);
+  };
+
+  const pickNativeTime = (_event: unknown, selectedDate?: Date) => {
+    if (Platform.OS === "android") setShowNativeTimePicker(false);
+    if (!selectedDate) return;
+    setEditTimeValue(selectedDate);
+    setEditTime(formatEditableTime(selectedDate.toISOString()));
   };
 
   return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
@@ -147,7 +167,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
             <View style={styles.colorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`${option.name} color`} onPress={() => setCustomColor(option.value)} style={[styles.colorSwatch, { backgroundColor: option.value }, customColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{customColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View>
           </View>
           <Text style={styles.stylePrompt}>SAVED TYPES</Text>
-          {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
+          {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} onDelete={() => confirmDeleteSavedType(style)} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
           <TouchableOpacity onPress={addEvent} style={[styles.addButton, { backgroundColor: me.color }]}><Text style={styles.addButtonText}>+ Add {activeStyle.emoji} Event</Text></TouchableOpacity>
         </View>
       </View>
@@ -158,15 +178,15 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
         const editing = editingId === entry.id;
         return <View key={entry.id} style={[styles.entry, { borderColor: style.color, borderLeftColor: author.color }]}>
           <View style={styles.entryMeta}><Text style={[styles.timePill, { color: author.color }]}>{dateTimeLabel(entry.createdAt)}</Text><View style={[styles.category, { backgroundColor: `${style.color}20`, borderColor: style.color }]}><Text style={[styles.categoryText, { color: style.color }]}>{style.emoji} {style.label}</Text></View><View style={[styles.partnerPill, { backgroundColor: author.soft }]}><Text style={[styles.partnerPillText, { color: author.color }]}>{entry.authorId === "beans" ? "♛ Beans" : "♥ Princess"}</Text></View></View>
-          {editing ? <View style={styles.editPanel}><View style={styles.editTimeRow}><Text style={styles.editTimeLabel}>WHEN DID THIS HAPPEN?</Text><TextInput value={editTime} onChangeText={setEditTime} placeholder="8:30 AM" placeholderTextColor="#7F7582" keyboardType="numbers-and-punctuation" maxLength={8} style={styles.editTimeInput}/></View><TextInput value={editText} onChangeText={setEditText} placeholder="What happened?" placeholderTextColor="#7F7582" multiline style={styles.editTextInput}/><View style={styles.editStyleRow}><TextInput value={editEmoji} onChangeText={(value) => setEditEmoji(value.slice(0, 4))} placeholder="✦" placeholderTextColor="#7F7582" maxLength={4} style={styles.editEmojiInput}/><TextInput value={editLabel} onChangeText={setEditLabel} placeholder="Event type" placeholderTextColor="#7F7582" maxLength={28} style={styles.editLabelInput}/></View><View style={styles.editColorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`Use ${option.name} color for this event`} onPress={() => setEditColor(option.value)} style={[styles.editColorSwatch, { backgroundColor: option.value }, editColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{editColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View><View style={styles.editActions}><TouchableOpacity accessibilityRole="button" onPress={() => setEditingId(null)} style={styles.cancelEditButton}><Text style={styles.cancelEditText}>Cancel</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => saveEdit(entry)} style={[styles.saveEditButton, { backgroundColor: author.color }]}><Text style={styles.saveEditText}>Save changes</Text></TouchableOpacity></View></View> : <><Text style={[styles.entryTitle, { color: author.color }]}>{entry.text}</Text><View style={styles.entryActions}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${entry.text}`} onPress={() => beginEdit(entry)} style={styles.editAction}><Text style={styles.editActionText}>EDIT</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${entry.text}`} onPress={() => confirmDelete(entry)} style={styles.deleteAction}><Text style={styles.deleteActionText}>DELETE</Text></TouchableOpacity></View></>}
+          {editing ? <View style={styles.editPanel}><View style={styles.editTimeRow}><Text style={styles.editTimeLabel}>WHEN DID THIS HAPPEN?</Text><TextInput value={editTime} onChangeText={setEditTime} placeholder="8:30 AM" placeholderTextColor="#7F7582" keyboardType="numbers-and-punctuation" maxLength={8} style={styles.editTimeInput}/>{Platform.OS !== "web" ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Pick event time" onPress={() => setShowNativeTimePicker(true)} style={styles.pickTimeButton}><Text style={styles.pickTimeText}>PICK TIME</Text></TouchableOpacity> : null}</View>{showNativeTimePicker ? <View style={styles.nativePickerWrap}><DateTimePicker value={editTimeValue} mode="time" display={Platform.OS === "ios" ? "spinner" : "default"} onChange={pickNativeTime}/>{Platform.OS === "ios" ? <TouchableOpacity accessibilityRole="button" onPress={() => setShowNativeTimePicker(false)} style={styles.nativePickerDone}><Text style={styles.nativePickerDoneText}>Done</Text></TouchableOpacity> : null}</View> : null}<TextInput value={editText} onChangeText={setEditText} placeholder="What happened?" placeholderTextColor="#7F7582" multiline style={styles.editTextInput}/><View style={styles.editStyleRow}><TextInput value={editEmoji} onChangeText={(value) => setEditEmoji(value.slice(0, 4))} placeholder="✦" placeholderTextColor="#7F7582" maxLength={4} style={styles.editEmojiInput}/><TextInput value={editLabel} onChangeText={setEditLabel} placeholder="Event type" placeholderTextColor="#7F7582" maxLength={28} style={styles.editLabelInput}/></View><View style={styles.editColorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`Use ${option.name} color for this event`} onPress={() => setEditColor(option.value)} style={[styles.editColorSwatch, { backgroundColor: option.value }, editColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{editColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View><View style={styles.editActions}><TouchableOpacity accessibilityRole="button" onPress={() => { setEditingId(null); setShowNativeTimePicker(false); }} style={styles.cancelEditButton}><Text style={styles.cancelEditText}>Cancel</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => saveEdit(entry)} style={[styles.saveEditButton, { backgroundColor: author.color }]}><Text style={styles.saveEditText}>Save changes</Text></TouchableOpacity></View></View> : <><Text style={[styles.entryTitle, { color: author.color }]}>{entry.text}</Text><View style={styles.entryActions}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${entry.text}`} onPress={() => beginEdit(entry)} style={styles.editAction}><Text style={styles.editActionText}>EDIT</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${entry.text}`} onPress={() => confirmDelete(entry)} style={styles.deleteAction}><Text style={styles.deleteActionText}>DELETE</Text></TouchableOpacity></View></>}
         </View>;
       })}</View> : <View style={styles.empty}><Text style={styles.emptyMark}>+</Text><Text style={styles.emptyTitle}>Start the stream.</Text><Text style={styles.emptyCopy}>A moment, a plan, a feeling, a shower, or a little memory can go here whenever it happens.</Text></View>}
     </View>
   </ScrollView></AppFrame>;
 }
 
-function SavedStyleButton({ styleOption, onPress }: { styleOption: SavedLogStyle; onPress: () => void }) {
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${styleOption.label} style`} onPress={onPress} style={[styles.typePill, { borderColor: styleOption.color, backgroundColor: `${styleOption.color}18` }]}><Text style={[styles.typeText, { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity>;
+function SavedStyleButton({ styleOption, onPress, onDelete }: { styleOption: SavedLogStyle; onPress: () => void; onDelete: () => void }) {
+  return <View style={[styles.savedType, { borderColor: styleOption.color, backgroundColor: `${styleOption.color}18` }]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${styleOption.label} style`} onPress={onPress} style={styles.savedTypeUse}><Text style={[styles.typeText, { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete saved ${styleOption.label} type`} onPress={onDelete} style={styles.savedTypeDelete}><Text style={[styles.savedTypeDeleteText, { color: styleOption.color }]}>×</Text></TouchableOpacity></View>;
 }
 
 const styles = StyleSheet.create({
@@ -206,6 +226,10 @@ const styles = StyleSheet.create({
   stylePrompt: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: .9 },
   typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   typePill: { borderWidth: 1, borderColor: "#3A313E", borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, backgroundColor: "#151217" },
+  savedType: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 9, overflow: "hidden" },
+  savedTypeUse: { paddingLeft: 8, paddingRight: 5, paddingVertical: 6 },
+  savedTypeDelete: { width: 25, alignItems: "center", justifyContent: "center", alignSelf: "stretch", borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.16)" },
+  savedTypeDeleteText: { fontSize: 17, fontWeight: "700", lineHeight: 18 },
   typeText: { color: COLORS.slate, fontSize: 11, fontWeight: "800" },
   noSavedTypes: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, fontStyle: "italic" },
   customPanel: { borderRadius: 12, backgroundColor: "#161219", borderWidth: 1, borderColor: "#3D2E43", padding: 11, gap: 9 },
@@ -237,7 +261,12 @@ const styles = StyleSheet.create({
   editPanel: { gap: 9, marginTop: 11 },
   editTimeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: 10, backgroundColor: "#161219", padding: 9 },
   editTimeLabel: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: .7, flex: 1 },
-  editTimeInput: { width: 90, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 8, color: COLORS.plum, fontSize: 13, paddingHorizontal: 8, paddingVertical: 6, textAlign: "center" },
+  editTimeInput: { width: 80, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 8, color: COLORS.plum, fontSize: 13, paddingHorizontal: 7, paddingVertical: 6, textAlign: "center" },
+  pickTimeButton: { borderRadius: 8, borderWidth: 1, borderColor: "#6B5A82", backgroundColor: "#21182A", paddingHorizontal: 8, paddingVertical: 8 },
+  pickTimeText: { color: "#D7BCEB", fontSize: 9, fontWeight: "900", letterSpacing: .6 },
+  nativePickerWrap: { borderRadius: 10, overflow: "hidden", backgroundColor: "#18131B", borderWidth: 1, borderColor: "#3A313E" },
+  nativePickerDone: { alignSelf: "flex-end", margin: 8, borderRadius: 8, backgroundColor: "#342743", paddingHorizontal: 13, paddingVertical: 8 },
+  nativePickerDoneText: { color: COLORS.plum, fontSize: 11, fontWeight: "900" },
   editTextInput: { minHeight: 66, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 10, color: COLORS.plum, textAlignVertical: "top", fontSize: 14 },
   editStyleRow: { flexDirection: "row", gap: 8 },
   editEmojiInput: { width: 48, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 9, color: COLORS.plum, fontSize: 18, textAlign: "center", paddingHorizontal: 5, paddingVertical: 6 },

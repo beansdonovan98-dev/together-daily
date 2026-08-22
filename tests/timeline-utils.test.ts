@@ -11,4 +11,14 @@ describe("Daily Log ordering", () => {
 
     expect(sortTimelineEntriesOldestFirst(entries).map((entry) => entry.id)).toEqual(["first", "middle", "later"]);
   });
+
+  it("orders the full day from just after midnight through the final minute", () => {
+    const entries = [
+      { id: "late", createdAt: "2026-08-22T23:59:00.000Z" },
+      { id: "middle", createdAt: "2026-08-22T12:00:00.000Z" },
+      { id: "early", createdAt: "2026-08-22T00:01:00.000Z" },
+    ];
+
+    expect(sortTimelineEntriesOldestFirst(entries).map((entry) => entry.id)).toEqual(["early", "middle", "late"]);
+  });
 });
