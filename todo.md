@@ -68,3 +68,4 @@
 - [x] Add an Are you sure confirmation before resetting personalization.
 - [x] Let partners name and save their own shared custom color themes.
 - [x] Add rename and safe delete controls for shared saved color themes.
+- [x] Show Beans or Princess as the creator of each saved shared color theme.
