@@ -153,6 +153,9 @@ export const appRouter = router({
         };
         return db.addGuestRoomDailyCover({ roomCode: input.roomCode, partnerId: input.partnerId, dailyDate: input.dailyDate, slot: input.slot, media });
       }),
+    deleteDailyCover: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]) }))
+      .mutation(({ input }) => db.deleteGuestRoomDailyCover(input)),
     deletePrivateMedia: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120) }))
       .mutation(({ input }) => db.deleteGuestRoomPrivateMedia(input)),

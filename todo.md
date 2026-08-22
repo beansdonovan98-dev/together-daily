@@ -106,3 +106,4 @@
 - [x] Add confirmed delete controls for Steamy private gallery photos.
 - [x] Add synchronized caption editing for Steamy private gallery photos.
 - [x] Stop daily cover photos from disappearing immediately after selection.
+- [x] Fix the daily cover upload error and add change and confirmed remove controls without duplicating captions.

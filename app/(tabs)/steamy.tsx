@@ -3,7 +3,7 @@ import { PrivateGate } from "@/components/together-access";
 import { COLORS, dateTimeLabel, localDateKey } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { File } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -19,7 +19,7 @@ function SteamyContent({ userId }: { userId: PartnerId }) {
   const privateChat = records.filter((record) => record.recordType === "steamyChat" || record.recordType === "chat"); const privateMedia = media.filter((item) => item.kind === "private"); const cumEntries = records.filter((record) => record.recordType === "cumLog").slice(-12).reverse();
   const addCumEntry = () => { addRecord("cumLog", { text: cumNote.trim(), date, matureOnly: true }); setCumNote(""); };
   const sendChat = () => { if (!chatDraft.trim()) return; addRecord("steamyChat", { text: chatDraft.trim(), date, matureOnly: true }); setChatDraft(""); };
-  const savePrivateAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => { const mimeType = mime(asset.mimeType); const base64 = await new File(asset.uri).base64(); if (!base64) throw new Error("The selected image could not be read."); await uploadPrivateMedia({ dailyDate: date, fileName: asset.fileName ?? `private-${Date.now()}.jpg`, mimeType, base64, caption }); setCaption(""); }, [caption, date, uploadPrivateMedia]);
+  const savePrivateAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => { const mimeType = mime(asset.mimeType); const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 }); if (!base64) throw new Error("The selected image could not be read."); await uploadPrivateMedia({ dailyDate: date, fileName: asset.fileName ?? `private-${Date.now()}.jpg`, mimeType, base64, caption }); setCaption(""); }, [caption, date, uploadPrivateMedia]);
   const pickPrivatePhoto = async () => { setUploading(true); try { const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: .25 }); if (result.canceled || !result.assets[0]) return; await savePrivateAsset(result.assets[0]); } catch (error) { Alert.alert("Photo wasn't saved", error instanceof Error ? error.message : "Please try choosing a smaller photo."); } finally { setUploading(false); } };
   useEffect(() => { ImagePicker.getPendingResultAsync().then(async (result) => { if (!result || !("assets" in result) || result.canceled || !result.assets[0]) return; setUploading(true); try { await savePrivateAsset(result.assets[0]); } catch (error) { Alert.alert("Photo wasn't saved", error instanceof Error ? error.message : "Please try choosing a smaller photo."); } finally { setUploading(false); } }).catch(() => undefined); }, [savePrivateAsset]);
   const removePrivatePhoto = async (id: string) => { setDeletingId(id); try { await deletePrivateMedia(id); setConfirmDeleteId(null); } catch (error) { Alert.alert("Photo wasn't removed", error instanceof Error ? error.message : "Please try again."); } finally { setDeletingId(null); } };

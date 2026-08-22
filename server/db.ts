@@ -517,6 +517,36 @@ export async function addGuestRoomDailyCover(input: {
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), media: input.media };
 }
 
+export async function deleteGuestRoomDailyCover(input: {
+  roomCode: string;
+  partnerId: GuestRoomMemberId;
+  dailyDate: string;
+  slot: "first" | "second";
+}) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before removing a cover photo.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const days = journalState.days && typeof journalState.days === "object" && !Array.isArray(journalState.days) ? journalState.days as JsonObject : {};
+  const currentDay = days[input.dailyDate] && typeof days[input.dailyDate] === "object" && !Array.isArray(days[input.dailyDate]) ? days[input.dailyDate] as JsonObject : null;
+  const coverKey = input.slot === "first" ? "coverPhoto" : "coverPhotoTwo";
+  const cover = currentDay?.[coverKey];
+  if (!currentDay || !cover || typeof cover !== "object") throw new Error("That cover photo is no longer available.");
+
+  const { [coverKey]: _removedCover, ...remainingDay } = currentDay;
+  const coverId = (cover as JsonObject).id;
+  const existingMedia = Array.isArray(journalState.media) ? journalState.media : [];
+  const media = existingMedia.filter((item) => !(item && typeof item === "object" && (item as JsonObject).kind === "cover" && (item as JsonObject).id === coverId));
+  const nextState = { ...journalState, days: { ...days, [input.dailyDate]: { ...remainingDay, date: input.dailyDate } }, media };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "daily-log");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
+}
+
 export async function deleteGuestRoomPrivateMedia(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string }) {
   const db = requireDb(await getDb());
   const roomCode = input.roomCode.trim().toUpperCase();
