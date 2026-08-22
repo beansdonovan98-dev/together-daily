@@ -51,7 +51,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
+  const { getDay, updateDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -65,9 +65,12 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [editTimeValue, setEditTimeValue] = useState(new Date());
   const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
 
-  useEffect(() => { ensureDay(date); }, [date, ensureDay]);
-
   const content = asObject(getDay(date));
+  const storedDebrief = String(content.sharedNotes ?? "");
+  const [debriefDraft, setDebriefDraft] = useState(storedDebrief);
+  useEffect(() => { ensureDay(date); }, [date, ensureDay]);
+  useEffect(() => { setDebriefDraft(storedDebrief); }, [date, storedDebrief]);
+
   const entries = useMemo(
     () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
     [content.timelineEvents],
@@ -80,6 +83,10 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     if (!text) return;
     addDailyLogEvent(date, { id: `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }, activeStyle);
     setDraft("");
+  };
+
+  const saveDebrief = () => {
+    updateDay(date, { sharedNotes: debriefDraft.trim() });
   };
 
   const beginEdit = (entry: TimelineEntry) => {
@@ -125,7 +132,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     setEditTime(formatEditableTime(selectedDate.toISOString()));
   };
 
-  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
     <View style={styles.hero}>
       <Text style={styles.heroMark}>♥</Text>
       <View style={styles.heroCopy}>
@@ -147,6 +154,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     <View style={styles.debrief}>
       <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
       <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
+      <TextInput value={debriefDraft} onChangeText={setDebriefDraft} editable multiline placeholder="Write notes, reflections, or a debrief for today…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={saveDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>Save notes & debrief</Text></TouchableOpacity>
     </View>
 
     <View style={styles.stream}>
@@ -202,6 +210,9 @@ const styles = StyleSheet.create({
   dayNavDisabled: { opacity: .55 },
   dayNavText: { color: COLORS.gold, fontSize: 12, fontWeight: "900" },
   debrief: { backgroundColor: COLORS.ink, borderWidth: 1, borderColor: "#432759", borderRadius: 20, padding: 17, gap: 16 },
+  debriefInput: { minHeight: 104, borderWidth: 1, borderColor: "#3A313E", borderRadius: 12, backgroundColor: "#120F14", color: COLORS.plum, padding: 12, fontSize: 14, lineHeight: 20 },
+  debriefSaveButton: { minHeight: 42, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, alignSelf: "flex-start" },
+  debriefSaveText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
   sectionLead: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   sectionIcon: { height: 38, width: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   sectionIconText: { fontSize: 20, fontWeight: "900" },
