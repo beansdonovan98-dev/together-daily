@@ -86,3 +86,4 @@
 - [x] Fix the partner invite so it shares a clear app-access path and room code instead of relying on the Notes share target.
 - [x] Show Daily Log events from earliest to latest.
 - [x] Add edit and delete controls for Daily Log events.
+- [x] Allow Daily Log event times to be edited and keep events in chronological order.
