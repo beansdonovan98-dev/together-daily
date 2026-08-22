@@ -50,3 +50,6 @@
 - [x] Remove the “To add Princess” instruction from the first shared-room section.
 - [x] Move Copy Code, Share Invite, and QR tools into the first expandable shared-room panel.
 - [x] Add a Past Days tab with complete archived-day browsing.
+- [x] Show the Invite Tools panel only on the Today section.
+- [x] Add distinct emojis and partner-colored text for Daily Log event categories.
+- [x] Let partners choose a custom Daily Log emoji and matching color label for each event.

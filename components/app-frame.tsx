@@ -27,6 +27,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
+  const isTodaySection = pathname === "/" || pathname === "/index";
   const roomInviteLink = roomCode ? `manustogetherdaily://join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
 
   const showInviteFeedback = (message: string) => {
@@ -117,7 +118,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             <Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text>
             <View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View>
           </View>
-          {roomCode ? (
+          {roomCode && isTodaySection ? (
             <View style={styles.inviteRow}>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
                 <View style={styles.invitePanelLead}>
