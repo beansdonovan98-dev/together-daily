@@ -1,23 +1,33 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
-import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
+import { COLORS, asObject, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type CleaningTask = { id: string; text: string; createdBy: PartnerId; completed: boolean; completedBy?: PartnerId };
 
+function weekStartKey() {
+  const now = new Date();
+  const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  sunday.setDate(sunday.getDate() - sunday.getDay());
+  const year = sunday.getFullYear();
+  const month = String(sunday.getMonth() + 1).padStart(2, "0");
+  const day = String(sunday.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function CleaningScreen() {
   return <PrivateGate>{({ userId }) => <CleaningContent userId={userId} />}</PrivateGate>;
 }
 
 function CleaningContent({ userId }: { userId: PartnerId }) {
-  const date = localDateKey();
+  const weekStart = weekStartKey();
   const { ready, getDay, ensureDay, updateDay, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
 
-  useEffect(() => { if (ready) ensureDay(date); }, [date, ensureDay, ready]);
-  const day = asObject(getDay(date));
+  useEffect(() => { if (ready) ensureDay(weekStart); }, [weekStart, ensureDay, ready]);
+  const day = asObject(getDay(weekStart));
   const cleaning = asObject(day.cleaning);
   const tasks = (Array.isArray(cleaning.tasks) ? cleaning.tasks : []) as CleaningTask[];
   const completed = tasks.filter((task) => task.completed).length;
@@ -26,7 +36,7 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
   const activePartner = PARTNERS[userId];
   const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
 
-  const saveTasks = (next: CleaningTask[]) => updateDay(date, { cleaning: { tasks: next } });
+  const saveTasks = (next: CleaningTask[]) => updateDay(weekStart, { cleaning: { tasks: next, weekStart } });
   const addTask = () => {
     const text = draft.trim();
     if (!text) return;
@@ -36,18 +46,18 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
   const toggleTask = (taskId: string) => saveTasks(tasks.map((task) => task.id === taskId ? { ...task, completed: !task.completed, completedBy: task.completed ? undefined : userId } : task));
   const removeTask = (taskId: string) => saveTasks(tasks.filter((task) => task.id !== taskId));
 
-  const message = useMemo(() => !tasks.length ? "Add the first task whenever you are ready." : completed === tasks.length ? "Everything on today’s list is done." : "Little by little, your shared space comes together.", [completed, tasks.length]);
+  const message = useMemo(() => !tasks.length ? "Add the first task whenever you are ready." : completed === tasks.length ? "Everything on this week’s list is done." : "Little by little, your shared space comes together.", [completed, tasks.length]);
   if (!ready) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Opening your cleaning list…</Text></View></AppFrame>;
 
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
-    <View style={styles.hero}><Text style={styles.eyebrow}>SHARED HOME CARE</Text><Text style={styles.title}>Cleaning</Text><Text style={styles.copy}>{prettyDate(date)} · {message}</Text></View>
+    <View style={styles.hero}><Text style={styles.eyebrow}>SHARED HOME CARE · RESETS SUNDAY</Text><Text style={styles.title}>Cleaning</Text><Text style={styles.copy}>Week of {prettyDate(weekStart)} · {message}</Text></View>
 
-    <View style={styles.progressCard}><View style={styles.progressTop}><View><Text style={styles.progressKicker}>TODAY’S PROGRESS</Text><Text style={styles.progressNumber}>{completed}<Text style={styles.progressTotal}> / {tasks.length}</Text></Text></View><Text style={styles.progressPercent}>{progress}%</Text></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: activePartner.color }]} /></View><View style={styles.partnerCounts}><Text style={[styles.partnerCount, { color: PARTNERS.beans.color }]}>♛ Beans · {beansCount}</Text><Text style={[styles.partnerCount, { color: PARTNERS.princess.color }]}>♥ Princess · {princessCount}</Text></View></View>
+    <View style={styles.progressCard}><View style={styles.progressTop}><View><Text style={styles.progressKicker}>THIS WEEK’S PROGRESS</Text><Text style={styles.progressNumber}>{completed}<Text style={styles.progressTotal}> / {tasks.length}</Text></Text></View><Text style={styles.progressPercent}>{progress}%</Text></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: activePartner.color }]} /></View><View style={styles.partnerCounts}><Text style={[styles.partnerCount, { color: PARTNERS.beans.color }]}>♛ Beans · {beansCount}</Text><Text style={[styles.partnerCount, { color: PARTNERS.princess.color }]}>♥ Princess · {princessCount}</Text></View></View>
 
     <View style={styles.composer}><Text style={styles.composerTitle}>Add a cleaning task</Text><View style={styles.addRow}><TextInput value={draft} onChangeText={setDraft} onSubmitEditing={addTask} returnKeyType="done" placeholder="e.g. Wipe down the counters" placeholderTextColor="#7F7582" style={styles.input}/><TouchableOpacity accessibilityRole="button" onPress={addTask} style={[styles.addButton, { backgroundColor: activePartner.color }]}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View></View>
 
     <View style={styles.list}>{tasks.map((task) => { const creator = PARTNERS[task.createdBy]; const completer = task.completedBy ? PARTNERS[task.completedBy] : null; return <View key={task.id} style={[styles.taskCard, task.completed && styles.taskCardDone]}><TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: task.completed }} accessibilityLabel={`Mark ${task.text} ${task.completed ? "incomplete" : "complete"}`} onPress={() => toggleTask(task.id)} style={[styles.checkCircle, task.completed && { backgroundColor: completer?.color ?? COLORS.sage, borderColor: completer?.color ?? COLORS.sage }]}><Text style={styles.checkText}>{task.completed ? "✓" : ""}</Text></TouchableOpacity><View style={styles.taskBody}><Text style={[styles.taskText, task.completed && styles.taskTextDone]}>{task.text}</Text><Text style={[styles.taskMeta, { color: task.completed ? completer?.color : creator.color }]}>{task.completed ? `${completer?.name} completed` : `${creator.name} added`}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${task.text}`} onPress={() => removeTask(task.id)} style={styles.deleteButton}><Text style={styles.deleteText}>×</Text></TouchableOpacity></View>; })}</View>
-    {!tasks.length ? <View style={styles.empty}><Text style={styles.emptyTitle}>A fresh, clear start.</Text><Text style={styles.emptyCopy}>This list is yours to build together. Add only the cleaning tasks that matter today.</Text></View> : null}
+    {!tasks.length ? <View style={styles.empty}><Text style={styles.emptyTitle}>A fresh, clear start.</Text><Text style={styles.emptyCopy}>This list is yours to build together. Add only the cleaning tasks that matter this week.</Text></View> : null}
   </ScrollView></AppFrame>;
 }
 

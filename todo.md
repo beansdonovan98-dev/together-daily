@@ -72,3 +72,5 @@
 - [x] Move all theme personalization into a dedicated Themes tab.
 - [x] Reorder navigation so Themes is second to last and Past Days follows Photos as the final tab.
 - [x] Add a shared Cleaning tab after Photos and before Themes.
+- [x] Reset the shared Cleaning checklist each Sunday instead of each day.
+- [x] Add separate Beans and Princess weight check-ins every three days on Good Habits.
