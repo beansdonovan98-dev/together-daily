@@ -115,7 +115,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 <View style={[styles.connectionDot, { backgroundColor: partnerConnected ? partnerToInvite.color : COLORS.gold }]} />
                 <Text style={[styles.connectionText, partnerConnected && { color: partnerToInvite.color }]}>{partnerConnected ? `${partnerToInvite.name.toUpperCase()} CONNECTED` : `WAITING FOR ${partnerToInvite.name.toUpperCase()}`}</Text>
               </View>
-              <Text style={styles.inviteHint}>To add {partnerToInvite.name}: install the same APK → choose “I have a room code” → enter <Text style={styles.inviteCode}>{roomCode}</Text>.</Text>
               <View style={styles.inviteActions}>
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel="Copy room code" onPress={copyRoomCode} style={styles.inviteAction}>
                   <Text style={styles.inviteActionText}>COPY CODE</Text>

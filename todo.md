@@ -47,3 +47,4 @@
 - [x] Add privacy-safe push notifications for shared-room activity and partner connection events.
 - [x] Register each partner’s physical device for notifications and persist its room-bound push token.
 - [x] Send privacy-safe partner notifications from shared-room updates and open the relevant screen when tapped.
+- [x] Remove the “To add Princess” instruction from the first shared-room section.
