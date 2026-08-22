@@ -53,3 +53,5 @@
 - [x] Show the Invite Tools panel only on the Today section.
 - [x] Add distinct emojis and partner-colored text for Daily Log event categories.
 - [x] Let partners choose a custom Daily Log emoji and matching color label for each event.
+- [x] Replace pre-made Daily Log styles with custom-only creation and saved reusable styles.
+- [x] Add separate Beans and Princess contribution counts beneath Six Little Things.

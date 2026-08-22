@@ -1,7 +1,7 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
-import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
+import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -9,15 +9,12 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 type EventStyle = { id: string; label: string; emoji: string; color: string };
 type TimelineEntry = { id: string; text: string; type: string; emoji?: string; color?: string; authorId: PartnerId; createdAt: string };
 
-const EVENT_STYLES: EventStyle[] = [
-  { id: "together", label: "Together", emoji: "♥", color: COLORS.rose },
-  { id: "plan", label: "Plan", emoji: "✦", color: COLORS.gold },
-  { id: "feeling", label: "Feeling", emoji: "☁", color: "#92B9D8" },
-  { id: "memory", label: "Memory", emoji: "❋", color: COLORS.sage },
-  { id: "shower", label: "Shower / Freshen Up", emoji: "🚿", color: "#66B7DD" },
-  { id: "meal", label: "Meal", emoji: "🍽", color: "#E6A267" },
-  { id: "rest", label: "Rest", emoji: "🌙", color: "#B69AE8" },
-];
+const LEGACY_LOG_STYLES: Record<string, Pick<EventStyle, "emoji" | "color">> = {
+  Together: { emoji: "♥", color: COLORS.rose },
+  Plan: { emoji: "✦", color: COLORS.gold },
+  Feeling: { emoji: "☁", color: "#92B9D8" },
+  Memory: { emoji: "❋", color: COLORS.sage },
+};
 
 const CUSTOM_COLORS = [
   { name: "Rose", value: COLORS.rose },
@@ -29,12 +26,12 @@ const CUSTOM_COLORS = [
 ];
 
 function getEventStyle(entry: TimelineEntry): EventStyle {
-  const saved = EVENT_STYLES.find((style) => style.label === entry.type);
+  const legacy = LEGACY_LOG_STYLES[entry.type];
   return {
-    id: saved?.id ?? "saved",
+    id: "saved",
     label: entry.type || "Moment",
-    emoji: entry.emoji || saved?.emoji || "✦",
-    color: entry.color || saved?.color || COLORS.orchid,
+    emoji: entry.emoji || legacy?.emoji || "✦",
+    color: entry.color || legacy?.color || COLORS.orchid,
   };
 }
 
@@ -46,10 +43,9 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, updateDay, roomCode, isSyncing, ensureDay } = useLocalJournal();
+  const { getDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent } = useLocalJournal();
   const [draft, setDraft] = useState("");
-  const [selectedStyleId, setSelectedStyleId] = useState("together");
-  const [customLabel, setCustomLabel] = useState("Custom moment");
+  const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
   const [customColor, setCustomColor] = useState(COLORS.orchid);
 
@@ -61,25 +57,12 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     [content.timelineEvents],
   );
   const me = PARTNERS[userId];
-  const activeStyle = selectedStyleId === "custom"
-    ? { id: "custom", label: customLabel.trim() || "Custom moment", emoji: customEmoji.trim() || "✦", color: customColor }
-    : EVENT_STYLES.find((style) => style.id === selectedStyleId) ?? EVENT_STYLES[0];
+  const activeStyle = { id: "custom", label: customLabel.trim() || "Custom moment", emoji: customEmoji.trim() || "✦", color: customColor };
 
   const addEvent = () => {
     const text = draft.trim();
     if (!text) return;
-    const current = Array.isArray(content.timelineEvents) ? content.timelineEvents : [];
-    updateDay(date, {
-      timelineEvents: [...current, {
-        id: `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        text,
-        type: activeStyle.label,
-        emoji: activeStyle.emoji,
-        color: activeStyle.color,
-        authorId: userId,
-        createdAt: new Date().toISOString(),
-      }],
-    }, "daily-log");
+    addDailyLogEvent(date, { id: `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }, activeStyle);
     setDraft("");
   };
 
@@ -104,7 +87,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
 
     <View style={styles.debrief}>
       <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
-      <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Choose an event style, or make your own emoji and color for the moment.</Text></View>
+      <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
     </View>
 
     <View style={styles.stream}>
@@ -114,9 +97,8 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
         <View style={styles.composerHeader}><View style={[styles.authorBadge, { backgroundColor: me.soft }]}><Text style={[styles.authorBadgeText, { color: me.color }]}>{userId === "beans" ? "♛ Beans" : "♥ Princess"}</Text></View><Text style={styles.composerTime}>NOW</Text></View>
         <TextInput value={draft} onChangeText={setDraft} placeholder="What’s happening right now?" placeholderTextColor="#7F7582" multiline style={styles.input}/>
         <View style={styles.composerFooter}>
-          <Text style={styles.stylePrompt}>CHOOSE THE MOMENT’S LOOK</Text>
-          <View style={styles.typeRow}>{EVENT_STYLES.map((style) => <EventStyleButton key={style.id} styleOption={style} selected={selectedStyleId === style.id} onPress={() => setSelectedStyleId(style.id)} />)}<EventStyleButton styleOption={{ id: "custom", label: "Custom", emoji: customEmoji || "✦", color: customColor }} selected={selectedStyleId === "custom"} onPress={() => setSelectedStyleId("custom")} /></View>
-          {selectedStyleId === "custom" ? <View style={styles.customPanel}>
+          <Text style={styles.stylePrompt}>CREATE A MOMENT TYPE</Text>
+          <View style={styles.customPanel}>
             <Text style={styles.customTitle}>Make this event yours</Text>
             <View style={styles.customInputRow}>
               <TextInput value={customEmoji} onChangeText={(value) => setCustomEmoji(value.slice(0, 4))} placeholder="✦" placeholderTextColor="#7F7582" style={styles.emojiInput} maxLength={4} accessibilityLabel="Custom event emoji" />
@@ -124,7 +106,9 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
             </View>
             <Text style={styles.colorPrompt}>PICK A COLOR</Text>
             <View style={styles.colorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`${option.name} color`} onPress={() => setCustomColor(option.value)} style={[styles.colorSwatch, { backgroundColor: option.value }, customColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{customColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View>
-          </View> : null}
+          </View>
+          <Text style={styles.stylePrompt}>SAVED TYPES</Text>
+          {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
           <TouchableOpacity onPress={addEvent} style={[styles.addButton, { backgroundColor: me.color }]}><Text style={styles.addButtonText}>+ Add {activeStyle.emoji} Event</Text></TouchableOpacity>
         </View>
       </View>
@@ -141,8 +125,8 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   </ScrollView></AppFrame>;
 }
 
-function EventStyleButton({ styleOption, selected, onPress }: { styleOption: EventStyle; selected: boolean; onPress: () => void }) {
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${styleOption.label} event style`} onPress={onPress} style={[styles.typePill, selected && { borderColor: styleOption.color, backgroundColor: `${styleOption.color}24` }]}><Text style={[styles.typeText, selected && { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity>;
+function SavedStyleButton({ styleOption, onPress }: { styleOption: SavedLogStyle; onPress: () => void }) {
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${styleOption.label} style`} onPress={onPress} style={[styles.typePill, { borderColor: styleOption.color, backgroundColor: `${styleOption.color}18` }]}><Text style={[styles.typeText, { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity>;
 }
 
 const styles = StyleSheet.create({
@@ -183,6 +167,7 @@ const styles = StyleSheet.create({
   typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   typePill: { borderWidth: 1, borderColor: "#3A313E", borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, backgroundColor: "#151217" },
   typeText: { color: COLORS.slate, fontSize: 11, fontWeight: "800" },
+  noSavedTypes: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, fontStyle: "italic" },
   customPanel: { borderRadius: 12, backgroundColor: "#161219", borderWidth: 1, borderColor: "#3D2E43", padding: 11, gap: 9 },
   customTitle: { color: COLORS.plum, fontSize: 13, fontWeight: "900" },
   customInputRow: { flexDirection: "row", gap: 8 },
