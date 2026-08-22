@@ -109,3 +109,5 @@
 - [x] Fix the daily cover upload error and add change and confirmed remove controls without duplicating captions.
 - [x] Keep private adult-chat messages dark and allow durable private-gallery GIF uploads.
 - [x] Make both private chat bubbles compact, dark, and readable on mobile.
+- [x] Replace light global Daddy and Princess identity badges with dark readable chips.
+- [x] Restore typing and saving for shared Love Notes on Today.
