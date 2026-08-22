@@ -34,3 +34,32 @@ export async function readPickedImageAsBase64(uri: string, providedBase64?: stri
   if (Platform.OS === "web") return readWebUriAsBase64(uri);
   return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
 }
+
+/** Keeps ordinary browser photos small enough for a JSON-based private upload without altering GIF animation. */
+export async function preparePickedImageForUpload(input: {
+  uri: string;
+  base64?: string | null;
+  mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+}) {
+  const base64 = await readPickedImageAsBase64(input.uri, input.base64);
+  if (Platform.OS !== "web" || input.mimeType === "image/gif") return { base64, mimeType: input.mimeType };
+
+  const source = `data:${input.mimeType};base64,${base64}`;
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error("The selected image could not be prepared for upload."));
+    element.src = source;
+  });
+  const largestSide = Math.max(image.naturalWidth, image.naturalHeight);
+  if (largestSide <= 1280 && base64.length <= 2_400_000) return { base64, mimeType: input.mimeType };
+
+  const scale = Math.min(1, 1280 / largestSide);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("The selected image could not be prepared for upload.");
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return { base64: base64FromDataUrl(canvas.toDataURL("image/jpeg", 0.68)), mimeType: "image/jpeg" as const };
+}

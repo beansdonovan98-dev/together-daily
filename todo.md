@@ -117,3 +117,6 @@
 - [x] Restore preview persistence for private-gallery and Today cover-photo uploads.
 - [x] Repair the still-failing private-gallery upload and verify its saved media record persists.
 - [x] Repair the preview upload API connection that fails with “Failed to fetch.”
+- [x] Complete and checkpoint the interrupted private-gallery image repair.
+- [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
+- [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
