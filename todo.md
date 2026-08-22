@@ -99,3 +99,4 @@
 - [x] Add a confirmed reset-to-default option for Daddy and Princess profile colors.
 - [x] Restore typing and saving in the shared Notes section.
 - [x] Restore typing and saving in the Notes and Debrief section.
+- [x] Add shared editable identity emoji fields for Daddy and Princess in Themes.
