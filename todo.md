@@ -100,3 +100,4 @@
 - [x] Restore typing and saving in the shared Notes section.
 - [x] Restore typing and saving in the Notes and Debrief section.
 - [x] Add shared editable identity emoji fields for Daddy and Princess in Themes.
+- [x] Expand Themes with richer accent, background, profile, and ready-made color selections.
