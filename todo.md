@@ -97,3 +97,4 @@
 - [x] Use 🍆 for Daddy and 🍑 for Princess across the app identity display (confirmed).
 - [x] Add shared profile color pickers for Daddy and Princess in Themes.
 - [x] Add a confirmed reset-to-default option for Daddy and Princess profile colors.
+- [x] Restore typing and saving in the shared Notes section.
