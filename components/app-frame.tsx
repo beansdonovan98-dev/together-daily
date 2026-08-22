@@ -9,19 +9,19 @@ import { Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View }
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 
 const NAVIGATION = [
-  { href: "/", label: "Today", glyph: "✦" },
-  { href: "/log", label: "Daily Log", glyph: "☰" },
-  { href: "/habits", label: "Habits", glyph: "✓" },
-  { href: "/steamy", label: "Steamy", glyph: "♥" },
-  { href: "/memories", label: "Photos", glyph: "▧" },
-  { href: "/cleaning", label: "Cleaning", glyph: "✦" },
-  { href: "/themes", label: "Themes", glyph: "◐" },
-  { href: "/days", label: "Past Days", glyph: "▤" },
+  { id: "today", href: "/", label: "Today", glyph: "✦" },
+  { id: "log", href: "/log", label: "Daily Log", glyph: "☰" },
+  { id: "habits", href: "/habits", label: "Habits", glyph: "✓" },
+  { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
+  { id: "photos", href: "/memories", label: "Photos", glyph: "▧" },
+  { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },
+  { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
+  { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, tabLabels, tabOrder } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -33,6 +33,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const roomInviteLink = roomCode ? `manustogetherdaily://join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const backgroundColor = theme.backgroundColor ?? COLORS.blush;
+  const orderedNavigation = [...tabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)), ...NAVIGATION.map((item) => item.id).filter((id) => !tabOrder.includes(id))].map((id) => NAVIGATION.find((item) => item.id === id)!).filter(Boolean);
 
   const showInviteFeedback = (message: string) => {
     setInviteFeedback(message);
@@ -107,9 +108,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
           <View style={styles.liveStatus}><View style={[styles.liveDot, { backgroundColor: isSyncing ? COLORS.gold : COLORS.sage }]} /><Text style={styles.liveText}>{isSyncing ? "SYNCING" : "LIVE"}</Text></View>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs} style={styles.tabScroller}>
-          {NAVIGATION.map((item) => {
+          {orderedNavigation.map((item) => {
             const active = pathname === item.href || (item.href === "/" && pathname === "/index");
-            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
+            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{tabLabels[item.id]?.trim() || item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
         <View style={styles.identityArea}>

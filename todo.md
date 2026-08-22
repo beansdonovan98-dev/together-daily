@@ -74,3 +74,6 @@
 - [x] Add a shared Cleaning tab after Photos and before Themes.
 - [x] Reset the shared Cleaning checklist each Sunday instead of each day.
 - [x] Add separate Beans and Princess weight check-ins every three days on Good Habits.
+- [x] Add always-lbs separate weight-history charts for Beans and Princess.
+- [x] Add reusable weekly cleaning templates.
+- [x] Add shared controls to rename and reorder top navigation tabs.
