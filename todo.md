@@ -113,3 +113,4 @@
 - [x] Restore typing and saving for shared Love Notes on Today.
 - [x] Eliminate remaining light private-chat message blocks and make Today Love Notes immediately typeable.
 - [x] Stop Today Love Notes from clearing after each typed letter.
+- [x] Verify and complete private-gallery GIF upload and animated display support.
