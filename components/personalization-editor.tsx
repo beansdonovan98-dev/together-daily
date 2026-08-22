@@ -40,13 +40,16 @@ export function getSubheading(customSubheadings: Record<string, string>, key: ke
 }
 
 export function PersonalizationEditor() {
-  const { customSubheadings, setCustomSubheading, theme, setTheme, resetPersonalization, namedColorThemes, saveNamedColorTheme } = useLocalJournal();
+  const { customSubheadings, setCustomSubheading, theme, setTheme, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
   const [accentDraft, setAccentDraft] = useState(theme.accentColor ?? COLORS.orchid);
   const [backgroundDraft, setBackgroundDraft] = useState(theme.backgroundColor ?? COLORS.blush);
   const [themeName, setThemeName] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [editingThemeId, setEditingThemeId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); } }, [customSubheadings, open, theme.accentColor, theme.backgroundColor]);
 
@@ -77,6 +80,10 @@ export function PersonalizationEditor() {
     setThemeName("");
   };
 
+  const startRename = (id: string, name: string) => { setEditingThemeId(id); setRenameDraft(name); setConfirmDeleteId(null); };
+  const saveRename = (id: string) => { if (!renameDraft.trim()) return; renameNamedColorTheme(id, renameDraft); setEditingThemeId(null); setRenameDraft(""); };
+  const removeTheme = (id: string) => { deleteNamedColorTheme(id); setConfirmDeleteId(null); if (editingThemeId === id) { setEditingThemeId(null); setRenameDraft(""); } };
+
   return <View style={styles.card}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle personalization editor" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}>
       <View><Text style={styles.kicker}>MAKE IT YOURS</Text><Text style={styles.title}>Descriptions & colors</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text>
@@ -88,7 +95,7 @@ export function PersonalizationEditor() {
       <Text style={styles.sectionLabel}>ACCENT COLOR</Text><View style={styles.swatches}>{ACCENT_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setAccentDraft(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accentDraft === color && styles.swatchActive]} />)}</View><TextInput value={accentDraft} onChangeText={setAccentDraft} placeholder="#8D5BA6" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
       <Text style={styles.sectionLabel}>BACKGROUND COLOR</Text><View style={styles.swatches}>{BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setBackgroundDraft(color)} accessibilityLabel={`Choose ${color} background`} style={[styles.swatch, { backgroundColor: color }, backgroundDraft === color && styles.swatchActive]} />)}</View><TextInput value={backgroundDraft} onChangeText={setBackgroundDraft} placeholder="#0D0B0F" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
       <Text style={styles.sectionLabel}>NAME THIS THEME</Text><View style={styles.themeSaveRow}><TextInput value={themeName} onChangeText={setThemeName} placeholder="e.g. Our Cozy Night" placeholderTextColor="#7F7582" maxLength={28} style={styles.themeNameInput}/><TouchableOpacity accessibilityRole="button" disabled={!themeName.trim() || !HEX.test(accentDraft) || !HEX.test(backgroundDraft)} onPress={saveNamedTheme} style={[styles.saveThemeButton,(!themeName.trim() || !HEX.test(accentDraft) || !HEX.test(backgroundDraft))&&styles.disabledButton]}><Text style={styles.saveThemeText}>Save theme</Text></TouchableOpacity></View>
-      {namedColorThemes.length ? <><Text style={styles.sectionLabel}>YOUR SAVED THEMES</Text><View style={styles.themeGrid}>{namedColorThemes.map((themeOption) => { const active = accentDraft === themeOption.accentColor && backgroundDraft === themeOption.backgroundColor; return <TouchableOpacity key={themeOption.id} accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accentColor, themeOption.backgroundColor)} style={[styles.themeButton, active && { borderColor: themeOption.accentColor }]}><View style={styles.themeColors}><View style={[styles.themeColor,{backgroundColor:themeOption.accentColor}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.backgroundColor}]}/></View><Text style={[styles.themeName,active&&{color:themeOption.accentColor}]}>{themeOption.name}</Text></TouchableOpacity>; })}</View></> : null}
+      {namedColorThemes.length ? <><Text style={styles.sectionLabel}>YOUR SAVED THEMES</Text><View style={styles.savedThemeList}>{namedColorThemes.map((themeOption) => { const active = accentDraft === themeOption.accentColor && backgroundDraft === themeOption.backgroundColor; const editing = editingThemeId === themeOption.id; const confirmingDelete = confirmDeleteId === themeOption.id; return <View key={themeOption.id} style={[styles.savedThemeCard, active && { borderColor: themeOption.accentColor }]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accentColor, themeOption.backgroundColor)} style={styles.savedThemeMain}><View style={styles.themeColors}><View style={[styles.themeColor,{backgroundColor:themeOption.accentColor}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.backgroundColor}]}/></View><Text style={[styles.themeName,active&&{color:themeOption.accentColor}]}>{themeOption.name}</Text></TouchableOpacity>{editing ? <View style={styles.renameRow}><TextInput value={renameDraft} onChangeText={setRenameDraft} maxLength={28} autoFocus placeholderTextColor="#7F7582" style={styles.renameInput}/><TouchableOpacity accessibilityRole="button" onPress={() => saveRename(themeOption.id)} style={styles.smallSaveButton}><Text style={styles.smallSaveText}>Save</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => { setEditingThemeId(null); setRenameDraft(""); }} style={styles.smallTextButton}><Text style={styles.smallText}>Cancel</Text></TouchableOpacity></View> : confirmingDelete ? <View style={styles.deleteConfirm}><Text style={styles.deleteCopy}>Delete “{themeOption.name}”?</Text><TouchableOpacity accessibilityRole="button" onPress={() => removeTheme(themeOption.id)} style={styles.deleteButton}><Text style={styles.deleteText}>Delete</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setConfirmDeleteId(null)} style={styles.smallTextButton}><Text style={styles.smallText}>Keep</Text></TouchableOpacity></View> : <View style={styles.themeManageRow}><TouchableOpacity accessibilityRole="button" onPress={() => startRename(themeOption.id, themeOption.name)} style={styles.smallTextButton}><Text style={styles.smallText}>Rename</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => { setConfirmDeleteId(themeOption.id); setEditingThemeId(null); }} style={styles.smallDeleteButton}><Text style={styles.smallDeleteText}>Delete</Text></TouchableOpacity></View>}</View>; })}</View></> : null}
       {confirmReset ? <View style={styles.confirmCard}><Text style={styles.confirmTitle}>Reset all personalization?</Text><Text style={styles.confirmCopy}>Your custom descriptions, accent color, and background color will return to the original Together Daily look for both partners.</Text><View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={() => setConfirmReset(false)}><Text style={styles.resetText}>Keep mine</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.confirmButton} onPress={reset}><Text style={styles.confirmText}>Yes, reset</Text></TouchableOpacity></View></View> : <View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={() => setConfirmReset(true)}><Text style={styles.resetText}>Reset to defaults</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={save}><Text style={styles.saveText}>Save personalization</Text></TouchableOpacity></View>}
     </View> : null}
   </View>;
@@ -111,6 +118,22 @@ const styles = StyleSheet.create({
   themeColors: { flexDirection: "row", gap: 4 },
   themeColor: { height: 8, flex: 1, borderRadius: 4 },
   themeName: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
+  savedThemeList: { gap: 8 },
+  savedThemeCard: { borderRadius: 11, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 9, gap: 8 },
+  savedThemeMain: { gap: 6 },
+  themeManageRow: { flexDirection: "row", gap: 9 },
+  renameRow: { flexDirection: "row", gap: 7, alignItems: "center" },
+  renameInput: { flex: 1, minHeight: 34, borderRadius: 8, borderWidth: 1, borderColor: "#4A3B50", color: COLORS.plum, paddingHorizontal: 8, fontSize: 11 },
+  smallSaveButton: { minHeight: 34, borderRadius: 8, backgroundColor: COLORS.gold, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  smallSaveText: { color: COLORS.ink, fontSize: 10, fontWeight: "900" },
+  smallTextButton: { minHeight: 30, justifyContent: "center", paddingHorizontal: 5 },
+  smallText: { color: COLORS.slate, fontSize: 10, fontWeight: "900" },
+  smallDeleteButton: { minHeight: 30, justifyContent: "center", paddingHorizontal: 5 },
+  smallDeleteText: { color: COLORS.rose, fontSize: 10, fontWeight: "900" },
+  deleteConfirm: { flexDirection: "row", gap: 7, alignItems: "center", flexWrap: "wrap" },
+  deleteCopy: { color: COLORS.slate, fontSize: 10, fontFamily: "monospace", flexGrow: 1 },
+  deleteButton: { minHeight: 32, borderRadius: 8, backgroundColor: COLORS.rose, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  deleteText: { color: COLORS.white, fontSize: 10, fontWeight: "900" },
   swatches: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
   swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: "transparent" },
   swatchActive: { borderColor: COLORS.white },
