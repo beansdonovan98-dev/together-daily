@@ -484,3 +484,21 @@ export async function addGuestRoomPrivateMedia(input: {
   await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), media: input.media };
 }
+
+export async function deleteGuestRoomPrivateMedia(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before removing private media.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const media = Array.isArray(journalState.media) ? journalState.media : [];
+  const nextMedia = media.filter((item) => !(item && typeof item === "object" && (item as Record<string, unknown>).id === input.mediaId && (item as Record<string, unknown>).kind === "private"));
+  if (nextMedia.length === media.length) throw new Error("That private photo is no longer available.");
+  const nextState = { ...journalState, media: nextMedia };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
+}

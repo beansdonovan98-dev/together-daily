@@ -103,3 +103,4 @@
 - [x] Expand Themes with richer accent, background, profile, and ready-made color selections.
 - [x] Add visual previews and color accessibility contrast guidance in Themes.
 - [x] Restore reliable saving of pictures in the Steamy private gallery.
+- [x] Add confirmed delete controls for Steamy private gallery photos.

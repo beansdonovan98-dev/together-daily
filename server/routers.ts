@@ -132,6 +132,9 @@ export const appRouter = router({
         };
         return db.addGuestRoomPrivateMedia({ roomCode: input.roomCode, partnerId: input.partnerId, media });
       }),
+    deletePrivateMedia: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120) }))
+      .mutation(({ input }) => db.deleteGuestRoomPrivateMedia(input)),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),
