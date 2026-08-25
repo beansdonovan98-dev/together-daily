@@ -178,3 +178,6 @@
 - [x] Move the Period Tracker to the bottom of Health.
 - [x] Place Tab Card Colors in its own collapsible section below Rename & Sort Tabs.
 - [x] Add more saturated, vibrant Themes colors, especially background choices.
+- [x] Remove Meal Planner from Today.
+- [x] Remove the three Today mini trackers for love notes, tasks done, and days together.
+- [x] Change the Six Little Things card from purple to the Habits green.

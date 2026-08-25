@@ -11,11 +11,6 @@ import { tabCardColorFromStyles } from "@/lib/tab-card-colors";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const MEALS = [
-  { key: "breakfast", emoji: "☀", label: "Breakfast" },
-  { key: "lunch", emoji: "☕", label: "Lunch" },
-  { key: "dinner", emoji: "☾", label: "Dinner" },
-] as const;
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
 const COLORS = {
   ...BASE_COLORS,
@@ -54,9 +49,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const [todoText, setTodoText] = useState("");
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [todoDraft, setTodoDraft] = useState("");
-  const [editingMealKey, setEditingMealKey] = useState<string | null>(null);
-  const [mealEmojiDraft, setMealEmojiDraft] = useState("");
-  const [mealLabelDraft, setMealLabelDraft] = useState("");
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -70,7 +62,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const secondCover = asObject(content.coverPhotoTwo);
   const loveNotes = asObject(content.loveNotes);
   const savedLoveNote = String(loveNotes[userId] ?? "");
-  const meals = asObject(content.meals);
   const partner = PARTNERS[userId];
   const together = useTogetherTime();
   const loveDraftKey = `${date}:${userId}`;
@@ -99,10 +90,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     else delete nextNotes[userId];
     updateDay(date, { loveNotes: nextNotes }, "love-note");
   };
-  const setMeal = (key: string, value: unknown) => save({ meals: { ...meals, [key]: value } });
-  const mealMeta = asObject(content.mealMeta);
-  const startMealEdit = (key: string, emoji: string, label: string) => { setEditingMealKey(key); setMealEmojiDraft(emoji); setMealLabelDraft(label); };
-  const saveMealEdit = (key: string) => { const emoji = mealEmojiDraft.trim(); const label = mealLabelDraft.trim(); if (!emoji || !label) return; save({ mealMeta: { ...mealMeta, [key]: { emoji: emoji.slice(0, 12), label: label.slice(0, 24) } } }); setEditingMealKey(null); setMealEmojiDraft(""); setMealLabelDraft(""); };
 
   const saveCoverAsset = useCallback(async (slot: "first" | "second", asset: ImagePicker.ImagePickerAsset) => {
     setUploading(true);
@@ -165,7 +152,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 
   if (!ready) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Opening your daily journal…</Text></View></AppFrame>;
 
-  const savedLoveNotes = Object.values(loveNotes).filter(Boolean).length;
   const completedTodos = todos.filter((item: any) => item.completed).length;
   const covers = [{ key: "first" as const, cover, label: "DAILY COVER" }, { key: "second" as const, cover: secondCover, label: "SECOND COVER" }];
 
@@ -182,15 +168,11 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
       </View>;
     })}</View>
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
-    <View style={styles.statsRow}><Stat value={`${savedLoveNotes}/2`} label="love notes" cardColor={cardColor} /><Stat value={`${completedTodos}/${todos.length}`} label="tasks done" cardColor={cardColor} /><Stat value={together.days.toLocaleString()} label="days together" cardColor={cardColor} /></View>
     <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
     <View style={styles.card}><Text style={styles.cardKicker}>LOVE NOTES</Text><Text style={styles.cardTitle}>{getSubheading(customSubheadings, "loveNotes")}</Text><View style={styles.loveStack}>{(["beans", "princess"] as PartnerId[]).map((id) => { const person = PARTNERS[id]; const saved = String(loveNotes[id] ?? ""); const mine = id === userId; return <View key={id} style={[styles.loveCard, { borderColor: person.color }]}><View style={styles.loveHeader}><Text style={[styles.loveName, { color: person.color }]}>{person.avatar} {person.name}</Text><Text style={styles.loveState}>{saved ? "SAVED" : mine ? "YOUR NOTE" : "WAITING"}</Text></View>{mine ? <><TextInput value={loveDraft} onChangeText={setLoveDraft} multiline placeholder="Leave a little love note…" placeholderTextColor="#7F7582" style={styles.textArea} /><TouchableOpacity style={[styles.smallPrimary, { backgroundColor: person.color }]} onPress={saveLoveNote}><Text style={styles.smallPrimaryText}>{saved ? "Save changes" : "Save my note"}</Text></TouchableOpacity></> : saved ? <Text style={styles.loveSaved}>{saved}</Text> : <Text style={styles.loveWaiting}>This note space is waiting for {person.name}.</Text>}</View>; })}</View></View>
-    <View style={[styles.card, styles.mealCard]}><Text style={styles.cardKicker}>MEAL PLANNER</Text><Text style={styles.cardTitle}>{getSubheading(customSubheadings, "mealPlanner")}</Text><View style={styles.mealList}>{MEALS.map((item) => { const doneKey = `${item.key}Done`; const done = Boolean(meals[doneKey]); const override = asObject(mealMeta[item.key]); const emoji = String(override.emoji ?? item.emoji); const label = String(override.label ?? item.label); const editing = editingMealKey === item.key; return <View key={item.key} style={styles.mealBlock}><View style={styles.mealRow}><Text style={styles.mealEmoji}>{emoji}</Text><View style={styles.mealBody}><Text style={styles.mealLabel}>{label}</Text><TextInput value={String(meals[item.key] ?? "")} onChangeText={(value) => setMeal(item.key, value)} placeholder={`Plan ${label.toLowerCase()}…`} placeholderTextColor="#7F7582" style={styles.mealInput} /></View><TouchableOpacity style={[styles.mealDone, done && styles.mealDoneActive]} onPress={() => setMeal(doneKey, !done)}><Text style={[styles.mealDoneText, done && styles.mealDoneTextActive]}>{done ? "✓" : "Done"}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => startMealEdit(item.key, emoji, label)} style={styles.mealEditButton}><Text style={styles.mealEditButtonText}>Edit</Text></TouchableOpacity></View>{editing ? <View style={styles.mealEditPanel}><TextInput value={mealEmojiDraft} onChangeText={setMealEmojiDraft} placeholder="🍽" placeholderTextColor="#7F7582" maxLength={12} style={styles.mealEmojiInput}/><TextInput value={mealLabelDraft} onChangeText={setMealLabelDraft} placeholder="Section name" placeholderTextColor="#7F7582" maxLength={24} style={styles.mealLabelInput}/><TouchableOpacity onPress={() => saveMealEdit(item.key)} style={[styles.mealSaveButton,{backgroundColor:partner.color}]}><Text style={styles.mealSaveText}>Save</Text></TouchableOpacity><TouchableOpacity onPress={() => setEditingMealKey(null)} style={styles.mealCancelButton}><Text style={styles.mealCancelText}>Cancel</Text></TouchableOpacity></View> : null}</View>; })}</View></View>
     <View style={styles.card}><View style={styles.cardHeader}><Text style={styles.cardTitle}>Shared to-dos</Text><Text style={[styles.cardMeta, { color: partner.color }]}>{completedTodos}/{todos.length}</Text></View><Text style={styles.cardDescription}>{getSubheading(customSubheadings, "sharedTodos")}</Text>{todos.map((item: any) => { const editing = editingTodoId === String(item.id); return <View key={item.id} style={styles.todoRow}>{editing ? <View style={styles.todoEditBody}><TextInput value={todoDraft} onChangeText={setTodoDraft} onSubmitEditing={saveTodoEdit} returnKeyType="done" placeholder="To-do" placeholderTextColor="#7F7582" style={styles.todoEditInput}/><View style={styles.todoEditActions}><TouchableOpacity onPress={saveTodoEdit} style={[styles.todoSaveButton,{backgroundColor:partner.color}]}><Text style={styles.todoSaveText}>Save</Text></TouchableOpacity><TouchableOpacity onPress={() => { setEditingTodoId(null); setTodoDraft(""); }} style={styles.todoCancelButton}><Text style={styles.todoCancelText}>Cancel</Text></TouchableOpacity></View></View> : <><TouchableOpacity accessibilityRole="checkbox" accessibilityState={{checked:Boolean(item.completed)}} onPress={() => toggleTodo(String(item.id))} style={[styles.todoCircle, item.completed && styles.todoCircleDone]}>{item.completed ? <Text style={styles.check}>✓</Text> : null}</TouchableOpacity><Text style={[styles.todoText, item.completed && styles.todoDone]}>{String(item.text)}</Text><TouchableOpacity accessibilityRole="button" onPress={() => startTodoEdit(item)} style={styles.todoTextButton}><Text style={styles.todoTextButtonLabel}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => removeTodo(String(item.id))} style={styles.todoDeleteButton}><Text style={styles.todoDeleteText}>×</Text></TouchableOpacity></>}</View>; })}<View style={styles.addRow}><TextInput value={todoText} onChangeText={setTodoText} onSubmitEditing={addTodo} returnKeyType="done" placeholder="Add something for today" placeholderTextColor="#7F7582" style={styles.addInput} /><TouchableOpacity style={[styles.addButton, { backgroundColor: partner.soft }]} onPress={addTodo}><Text style={[styles.addButtonText, { color: partner.color }]}>Add</Text></TouchableOpacity></View></View>
   </ScrollView></AppFrame>;
 }
-
-function Stat({ value, label, cardColor }: { value: string; label: string; cardColor: string }) { return <View style={[styles.statCard, { backgroundColor: cardColor, borderColor: TAB_CARD_PALETTES.today.border }]}><Text style={styles.statNumber}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>; }
 
 const styles = StyleSheet.create({
   page: { padding: 18, paddingBottom: 36, gap: 14, backgroundColor: COLORS.blush }, loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.blush }, muted: { color: COLORS.slate, fontSize: 15 }, topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }, eyebrow: { fontSize: 10, letterSpacing: 1.2, fontWeight: "900", marginBottom: 4 }, title: { color: COLORS.plum, fontSize: 31, fontWeight: "900", fontStyle: "italic" }, avatar: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" }, avatarText: { color: "#FFFFFF", fontWeight: "900", fontSize: 17 },
