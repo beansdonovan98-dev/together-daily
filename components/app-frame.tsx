@@ -48,7 +48,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const textColor = pageStyle.textColor ?? COLORS.plum;
   const fontStyle = pageStyle.fontStyle ?? "classic";
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const fontFamily = fontStyle === "serif" ? "serif" : fontStyle === "mono" ? "monospace" : undefined;
+  const fontFamily = "cursive";
   const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowColor: sectionBorderColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
   const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
   const styledChildren = child ? cloneElement(child, { contentContainerStyle: [child.props.contentContainerStyle, { backgroundColor }] }) : children;
@@ -207,7 +207,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
-            <View style={styles.pageEditRow}>
+            <View style={[styles.pageEditRow, { display: "none" }]}>
               <View><Text style={styles.pageEditKicker}>{currentPage.label.toUpperCase()} STYLE</Text><Text style={styles.pageEditCopy}>Shared colors for this page</Text></View>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${currentPage.label} page style`} accessibilityState={{ expanded: pageEditorOpen }} onPress={() => setPageEditorOpen((open) => !open)} style={[styles.pageEditButton, { borderColor: accentColor }]}><Text style={[styles.pageEditButtonText, { color: accentColor }]}>{pageEditorOpen ? "DONE" : "EDIT PAGE"}</Text></TouchableOpacity>
             </View>

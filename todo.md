@@ -150,5 +150,6 @@
 - [x] Replace medicine alerts with Daily Log-style chronological dose entries and add a Health period tracker.
 - [x] Redesign Edit page with richer palettes, card background/border/text colors, and retain font and card styles.
 - [x] Add more ready-made themes to the Themes library.
+- [x] Remove the Edit page option and apply handwritten-style typography throughout Together Daily.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
