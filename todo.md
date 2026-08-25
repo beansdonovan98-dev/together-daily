@@ -128,5 +128,6 @@
 - [x] Create and deliver a full reusable Together Daily JSON data document.
 - [x] Inspect the supplied backup files and report their restoration readiness without modifying data.
 - [x] Keep Themes and add an Edit page style option on every app tab.
+- [x] Add shared per-page font and card-style choices to every Edit page control.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

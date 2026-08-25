@@ -20,6 +20,8 @@ const NAVIGATION = [
 ];
 const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8"];
 const PAGE_BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#20151D"];
+const PAGE_FONT_OPTIONS = [{ id: "classic", label: "Classic" }, { id: "serif", label: "Warm serif" }, { id: "mono", label: "Mono" }] as const;
+const PAGE_CARD_OPTIONS = [{ id: "soft", label: "Soft" }, { id: "outlined", label: "Outline" }, { id: "minimal", label: "Minimal" }] as const;
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -39,6 +41,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor = pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor = pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush;
+  const fontStyle = pageStyle.fontStyle ?? "classic";
+  const cardStyle = pageStyle.cardStyle ?? "soft";
+  const fontFamily = fontStyle === "serif" ? "serif" : fontStyle === "mono" ? "monospace" : undefined;
+  const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: accentColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0 } : { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: `${accentColor}55`, borderRadius: 20, overflow: "hidden" as const, shadowColor: accentColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
   const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
   const styledChildren = child ? cloneElement(child, { contentContainerStyle: [child.props.contentContainerStyle, { backgroundColor }] }) : children;
 
@@ -129,23 +135,23 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
-            <View><Text style={styles.brand}>Together Daily</Text><Text style={styles.brandSub}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} + {PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text></View>
+            <View><Text style={[styles.brand, { fontFamily }]}>Together Daily</Text><Text style={[styles.brandSub, { fontFamily }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} + {PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text></View>
           </View>
           <View style={styles.liveStatus}><View style={[styles.liveDot, { backgroundColor: isSyncing ? COLORS.gold : COLORS.sage }]} /><Text style={styles.liveText}>{isSyncing ? "SYNCING" : "LIVE"}</Text></View>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs} style={styles.tabScroller}>
           {orderedNavigation.map((item) => {
             const active = pathname === item.href || (item.href === "/" && pathname === "/index");
-            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{tabLabels[item.id]?.trim() || item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
+            return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, { fontFamily }, active && styles.tabActiveText]}>{tabLabels[item.id]?.trim() || item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
           <View style={styles.identityArea}>
             <View style={styles.identityStrip}>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name}</Text>
+            <Text style={[styles.identityName, { color: PARTNERS.beans.color, fontFamily }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name}</Text>
             <Text style={styles.identityDivider}>·</Text>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name}</Text>
+            <Text style={[styles.identityName, { color: PARTNERS.princess.color, fontFamily }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name}</Text>
             <Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text>
             <View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View>
           </View>
@@ -203,10 +209,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
             {pageEditorOpen ? <View style={styles.pageEditorPanel}>
               <Text style={styles.pageEditorLabel}>ACCENT</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`accent-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} accent to ${color}`} onPress={() => setPageStyle(currentPage.id, { accentColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, accentColor === color && styles.pageSwatchActive]} />)}</View>
               <Text style={styles.pageEditorLabel}>BACKGROUND</Text><View style={styles.pageSwatches}>{PAGE_BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`background-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} background to ${color}`} onPress={() => setPageStyle(currentPage.id, { backgroundColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, backgroundColor === color && styles.pageSwatchActive]} />)}</View>
+              <Text style={styles.pageEditorLabel}>FONT STYLE</Text><View style={styles.pageChoiceRow}>{PAGE_FONT_OPTIONS.map((option) => <TouchableOpacity key={option.id} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} font to ${option.label}`} onPress={() => setPageStyle(currentPage.id, { fontStyle: option.id })} style={[styles.pageChoice, fontStyle === option.id && { borderColor: accentColor, backgroundColor: `${accentColor}22` }]}><Text style={[styles.pageChoiceText, { fontFamily }, fontStyle === option.id && { color: accentColor }]}>{option.label}</Text></TouchableOpacity>)}</View>
+              <Text style={styles.pageEditorLabel}>CARD STYLE</Text><View style={styles.pageChoiceRow}>{PAGE_CARD_OPTIONS.map((option) => <TouchableOpacity key={option.id} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} cards to ${option.label}`} onPress={() => setPageStyle(currentPage.id, { cardStyle: option.id })} style={[styles.pageChoice, cardStyle === option.id && { borderColor: accentColor, backgroundColor: `${accentColor}22` }]}><Text style={[styles.pageChoiceText, cardStyle === option.id && { color: accentColor }]}>{option.label}</Text></TouchableOpacity>)}</View>
               <TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.resetPageButton}><Text style={styles.resetPageText}>Use the main theme for this page</Text></TouchableOpacity>
             </View> : null}
         </View>
-        <View style={styles.content}>{styledChildren}</View>
+        <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}</View>
       </View>
     </ScreenContainer>
   );
@@ -249,6 +257,9 @@ const styles = StyleSheet.create({
   pageSwatches: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
   pageSwatch: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: "transparent" },
   pageSwatchActive: { borderColor: COLORS.white },
+  pageChoiceRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  pageChoice: { minHeight: 32, borderRadius: 8, borderWidth: 1, borderColor: "#3A313E", alignItems: "center", justifyContent: "center", paddingHorizontal: 9, backgroundColor: "#171218" },
+  pageChoiceText: { color: COLORS.slate, fontSize: 10, fontWeight: "900" },
   resetPageButton: { alignSelf: "flex-start", paddingVertical: 6 },
   resetPageText: { color: COLORS.slate, fontSize: 10, fontWeight: "900" },
   inviteRow: { paddingHorizontal: 20, paddingBottom: 10, gap: 8 },
