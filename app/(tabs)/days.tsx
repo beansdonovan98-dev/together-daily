@@ -3,6 +3,7 @@ import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
+import { tabCardColorFromStyles } from "@/lib/tab-card-colors";
 import { useEffect, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -52,6 +53,8 @@ function PastDaysContent() {
 }
 
 function PastDayCard({ day, onPress }: { day: ArchiveDay; onPress: () => void }) {
+  const { pageStyles } = useLocalJournal();
+  const cardColor = tabCardColorFromStyles(pageStyles, "pastDays");
   const timeline = Array.isArray(day.timelineEvents) ? day.timelineEvents : [];
   const loveNotes = Object.values(asObject(day.loveNotes)).filter(Boolean).length;
   const todos = Array.isArray(day.todos) ? day.todos : [];
@@ -59,7 +62,7 @@ function PastDayCard({ day, onPress }: { day: ArchiveDay; onPress: () => void })
   const photos = Array.isArray(day.photos) ? day.photos.length : 0;
   const date = new Date(`${day.date}T12:00:00`);
 
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open ${prettyDate(day.date)}`} onPress={onPress} style={styles.dayCard}>
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open ${prettyDate(day.date)}`} onPress={onPress} style={[styles.dayCard, { backgroundColor: cardColor }]}>
     <View style={styles.dayDate}><Text style={styles.dayMonth}>{date.toLocaleDateString("en-US", { month: "short" }).toUpperCase()}</Text><Text style={styles.dayNumber}>{date.getDate()}</Text></View>
     <View style={styles.dayCopy}><Text style={styles.dayTitle}>{prettyDate(day.date)}</Text><Text style={styles.dayMeta}>{timeline.length} log {timeline.length === 1 ? "entry" : "entries"} · {loveNotes}/2 notes</Text><Text style={styles.daySubMeta}>{completed}/{todos.length} to-dos · {photos} photos</Text></View>
     <Text style={styles.dayArrow}>›</Text>
@@ -121,7 +124,9 @@ function ArchivedDayDetail({ day, media, onBack }: { day: ArchiveDay; media: Ret
 }
 
 function ArchiveCard({ title, meta, accent, children }: { title: string; meta?: string; accent?: string; children: React.ReactNode }) {
-  return <View style={[styles.archiveCard, accent && { borderColor: accent }]}><View style={styles.cardHeader}><Text style={styles.cardTitle}>{title}</Text>{meta ? <Text style={styles.cardMeta}>{meta}</Text> : null}</View>{children}</View>;
+  const { pageStyles } = useLocalJournal();
+  const cardColor = tabCardColorFromStyles(pageStyles, "pastDays");
+  return <View style={[styles.archiveCard, { backgroundColor: cardColor }, accent && { borderColor: accent }]}><View style={styles.cardHeader}><Text style={styles.cardTitle}>{title}</Text>{meta ? <Text style={styles.cardMeta}>{meta}</Text> : null}</View>{children}</View>;
 }
 
 function EmptyArchiveText({ text }: { text: string }) {

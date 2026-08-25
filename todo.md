@@ -171,3 +171,4 @@
 - [x] Align Health meal-planner input fields with the blue Health page styling.
 - [x] Give every card within each tab a consistent tab-specific color treatment.
 - [x] Add shared Themes controls for choosing a specific card color for each tab.
+- [x] Test every tab’s custom card color and fix cards that ignore the selected color.

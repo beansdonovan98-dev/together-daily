@@ -5,6 +5,7 @@ import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import {
+  Children,
   cloneElement,
   isValidElement,
   type ReactElement,
@@ -24,6 +25,7 @@ import {
   View,
 } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
+import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -36,6 +38,36 @@ const NAVIGATION = [
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
+
+function applyTabCardColor(node: ReactNode, color: string): ReactNode {
+  return Children.map(node, (entry) => {
+    if (!isValidElement(entry)) return entry;
+    const element = entry as ReactElement<{
+      children?: ReactNode;
+      style?: unknown;
+      testID?: string;
+    }>;
+    const nextChildren = element.props.children
+      ? applyTabCardColor(element.props.children, color)
+      : element.props.children;
+    const flatStyle = StyleSheet.flatten(element.props.style as never) as
+      | Record<string, unknown>
+      | undefined;
+    const tintSurface =
+      element.type === View &&
+      element.props.testID !== "preserve-card-color" &&
+      flatStyle &&
+      shouldApplyTabCardColor(flatStyle);
+
+    if (!tintSurface && nextChildren === element.props.children) return element;
+    return cloneElement(element, {
+      children: nextChildren,
+      ...(tintSurface
+        ? { style: [element.props.style, { backgroundColor: color }] }
+        : {}),
+    });
+  });
+}
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -151,7 +183,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
             elevation: 0,
           };
   const child = isValidElement(children)
-    ? (children as ReactElement<{ contentContainerStyle?: unknown }>)
+    ? (children as ReactElement<{
+        children?: ReactNode;
+        contentContainerStyle?: unknown;
+      }>)
     : null;
   const styledChildren = child
     ? cloneElement(child, {
@@ -159,6 +194,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
           child.props.contentContainerStyle,
           { backgroundColor },
         ],
+        children: applyTabCardColor(child.props.children, cardBackgroundColor),
       })
     : children;
 
