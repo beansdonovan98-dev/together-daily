@@ -139,5 +139,6 @@
 - [x] Expand Daily Log color choices and add a daily Cleaning list at the top of the Cleaning page.
 - [x] Add in-context editing controls for page subsections such as Weight and Water.
 - [x] Add water-completion celebration and a weekly water tracker.
+- [x] Add saved default daily-cleaning tasks that automatically populate new daily lists.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

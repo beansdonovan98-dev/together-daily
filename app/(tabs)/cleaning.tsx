@@ -2,7 +2,7 @@ import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type CleaningTask = { id: string; text: string; createdBy: PartnerId; completed: boolean; completedBy?: PartnerId };
@@ -24,9 +24,10 @@ export default function CleaningScreen() {
 function CleaningContent({ userId }: { userId: PartnerId }) {
   const weekStart = weekStartKey();
   const today = localDateKey();
-  const { ready, getDay, ensureDay, updateDay, theme, cleaningTemplates, saveCleaningTemplate, updateCleaningTemplate, deleteCleaningTemplate } = useLocalJournal();
+  const { ready, getDay, ensureDay, updateDay, theme, customSubheadings, setCustomSubheading, cleaningTemplates, saveCleaningTemplate, updateCleaningTemplate, deleteCleaningTemplate } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [dailyDraft, setDailyDraft] = useState("");
+  const [defaultDailyDraft, setDefaultDailyDraft] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -45,13 +46,18 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
   const activePartner = PARTNERS[userId];
   const dailyCleaning = asObject(asObject(getDay(today)).dailyCleaning);
   const dailyTasks = (Array.isArray(dailyCleaning.tasks) ? dailyCleaning.tasks : []) as CleaningTask[];
+  const defaultDailyTasks = useMemo(() => { try { const parsed = JSON.parse(customSubheadings.dailyCleaningDefaults || "[]"); return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string" && Boolean(item.trim())) : []; } catch { return []; } }, [customSubheadings.dailyCleaningDefaults]);
   const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
 
   const saveTasks = (next: CleaningTask[]) => updateDay(weekStart, { cleaning: { tasks: next, weekStart } });
-  const saveDailyTasks = (next: CleaningTask[]) => updateDay(today, { dailyCleaning: { tasks: next, date: today } });
+  const saveDailyTasks = useCallback((next: CleaningTask[]) => updateDay(today, { dailyCleaning: { tasks: next, date: today } }), [today, updateDay]);
   const addDailyTask = () => { const text = dailyDraft.trim(); if (!text) return; saveDailyTasks([...dailyTasks, { id: `daily-clean-${Date.now()}`, text, createdBy: userId, completed: false }]); setDailyDraft(""); };
   const toggleDailyTask = (id: string) => saveDailyTasks(dailyTasks.map((task) => task.id === id ? { ...task, completed: !task.completed, completedBy: task.completed ? undefined : userId } : task));
   const deleteDailyTask = (id: string) => saveDailyTasks(dailyTasks.filter((task) => task.id !== id));
+  const saveDefaultDailyTasks = (next: string[]) => setCustomSubheading("dailyCleaningDefaults", JSON.stringify(next));
+  const addDefaultDailyTask = () => { const text = defaultDailyDraft.trim(); if (!text || defaultDailyTasks.some((task) => task.toLowerCase() === text.toLowerCase())) return; saveDefaultDailyTasks([...defaultDailyTasks, text]); setDefaultDailyDraft(""); };
+  const deleteDefaultDailyTask = (text: string) => saveDefaultDailyTasks(defaultDailyTasks.filter((task) => task !== text));
+  useEffect(() => { if (!ready || !defaultDailyTasks.length || dailyTasks.length) return; saveDailyTasks(defaultDailyTasks.map((text, index) => ({ id: `daily-default-${today}-${index}`, text, createdBy: userId, completed: false }))); }, [ready, today, defaultDailyTasks, dailyTasks.length, saveDailyTasks, userId]);
   const addTask = () => {
     const text = draft.trim();
     if (!text) return;
@@ -73,7 +79,7 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
     <View style={styles.hero}><Text style={styles.eyebrow}>SHARED HOME CARE · RESETS SUNDAY</Text><Text style={styles.title}>Cleaning</Text><Text style={styles.copy}>Week of {prettyDate(weekStart)} · {message}</Text></View>
 
-    <View style={styles.dailyCard}><View style={styles.dailyHeader}><View><Text style={styles.dailyKicker}>TODAY ONLY</Text><Text style={styles.dailyTitle}>Daily cleaning</Text></View><Text style={styles.dailyCount}>{dailyTasks.filter((task) => task.completed).length}/{dailyTasks.length}</Text></View>{dailyTasks.length ? <View style={styles.dailyList}>{dailyTasks.map((task) => <View key={task.id} style={styles.dailyRow}><TouchableOpacity onPress={() => toggleDailyTask(task.id)} style={[styles.dailyCheck, task.completed && { backgroundColor: activePartner.color, borderColor: activePartner.color }]}><Text style={styles.dailyCheckText}>{task.completed ? "✓" : ""}</Text></TouchableOpacity><Text style={[styles.dailyText, task.completed && styles.dailyTextDone]}>{task.text}</Text><TouchableOpacity onPress={() => deleteDailyTask(task.id)} style={styles.dailyDelete}><Text style={styles.dailyDeleteText}>×</Text></TouchableOpacity></View>)}</View> : <Text style={styles.dailyEmpty}>Add quick chores that clear with tomorrow’s daily page.</Text>}<View style={styles.addRow}><TextInput value={dailyDraft} onChangeText={setDailyDraft} onSubmitEditing={addDailyTask} returnKeyType="done" placeholder="e.g. Make the bed" placeholderTextColor="#7F7582" style={styles.input}/><TouchableOpacity onPress={addDailyTask} style={[styles.addButton,{backgroundColor:activePartner.color}]}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View></View>
+    <View style={styles.dailyCard}><View style={styles.dailyHeader}><View><Text style={styles.dailyKicker}>TODAY ONLY</Text><Text style={styles.dailyTitle}>Daily cleaning</Text></View><Text style={styles.dailyCount}>{dailyTasks.filter((task) => task.completed).length}/{dailyTasks.length}</Text></View>{dailyTasks.length ? <View style={styles.dailyList}>{dailyTasks.map((task) => <View key={task.id} style={styles.dailyRow}><TouchableOpacity onPress={() => toggleDailyTask(task.id)} style={[styles.dailyCheck, task.completed && { backgroundColor: activePartner.color, borderColor: activePartner.color }]}><Text style={styles.dailyCheckText}>{task.completed ? "✓" : ""}</Text></TouchableOpacity><Text style={[styles.dailyText, task.completed && styles.dailyTextDone]}>{task.text}</Text><TouchableOpacity onPress={() => deleteDailyTask(task.id)} style={styles.dailyDelete}><Text style={styles.dailyDeleteText}>×</Text></TouchableOpacity></View>)}</View> : <Text style={styles.dailyEmpty}>Add quick chores that clear with tomorrow’s daily page.</Text>}<View style={styles.addRow}><TextInput value={dailyDraft} onChangeText={setDailyDraft} onSubmitEditing={addDailyTask} returnKeyType="done" placeholder="e.g. Make the bed" placeholderTextColor="#7F7582" style={styles.input}/><TouchableOpacity onPress={addDailyTask} style={[styles.addButton,{backgroundColor:activePartner.color}]}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View><View style={styles.defaultDailyPanel}><Text style={styles.defaultDailyTitle}>Default daily tasks</Text><Text style={styles.defaultDailyCopy}>Saved here tasks automatically appear on each new daily page.</Text>{defaultDailyTasks.map((task) => <View key={task} style={styles.defaultDailyRow}><Text style={styles.defaultDailyText}>• {task}</Text><TouchableOpacity onPress={() => deleteDefaultDailyTask(task)}><Text style={styles.defaultDailyDelete}>×</Text></TouchableOpacity></View>)}<View style={styles.addRow}><TextInput value={defaultDailyDraft} onChangeText={setDefaultDailyDraft} onSubmitEditing={addDefaultDailyTask} returnKeyType="done" placeholder="Add a default task" placeholderTextColor="#7F7582" style={styles.input}/><TouchableOpacity onPress={addDefaultDailyTask} style={[styles.addButton,{backgroundColor:activePartner.color}]}><Text style={styles.addButtonText}>Save</Text></TouchableOpacity></View></View></View>
 
     <View style={styles.progressCard}><View style={styles.progressTop}><View><Text style={styles.progressKicker}>THIS WEEK’S PROGRESS</Text><Text style={styles.progressNumber}>{completed}<Text style={styles.progressTotal}> / {tasks.length}</Text></Text></View><Text style={styles.progressPercent}>{progress}%</Text></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: activePartner.color }]} /></View><View style={styles.partnerCounts}><Text style={[styles.partnerCount, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name} · {beansCount}</Text><Text style={[styles.partnerCount, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name} · {princessCount}</Text></View></View>
 
@@ -123,6 +129,12 @@ const styles = StyleSheet.create({
   dailyDelete: { width: 24, height: 24, alignItems: "center", justifyContent: "center" },
   dailyDeleteText: { color: "#E98393", fontSize: 19, lineHeight: 20 },
   dailyEmpty: { color: COLORS.slate, fontFamily: "monospace", fontSize: 11, lineHeight: 16 },
+  defaultDailyPanel: { marginTop: 4, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#3C465E", gap: 7 },
+  defaultDailyTitle: { color: "#A7B0EF", fontSize: 11, fontWeight: "900", letterSpacing: .6 },
+  defaultDailyCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
+  defaultDailyRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  defaultDailyText: { color: COLORS.plum, flex: 1, fontSize: 11, fontWeight: "700" },
+  defaultDailyDelete: { color: "#E98393", fontSize: 18, lineHeight: 20 },
   templatesCard: { borderRadius: 18, borderWidth: 1, borderColor: "#48505F", backgroundColor: "#151821", padding: 14, gap: 8 },
   templatesKicker: { color: "#66B7DD", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   templatesTitle: { color: COLORS.plum, fontSize: 18, fontWeight: "900", fontStyle: "italic" },
