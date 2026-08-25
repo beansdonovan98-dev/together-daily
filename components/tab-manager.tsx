@@ -17,7 +17,8 @@ const TABS = [
 ];
 
 export function TabManager() {
-  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder } = useLocalJournal();
+  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, pageStyles } = useLocalJournal();
+  const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
   const [open, setOpen] = useState(false);
   const [order, setOrder] = useState<string[]>([]);
   const [labels, setLabels] = useState<Record<string, string>>({});
@@ -28,7 +29,7 @@ export function TabManager() {
   const move = (id: string, direction: -1 | 1) => { const index = order.indexOf(id); const target = index + direction; if (target < 0 || target >= order.length) return; const next = [...order]; [next[index], next[target]] = [next[target], next[index]]; setOrder(next); };
   const save = () => { TABS.forEach((tab) => { setTabLabel(tab.id, labels[tab.id] ?? ""); setTabGlyph(tab.id, glyphs[tab.id] ?? ""); }); setTabOrder(order); setOpen(false); };
 
-  return <View style={styles.card}>
+  return <View style={[styles.card, { backgroundColor: themesCardColor }]}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle tab manager" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}><View><Text style={styles.kicker}>SHARED NAVIGATION</Text><Text style={styles.title}>Rename & sort tabs</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text></TouchableOpacity>
     {open ? <View style={styles.content}><Text style={styles.copy}>Choose each tab’s emoji and name, then use the arrows to sort the top navigation. These changes update for both Daddy and Princess.</Text>{sorted.map((tab, index) => <View key={tab.id} style={styles.row}><TextInput value={glyphs[tab.id] ?? ""} onChangeText={(value) => setGlyphs((current) => ({ ...current, [tab.id]: value }))} placeholder={tab.glyph} placeholderTextColor="#7F7582" maxLength={12} style={styles.glyphInput}/><TextInput value={labels[tab.id] ?? ""} onChangeText={(value) => setLabels((current) => ({ ...current, [tab.id]: value }))} placeholder={tab.label} placeholderTextColor="#7F7582" maxLength={18} style={styles.input}/><View style={styles.arrows}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${tab.label} earlier`} disabled={index === 0} onPress={() => move(tab.id, -1)} style={[styles.arrowButton, index === 0 && styles.disabled]}><Text style={styles.arrow}>↑</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${tab.label} later`} disabled={index === sorted.length - 1} onPress={() => move(tab.id, 1)} style={[styles.arrowButton, index === sorted.length - 1 && styles.disabled]}><Text style={styles.arrow}>↓</Text></TouchableOpacity></View></View>)}<TouchableOpacity accessibilityRole="button" onPress={save} style={styles.saveButton}><Text style={styles.saveText}>Save tab layout</Text></TouchableOpacity></View> : null}
   </View>;
