@@ -154,5 +154,6 @@
 - [x] Restore a simple per-page card-outline editor, apply handwritten body text, align Daily Log colors, and add a Themes font selector.
 - [x] Expand the Themes font selector with more shared font choices.
 - [x] Target inner card outlines, restore Daily Log dark styling, add per-page reset actions, and reuse Today’s meal planner in Health.
+- [x] Apply the selected Themes font consistently to all body text and card content.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

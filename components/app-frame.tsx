@@ -4,7 +4,7 @@ import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
-import { cloneElement, isValidElement, type ReactElement, type ReactNode, useState } from "react";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode, useEffect, useState } from "react";
 import { Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 
@@ -23,7 +23,7 @@ const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B9
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabGlyphs, tabOrder } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabGlyphs, tabOrder, customSubheadings } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -43,7 +43,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const sectionBorderColor = pageStyle.sectionBorderColor ?? accentColor;
   const cardBackgroundColor = pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const fontFamily = "cursive";
+  const selectedFont = customSubheadings.globalFont ?? "handwritten";
+  const fontFamily = selectedFont === "classic" ? (Platform.OS === "ios" ? "System" : "sans-serif") : selectedFont === "mono" ? "monospace" : selectedFont === "serif" ? "serif" : "cursive";
+  useEffect(() => {
+    const defaultStyle = { fontFamily };
+    (Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: defaultStyle };
+  }, [fontFamily]);
   const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowColor: sectionBorderColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
   const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
   const styledChildren = child ? cloneElement(child, { contentContainerStyle: [child.props.contentContainerStyle, { backgroundColor }] }) : children;
