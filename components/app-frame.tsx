@@ -46,6 +46,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     const defaultStyle = { fontFamily };
     (Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: defaultStyle };
+    if (Platform.OS === "web" && typeof document !== "undefined") document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
   const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowColor: sectionBorderColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
   const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
