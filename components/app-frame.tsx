@@ -27,7 +27,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<"idle" | "setting-up" | "enabled">("idle");
-  const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
   const roomInviteLink = roomCode ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
@@ -151,15 +150,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
         </ScrollView>
           {currentPage.id === "themes" ? (
           <View style={styles.identityArea}>
-            <View style={styles.identityStrip}>
-            <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.beans.color, fontFamily }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name}</Text>
-            <Text style={styles.identityDivider}>·</Text>
-            <View style={[styles.identityDot, { backgroundColor: PARTNERS.princess.color }]} />
-            <Text style={[styles.identityName, { color: PARTNERS.princess.color, fontFamily }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name}</Text>
-            <Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text>
-            <View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View>
-          </View>
           {roomCode ? (
             <View style={styles.inviteRow}>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
