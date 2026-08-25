@@ -8,6 +8,7 @@ const TABS = [
   { id: "today", label: "Today", glyph: "✦" },
   { id: "log", label: "Daily Log", glyph: "☰" },
   { id: "habits", label: "Habits", glyph: "✓" },
+  { id: "health", label: "Health", glyph: "✚" },
   { id: "steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", label: "Purchase", glyph: "▤" },
   { id: "cleaning", label: "Cleaning", glyph: "✦" },

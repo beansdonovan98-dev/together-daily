@@ -12,6 +12,7 @@ const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
   { id: "log", href: "/log", label: "Daily Log", glyph: "☰" },
   { id: "habits", href: "/habits", label: "Habits", glyph: "✓" },
+  { id: "health", href: "/health", label: "Health", glyph: "✚" },
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },

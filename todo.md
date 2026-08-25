@@ -140,5 +140,7 @@
 - [x] Add in-context editing controls for page subsections such as Weight and Water.
 - [x] Add water-completion celebration and a weekly water tracker.
 - [x] Add saved default daily-cleaning tasks that automatically populate new daily lists.
+- [x] Replace weekly Cleaning templates with a Sunday-reset weekly list and daily/weekly progress bars.
+- [x] Add a Health tab between Habits and Steamy with daily tasks, medicine tracking/reminders, and water tracking.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
