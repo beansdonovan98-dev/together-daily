@@ -156,5 +156,6 @@
 - [x] Target inner card outlines, restore Daily Log dark styling, add per-page reset actions, and reuse Today’s meal planner in Health.
 - [x] Apply the selected Themes font consistently to all body text and card content.
 - [x] Replace remaining local font overrides so Themes typography visibly matches top navigation everywhere.
+- [x] Remove the Edit Outlines control from every page while preserving current card borders.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

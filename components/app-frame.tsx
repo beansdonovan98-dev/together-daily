@@ -19,16 +19,14 @@ const NAVIGATION = [
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
-const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8"];
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabGlyphs, tabOrder, customSubheadings } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, resetPageStyle, tabLabels, tabGlyphs, tabOrder, customSubheadings } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<"idle" | "setting-up" | "enabled">("idle");
-  const [pageEditorOpen, setPageEditorOpen] = useState(false);
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
@@ -207,13 +205,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
-            <View style={styles.pageEditRow}>
-              <View><Text style={styles.pageEditKicker}>{currentPage.label.toUpperCase()} CARDS</Text><Text style={styles.pageEditCopy}>Shared outline color</Text></View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${currentPage.label} card outlines`} accessibilityState={{ expanded: pageEditorOpen }} onPress={() => setPageEditorOpen((open) => !open)} style={[styles.pageEditButton, { borderColor: accentColor }]}><Text style={[styles.pageEditButtonText, { color: accentColor }]}>{pageEditorOpen ? "DONE" : "EDIT OUTLINES"}</Text></TouchableOpacity>
-            </View>
-            {pageEditorOpen ? <View style={styles.pageEditorPanel}>
-              <Text style={styles.pageEditorLabel}>CARD OUTLINE</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`card-outline-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} card outline to ${color}`} onPress={() => setPageStyle(currentPage.id, { sectionBorderColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, sectionBorderColor === color && styles.pageSwatchActive]} />)}</View>
-            </View> : null}
         </View>
         <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}<TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.pageResetFooter}><Text style={styles.pageResetText}>Reset {currentPage.label} to default</Text></TouchableOpacity></View>
       </View>
