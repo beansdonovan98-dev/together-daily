@@ -42,7 +42,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const cardBackgroundColor = pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
-  const fontFamily = selectedFont === "classic" ? (Platform.OS === "ios" ? "System" : "sans-serif") : selectedFont === "mono" ? "monospace" : selectedFont === "serif" ? "serif" : "cursive";
+  const webFontFamilies: Record<string, string> = { handwritten: "cursive", script: "'Brush Script MT', 'Segoe Script', cursive", notebook: "'Bradley Hand', 'Segoe Print', cursive", casual: "'Comic Sans MS', 'Chalkboard SE', cursive", classic: "system-ui, sans-serif", serif: "Georgia, serif", mono: "monospace" };
+  const nativeFontFamilies: Record<string, string> = { handwritten: "cursive", script: "cursive", notebook: "cursive", casual: "cursive", classic: Platform.OS === "ios" ? "System" : "sans-serif", serif: "serif", mono: "monospace" };
+  const fontFamily = Platform.OS === "web" ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten) : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
   useEffect(() => {
     const defaultStyle = { fontFamily };
     (Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: defaultStyle };
