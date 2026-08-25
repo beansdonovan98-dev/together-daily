@@ -169,3 +169,4 @@
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
 - [x] Align Health meal-planner input fields with the blue Health page styling.
+- [x] Give every card within each tab a consistent tab-specific color treatment.

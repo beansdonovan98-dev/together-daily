@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { COLORS } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { DEFAULT_PARTNER_COLORS, PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { colorContrastRatio, contrastGuidance } from "@/lib/color-contrast";
 
@@ -138,7 +138,7 @@ export function PersonalizationEditor() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: COLORS.ink, borderRadius: 18, borderWidth: 1, borderColor: "#473651", overflow: "hidden" },
+  card: { backgroundColor: TAB_CARD_PALETTES.themes.surface, borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, overflow: "hidden" },
   toggle: { minHeight: 62, paddingHorizontal: 15, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   kicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   title: { color: COLORS.plum, fontSize: 17, fontWeight: "900", fontStyle: "italic", marginTop: 3 },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   avatarInputLabel: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: .7, marginTop: 2 },
   avatarInput: { minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 10, fontSize: 20, textAlign: "center" },
   profileColorList: { gap: 10 },
-  profileColorCard: { gap: 6, padding: 10, borderRadius: 11, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014" },
+  profileColorCard: { gap: 6, padding: 10, borderRadius: 11, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, backgroundColor: TAB_CARD_PALETTES.themes.surface },
   profileSwatches: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   profileSwatch: { width: 25, height: 25, borderRadius: 13, borderWidth: 2, borderColor: "transparent" },
   profileResetButton: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#5A455F", alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
@@ -176,13 +176,13 @@ const styles = StyleSheet.create({
   input: { minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 10, fontSize: 13 },
   sectionLabel: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: .9, marginTop: 5 },
   themeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  themeButton: { minWidth: "30%", flexGrow: 1, borderRadius: 10, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 8, gap: 6 },
+  themeButton: { minWidth: "30%", flexGrow: 1, borderRadius: 10, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, backgroundColor: TAB_CARD_PALETTES.themes.surface, padding: 8, gap: 6 },
   themeColors: { flexDirection: "row", gap: 4 },
   themeColor: { height: 8, flex: 1, borderRadius: 4 },
   themeName: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
   themeCreator: { fontSize: 9, fontWeight: "900", letterSpacing: .2 },
   savedThemeList: { gap: 8 },
-  savedThemeCard: { borderRadius: 11, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", padding: 9, gap: 8 },
+  savedThemeCard: { borderRadius: 11, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, backgroundColor: TAB_CARD_PALETTES.themes.surface, padding: 9, gap: 8 },
   savedThemeMain: { gap: 6 },
   themeManageRow: { flexDirection: "row", gap: 9 },
   renameRow: { flexDirection: "row", gap: 7, alignItems: "center" },
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   resetText: { color: COLORS.slate, fontSize: 11, fontWeight: "900" },
   saveButton: { flex: 1, minHeight: 42, borderRadius: 11, backgroundColor: COLORS.orchid, alignItems: "center", justifyContent: "center" },
   saveText: { color: COLORS.white, fontSize: 13, fontWeight: "900" },
-  confirmCard: { gap: 8, borderRadius: 12, borderWidth: 1, borderColor: "#7D4357", backgroundColor: "#1F1117", padding: 12 },
+  confirmCard: { gap: 8, borderRadius: 12, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, backgroundColor: TAB_CARD_PALETTES.themes.surface, padding: 12 },
   confirmTitle: { color: COLORS.plum, fontSize: 14, fontWeight: "900" },
   confirmCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
   confirmButton: { flex: 1, minHeight: 42, borderRadius: 11, backgroundColor: COLORS.rose, alignItems: "center", justifyContent: "center" },

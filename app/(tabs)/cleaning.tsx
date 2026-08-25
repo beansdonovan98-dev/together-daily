@@ -1,6 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
-import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: COLORS.gold, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
   title: { color: COLORS.plum, fontSize: 34, fontWeight: "900", fontStyle: "italic" },
   copy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 12, lineHeight: 19 },
-  progressCard: { borderRadius: 20, borderWidth: 1, borderColor: "#35494B", backgroundColor: "#11191A", padding: 17, gap: 12 },
+  progressCard: { borderRadius: 20, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 17, gap: 12 },
   progressTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   progressKicker: { color: COLORS.sage, fontSize: 10, fontWeight: "900", letterSpacing: 1 },
   progressNumber: { color: COLORS.plum, fontSize: 30, fontWeight: "900", fontStyle: "italic", marginTop: 2 },
@@ -113,13 +113,13 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", borderRadius: 5 },
   partnerCounts: { flexDirection: "row", gap: 14 },
   partnerCount: { fontSize: 11, fontWeight: "900" },
-  composer: { borderRadius: 18, borderWidth: 1, borderColor: "#3C4E4D", backgroundColor: COLORS.ink, padding: 14, gap: 10 },
+  composer: { borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 14, gap: 10 },
   composerTitle: { color: COLORS.plum, fontSize: 17, fontWeight: "900", fontStyle: "italic" },
   addRow: { flexDirection: "row", gap: 8 },
   input: { flex: 1, minHeight: 43, borderRadius: 11, borderWidth: 1, borderColor: "#3A4443", backgroundColor: "#121415", color: COLORS.plum, paddingHorizontal: 11, fontSize: 13 },
   addButton: { minWidth: 58, borderRadius: 11, justifyContent: "center", alignItems: "center" },
   addButtonText: { color: COLORS.white, fontSize: 12, fontWeight: "900" },
-  dailyCard: { borderRadius: 18, borderWidth: 1, borderColor: "#4B5472", backgroundColor: "#161827", padding: 14, gap: 10 },
+  dailyCard: { borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 14, gap: 10 },
   dailyHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   dailyKicker: { color: "#9BA6EE", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   dailyTitle: { color: COLORS.plum, fontSize: 19, fontWeight: "900", fontStyle: "italic", marginTop: 3 },
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
   useTemplateText: { fontSize: 9, fontWeight: "900" },
   noTemplates: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, marginTop: 2 },
   list: { gap: 9 },
-  taskCard: { borderRadius: 15, borderWidth: 1, borderColor: "#353D3D", backgroundColor: COLORS.ink, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 },
-  taskCardDone: { backgroundColor: "#14201B", borderColor: "#365845" },
+  taskCard: { borderRadius: 15, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 },
+  taskCardDone: { backgroundColor: TAB_CARD_PALETTES.cleaning.surface, borderColor: "#365845" },
   checkCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: "#66736D", alignItems: "center", justifyContent: "center" },
   checkText: { color: COLORS.white, fontWeight: "900" },
   taskBody: { flex: 1, gap: 3 },
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   taskEditButtonText: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },
   deleteButton: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   deleteText: { color: "#8E7682", fontSize: 22, lineHeight: 24 },
-  empty: { borderRadius: 18, borderWidth: 1, borderColor: "#35494B", backgroundColor: COLORS.ink, padding: 20, alignItems: "center" },
+  empty: { borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 20, alignItems: "center" },
   emptyTitle: { color: COLORS.plum, fontSize: 19, fontWeight: "900", fontStyle: "italic" },
   emptyCopy: { color: COLORS.slate, fontSize: 12, fontFamily: "monospace", lineHeight: 18, textAlign: "center", marginTop: 5 },
 });

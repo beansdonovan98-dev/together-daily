@@ -1,6 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
-import { COLORS, asObject, localDateKey } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import * as Notifications from "expo-notifications";
 import {
@@ -656,10 +656,10 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   card: {
-    backgroundColor: COLORS.ink,
+    backgroundColor: TAB_CARD_PALETTES.health.surface,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#3A4055",
+    borderColor: TAB_CARD_PALETTES.health.border,
     padding: 14,
     gap: 9,
   },

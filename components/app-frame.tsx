@@ -1,5 +1,5 @@
 import { ScreenContainer } from "@/components/screen-container";
-import { COLORS } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -77,13 +77,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const pageStyle = pageStyles[currentPage.id] ?? {};
+  const tabCardPalette =
+    TAB_CARD_PALETTES[currentPage.id as keyof typeof TAB_CARD_PALETTES] ??
+    TAB_CARD_PALETTES.today;
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor =
     currentPage.id === "log"
       ? (theme.backgroundColor ?? COLORS.blush)
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
-  const sectionBackgroundColor = pageStyle.sectionBackgroundColor ?? COLORS.ink;
+  const sectionBackgroundColor =
+    pageStyle.sectionBackgroundColor ?? tabCardPalette.surface;
   const cardBackgroundColor =
     pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { COLORS } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
 
 const TABS = [
@@ -35,7 +35,7 @@ export function TabManager() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: COLORS.ink, borderRadius: 18, borderWidth: 1, borderColor: "#473651", overflow: "hidden" },
+  card: { backgroundColor: TAB_CARD_PALETTES.themes.surface, borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.themes.border, overflow: "hidden" },
   toggle: { minHeight: 62, paddingHorizontal: 15, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   kicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   title: { color: COLORS.plum, fontSize: 17, fontWeight: "900", fontStyle: "italic", marginTop: 3 },

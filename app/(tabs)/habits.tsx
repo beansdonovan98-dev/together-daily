@@ -2,12 +2,17 @@ import { AppFrame } from "@/components/app-frame";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { WeightHistoryGraph, type WeightPoint } from "@/components/weight-history-graph";
-import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
+import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const DEFAULT_HABITS = ["Drink water", "Move my body", "Wind down well"];
+const COLORS = {
+  ...BASE_COLORS,
+  ink: TAB_CARD_PALETTES.habits.surface,
+  surface: TAB_CARD_PALETTES.habits.surface,
+};
 const AFFECTION_GOALS = [
   { key: "hugs", emoji: "🤗", label: "Hugs" },
   { key: "kisses", emoji: "💋", label: "Kisses" },

@@ -2,7 +2,7 @@ import { AppFrame } from "@/components/app-frame";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { COLORS, asObject, localDateKey, prettyDate } from "@/lib/together";
+import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -16,6 +16,11 @@ const MEALS = [
   { key: "dinner", emoji: "☾", label: "Dinner" },
 ] as const;
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
+const COLORS = {
+  ...BASE_COLORS,
+  ink: TAB_CARD_PALETTES.today.surface,
+  surface: TAB_CARD_PALETTES.today.surface,
+};
 
 function mime(value?: string | null): "image/jpeg" | "image/png" | "image/webp" | "image/gif" {
   return value === "image/png" || value === "image/webp" || value === "image/gif" ? value : "image/jpeg";
@@ -183,7 +188,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   </ScrollView></AppFrame>;
 }
 
-function Stat({ value, label, tint }: { value: string; label: string; tint: string }) { return <View style={[styles.statCard, { backgroundColor: tint }]}><Text style={styles.statNumber}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>; }
+function Stat({ value, label }: { value: string; label: string; tint?: string }) { return <View style={[styles.statCard, { backgroundColor: TAB_CARD_PALETTES.today.surface, borderColor: TAB_CARD_PALETTES.today.border }]}><Text style={styles.statNumber}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>; }
 
 const styles = StyleSheet.create({
   page: { padding: 18, paddingBottom: 36, gap: 14, backgroundColor: COLORS.blush }, loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.blush }, muted: { color: COLORS.slate, fontSize: 15 }, topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }, eyebrow: { fontSize: 10, letterSpacing: 1.2, fontWeight: "900", marginBottom: 4 }, title: { color: COLORS.plum, fontSize: 31, fontWeight: "900", fontStyle: "italic" }, avatar: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" }, avatarText: { color: "#FFFFFF", fontWeight: "900", fontSize: 17 },
