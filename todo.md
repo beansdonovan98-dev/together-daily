@@ -126,5 +126,6 @@
 - [x] Convert Notes & Debrief into an additive shared bullet list.
 - [x] Add a shared caption field beneath each daily cover photo.
 - [x] Create and deliver a full reusable Together Daily JSON data document.
+- [x] Inspect the supplied backup files and report their restoration readiness without modifying data.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
