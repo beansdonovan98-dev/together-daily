@@ -33,7 +33,7 @@ StyleSheet.create = ((styles: Record<string, Record<string, unknown>>) => {
   const interactive = /(input|button|pill|badge|tab|swatch|avatar|control)/i;
   const handwrittenStyles = Object.fromEntries(Object.entries(styles).map(([name, style]) => {
     const contentStyle = textStyleKeys.some((key) => key in style) ? { ...style, fontFamily: "cursive" } : style;
-    return [name, cardLike.test(name) && !interactive.test(name) ? { ...contentStyle, borderWidth: 0, borderTopWidth: 0, borderRightWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderColor: "transparent" } : contentStyle];
+    return [name, cardLike.test(name) && !interactive.test(name) ? { ...contentStyle, borderWidth: 0, borderTopWidth: 0, borderRightWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderColor: "transparent", shadowColor: "transparent", shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 } : contentStyle];
   }));
   return originalCreate(handwrittenStyles);
 }) as typeof StyleSheet.create;

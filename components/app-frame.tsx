@@ -38,7 +38,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const accentColor = pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor = currentPage.id === "log" ? (theme.backgroundColor ?? COLORS.blush) : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
   const sectionBackgroundColor = pageStyle.sectionBackgroundColor ?? COLORS.ink;
-  const sectionBorderColor = pageStyle.sectionBorderColor ?? accentColor;
   const cardBackgroundColor = pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
@@ -50,7 +49,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     (Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: defaultStyle };
     if (Platform.OS === "web" && typeof document !== "undefined") document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
-  const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 0, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 0, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowColor: sectionBorderColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
+  const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 0, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 0, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 };
   const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
   const styledChildren = child ? cloneElement(child, { contentContainerStyle: [child.props.contentContainerStyle, { backgroundColor }] }) : children;
 
