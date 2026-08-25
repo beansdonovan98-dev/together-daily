@@ -142,5 +142,7 @@
 - [x] Add saved default daily-cleaning tasks that automatically populate new daily lists.
 - [x] Replace weekly Cleaning templates with a Sunday-reset weekly list and daily/weekly progress bars.
 - [x] Add a Health tab between Habits and Steamy with daily tasks, medicine tracking/reminders, and water tracking.
+- [x] Move water and meal planning entirely into Health and add medicine edit/delete controls.
+- [x] Add completion celebrations and seven-day streak trackers for daily Health and daily/weekly Cleaning.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
