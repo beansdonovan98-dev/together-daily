@@ -23,7 +23,7 @@ const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B9
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, tabLabels, tabGlyphs, tabOrder } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabGlyphs, tabOrder } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -38,7 +38,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const currentPage = NAVIGATION.find((item) => pathname === item.href || (item.href === "/" && pathname === "/index")) ?? NAVIGATION[0];
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor = pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
-  const backgroundColor = pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush;
+  const backgroundColor = currentPage.id === "log" ? (theme.backgroundColor ?? COLORS.blush) : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
   const sectionBackgroundColor = pageStyle.sectionBackgroundColor ?? COLORS.ink;
   const sectionBorderColor = pageStyle.sectionBorderColor ?? accentColor;
   const cardBackgroundColor = pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
@@ -210,7 +210,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
               <Text style={styles.pageEditorLabel}>CARD OUTLINE</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`card-outline-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} card outline to ${color}`} onPress={() => setPageStyle(currentPage.id, { sectionBorderColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, sectionBorderColor === color && styles.pageSwatchActive]} />)}</View>
             </View> : null}
         </View>
-        <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}</View>
+        <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}<TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.pageResetFooter}><Text style={styles.pageResetText}>Reset {currentPage.label} to default</Text></TouchableOpacity></View>
       </View>
     </ScreenContainer>
   );
@@ -291,4 +291,6 @@ const styles = StyleSheet.create({
   qrText: { color: COLORS.slate, fontSize: 10, lineHeight: 15, marginTop: 4, fontFamily: "monospace" },
   inviteFeedback: { color: COLORS.sage, fontSize: 10, fontWeight: "800", marginTop: 7 },
   content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
+  pageResetFooter: { alignSelf: "center", marginVertical: 18, borderWidth: 1, borderColor: "#4B4054", borderRadius: 9, paddingHorizontal: 12, paddingVertical: 8 },
+  pageResetText: { color: COLORS.slate, fontSize: 10, fontWeight: "900", fontFamily: "cursive" },
 });
