@@ -168,3 +168,4 @@
 - [x] Add subtle hover and press feedback to the top navigation links.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
+- [x] Align Health meal-planner input fields with the blue Health page styling.
