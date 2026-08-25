@@ -26,7 +26,12 @@ const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
 const handwrittenDefault = { fontFamily: "cursive" };
 (Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
 (TextInput as typeof TextInput & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
-StyleSheet.setStyleAttributePreprocessor("fontFamily", () => "cursive");
+const originalCreate = StyleSheet.create;
+const textStyleKeys = ["color", "fontSize", "fontWeight", "fontStyle", "lineHeight", "letterSpacing", "textAlign"];
+StyleSheet.create = ((styles: Record<string, Record<string, unknown>>) => {
+  const handwrittenStyles = Object.fromEntries(Object.entries(styles).map(([name, style]) => [name, textStyleKeys.some((key) => key in style) ? { ...style, fontFamily: "cursive" } : style]));
+  return originalCreate(handwrittenStyles);
+}) as typeof StyleSheet.create;
 
 export const unstable_settings = {
   anchor: "(tabs)",
