@@ -5,7 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { Platform } from "react-native";
+import { Platform, Text, TextInput } from "react-native";
 import * as Notifications from "expo-notifications";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
@@ -23,6 +23,9 @@ import { LocalJournalProvider } from "@/lib/local-journal";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
+const handwrittenDefault = { fontFamily: "cursive" };
+(Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
+(TextInput as typeof TextInput & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
 
 export const unstable_settings = {
   anchor: "(tabs)",

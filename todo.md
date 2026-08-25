@@ -151,5 +151,6 @@
 - [x] Redesign Edit page with richer palettes, card background/border/text colors, and retain font and card styles.
 - [x] Add more ready-made themes to the Themes library.
 - [x] Remove the Edit page option and apply handwritten-style typography throughout Together Daily.
+- [x] Restore a simple per-page card-outline editor, apply handwritten body text, align Daily Log colors, and add a Themes font selector.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

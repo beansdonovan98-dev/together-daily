@@ -20,13 +20,10 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8"];
-const PAGE_BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#20151D", "#FAF4F7", "#FFF7ED", "#F1F7F2", "#EEF6FF", "#F4F0FF"];
-const PAGE_FONT_OPTIONS = [{ id: "classic", label: "Classic" }, { id: "serif", label: "Warm serif" }, { id: "mono", label: "Mono" }] as const;
-const PAGE_CARD_OPTIONS = [{ id: "soft", label: "Soft" }, { id: "outlined", label: "Outline" }, { id: "minimal", label: "Minimal" }] as const;
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabGlyphs, tabOrder } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, tabLabels, tabGlyphs, tabOrder } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -45,8 +42,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const sectionBackgroundColor = pageStyle.sectionBackgroundColor ?? COLORS.ink;
   const sectionBorderColor = pageStyle.sectionBorderColor ?? accentColor;
   const cardBackgroundColor = pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
-  const textColor = pageStyle.textColor ?? COLORS.plum;
-  const fontStyle = pageStyle.fontStyle ?? "classic";
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const fontFamily = "cursive";
   const pageSurfaceStyle = cardStyle === "outlined" ? { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 16, overflow: "hidden" as const } : cardStyle === "minimal" ? { marginTop: 0, borderRadius: 0, backgroundColor: cardBackgroundColor } : { marginHorizontal: 8, marginTop: 8, borderWidth: 1, borderColor: sectionBorderColor, backgroundColor: cardBackgroundColor, borderRadius: 20, overflow: "hidden" as const, shadowColor: sectionBorderColor, shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
@@ -207,20 +202,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
-            <View style={[styles.pageEditRow, { display: "none" }]}>
-              <View><Text style={styles.pageEditKicker}>{currentPage.label.toUpperCase()} STYLE</Text><Text style={styles.pageEditCopy}>Shared colors for this page</Text></View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${currentPage.label} page style`} accessibilityState={{ expanded: pageEditorOpen }} onPress={() => setPageEditorOpen((open) => !open)} style={[styles.pageEditButton, { borderColor: accentColor }]}><Text style={[styles.pageEditButtonText, { color: accentColor }]}>{pageEditorOpen ? "DONE" : "EDIT PAGE"}</Text></TouchableOpacity>
+            <View style={styles.pageEditRow}>
+              <View><Text style={styles.pageEditKicker}>{currentPage.label.toUpperCase()} CARDS</Text><Text style={styles.pageEditCopy}>Shared outline color</Text></View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${currentPage.label} card outlines`} accessibilityState={{ expanded: pageEditorOpen }} onPress={() => setPageEditorOpen((open) => !open)} style={[styles.pageEditButton, { borderColor: accentColor }]}><Text style={[styles.pageEditButtonText, { color: accentColor }]}>{pageEditorOpen ? "DONE" : "EDIT OUTLINES"}</Text></TouchableOpacity>
             </View>
             {pageEditorOpen ? <View style={styles.pageEditorPanel}>
-              <Text style={styles.pageEditorLabel}>ACCENT</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`accent-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} accent to ${color}`} onPress={() => setPageStyle(currentPage.id, { accentColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, accentColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>BACKGROUND</Text><View style={styles.pageSwatches}>{PAGE_BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`background-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} background to ${color}`} onPress={() => setPageStyle(currentPage.id, { backgroundColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, backgroundColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>SECTION BACKGROUND</Text><View style={styles.pageSwatches}>{PAGE_BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`section-background-${color}`} accessibilityRole="button" onPress={() => setPageStyle(currentPage.id, { sectionBackgroundColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, sectionBackgroundColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>SECTION OUTLINE</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`section-outline-${color}`} accessibilityRole="button" onPress={() => setPageStyle(currentPage.id, { sectionBorderColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, sectionBorderColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>CARD FILL</Text><View style={styles.pageSwatches}>{PAGE_BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`card-fill-${color}`} accessibilityRole="button" onPress={() => setPageStyle(currentPage.id, { cardBackgroundColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, cardBackgroundColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>TEXT COLOR</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`text-color-${color}`} accessibilityRole="button" onPress={() => setPageStyle(currentPage.id, { textColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, textColor === color && styles.pageSwatchActive]} />)}</View>
-              <Text style={styles.pageEditorLabel}>FONT STYLE</Text><View style={styles.pageChoiceRow}>{PAGE_FONT_OPTIONS.map((option) => <TouchableOpacity key={option.id} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} font to ${option.label}`} onPress={() => setPageStyle(currentPage.id, { fontStyle: option.id })} style={[styles.pageChoice, fontStyle === option.id && { borderColor: accentColor, backgroundColor: `${accentColor}22` }]}><Text style={[styles.pageChoiceText, { fontFamily }, fontStyle === option.id && { color: accentColor }]}>{option.label}</Text></TouchableOpacity>)}</View>
-              <Text style={styles.pageEditorLabel}>CARD STYLE</Text><View style={styles.pageChoiceRow}>{PAGE_CARD_OPTIONS.map((option) => <TouchableOpacity key={option.id} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} cards to ${option.label}`} onPress={() => setPageStyle(currentPage.id, { cardStyle: option.id })} style={[styles.pageChoice, cardStyle === option.id && { borderColor: accentColor, backgroundColor: `${accentColor}22` }]}><Text style={[styles.pageChoiceText, cardStyle === option.id && { color: accentColor }]}>{option.label}</Text></TouchableOpacity>)}</View>
-              <TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.resetPageButton}><Text style={styles.resetPageText}>Use the main theme for this page</Text></TouchableOpacity>
+              <Text style={styles.pageEditorLabel}>CARD OUTLINE</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`card-outline-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} card outline to ${color}`} onPress={() => setPageStyle(currentPage.id, { sectionBorderColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, sectionBorderColor === color && styles.pageSwatchActive]} />)}</View>
             </View> : null}
         </View>
         <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}</View>
