@@ -172,3 +172,4 @@
 - [x] Give every card within each tab a consistent tab-specific color treatment.
 - [x] Add shared Themes controls for choosing a specific card color for each tab.
 - [x] Test every tab’s custom card color and fix cards that ignore the selected color.
+- [x] Diagnose and repair the development preview that still will not open.
