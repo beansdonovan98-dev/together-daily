@@ -146,5 +146,6 @@
 - [x] Add completion celebrations and seven-day streak trackers for daily Health and daily/weekly Cleaning.
 - [x] Add editable chronological medicine time records from 12:01 AM through 11:59 PM.
 - [x] Add reusable per-subsection background and border-line color controls across pages.
+- [x] Separate medicine dose logging from medicine notification management in Health.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
