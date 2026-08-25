@@ -135,5 +135,6 @@
 - [x] Increase private-gallery GIF upload capacity while keeping animation and shared saving reliable.
 - [x] Add an emoji changer to Rename tabs controls and a shared water tracker under Good Habits.
 - [x] Add automatic daily reset and a shared manual reset button for the water tracker.
+- [x] Move the water tracker under Today’s good habits and add lighter per-page background choices.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

@@ -19,7 +19,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8"];
-const PAGE_BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#20151D"];
+const PAGE_BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#20151D", "#FAF4F7", "#FFF7ED", "#F1F7F2", "#EEF6FF", "#F4F0FF"];
 const PAGE_FONT_OPTIONS = [{ id: "classic", label: "Classic" }, { id: "serif", label: "Warm serif" }, { id: "mono", label: "Mono" }] as const;
 const PAGE_CARD_OPTIONS = [{ id: "soft", label: "Soft" }, { id: "outlined", label: "Outline" }, { id: "minimal", label: "Minimal" }] as const;
 
