@@ -129,5 +129,8 @@
 - [x] Inspect the supplied backup files and report their restoration readiness without modifying data.
 - [x] Keep Themes and add an Edit page style option on every app tab.
 - [x] Add shared per-page font and card-style choices to every Edit page control.
+- [x] Add deletion for Daily Log notes and edit/delete controls for Good Habits, shared to-dos, and Cleaning tasks.
+- [x] Add in-tab editing for Meal Planner section details such as emojis.
+- [x] Complete reliable Steamy GIF upload and animated display support.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.

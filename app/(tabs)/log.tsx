@@ -92,6 +92,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     updateDay(date, { notesList: [...debriefNotes, { id: `debrief-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }], sharedNotes: "" }, "daily-log");
     setDebriefDraft("");
   };
+  const deleteDebrief = (noteId: string) => updateDay(date, { notesList: debriefNotes.filter((note) => String(note.id) !== noteId) }, "daily-log");
 
   const beginEdit = (entry: TimelineEntry) => {
     const style = getEventStyle(entry);
@@ -158,7 +159,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     <View style={styles.debrief}>
       <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
       <View style={styles.quickLine}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
-      {legacyDebrief ? <View style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:COLORS.gold}]}>•</Text><Text style={styles.debriefBulletText}>{legacyDebrief}</Text></View> : null}{debriefNotes.length ? <View style={styles.debriefNotes}>{debriefNotes.map((note) => { const authorId = note.authorId === "princess" ? "princess" : "beans"; const author = PARTNERS[authorId]; return <View key={String(note.id)} style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:author.color}]}>•</Text><View style={styles.debriefBulletBody}><Text style={[styles.debriefAuthor,{color:author.color}]}>{author.avatar} {author.name}</Text><Text style={styles.debriefBulletText}>{String(note.text)}</Text></View></View>; })}</View> : null}<View style={styles.debriefComposer}><TextInput value={debriefDraft} onChangeText={setDebriefDraft} onSubmitEditing={addDebrief} returnKeyType="done" multiline placeholder="Add another note or reflection…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={addDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>+ Add bullet</Text></TouchableOpacity></View>
+      {legacyDebrief ? <View style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:COLORS.gold}]}>•</Text><Text style={styles.debriefBulletText}>{legacyDebrief}</Text></View> : null}{debriefNotes.length ? <View style={styles.debriefNotes}>{debriefNotes.map((note) => { const authorId = note.authorId === "princess" ? "princess" : "beans"; const author = PARTNERS[authorId]; return <View key={String(note.id)} style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:author.color}]}>•</Text><View style={styles.debriefBulletBody}><Text style={[styles.debriefAuthor,{color:author.color}]}>{author.avatar} {author.name}</Text><Text style={styles.debriefBulletText}>{String(note.text)}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete note by ${author.name}`} onPress={() => deleteDebrief(String(note.id))} style={styles.debriefDelete}><Text style={styles.debriefDeleteText}>Delete</Text></TouchableOpacity></View>; })}</View> : null}<View style={styles.debriefComposer}><TextInput value={debriefDraft} onChangeText={setDebriefDraft} onSubmitEditing={addDebrief} returnKeyType="done" multiline placeholder="Add another note or reflection…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={addDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>+ Add bullet</Text></TouchableOpacity></View>
     </View>
 
     <View style={styles.stream}>
@@ -290,6 +291,8 @@ const styles = StyleSheet.create({
   editColorRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   editColorSwatch: { width: 25, height: 25, borderRadius: 13, justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: "transparent" },
   editActions: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
+  debriefDelete: { alignSelf: "flex-start", paddingHorizontal: 7, paddingVertical: 5, borderRadius: 7, borderWidth: 1, borderColor: "#6F4552" },
+  debriefDeleteText: { color: "#E69AAA", fontSize: 9, fontWeight: "900" },
   cancelEditButton: { borderRadius: 9, borderWidth: 1, borderColor: "#584E5C", paddingHorizontal: 12, paddingVertical: 8 },
   cancelEditText: { color: COLORS.slate, fontSize: 11, fontWeight: "900" },
   saveEditButton: { borderRadius: 9, paddingHorizontal: 12, paddingVertical: 8 },
