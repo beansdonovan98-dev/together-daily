@@ -4,7 +4,7 @@ import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
-import { type ReactNode, useState } from "react";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode, useState } from "react";
 import { Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 
@@ -18,22 +18,29 @@ const NAVIGATION = [
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
+const PAGE_ACCENT_SWATCHES = ["#8D5BA6", "#D56B88", "#E6A267", "#C6A04C", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8"];
+const PAGE_BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#20151D"];
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, tabLabels, tabOrder } = useLocalJournal();
+  const { roomCode, memberId, roomMembers, isSyncing, registerPushToken, theme, pageStyles, setPageStyle, resetPageStyle, tabLabels, tabOrder } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<"idle" | "setting-up" | "enabled">("idle");
+  const [pageEditorOpen, setPageEditorOpen] = useState(false);
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
   const isTodaySection = pathname === "/" || pathname === "/index";
   const roomInviteLink = roomCode ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
-  const accentColor = theme.accentColor ?? COLORS.orchid;
-  const backgroundColor = theme.backgroundColor ?? COLORS.blush;
   const orderedNavigation = [...tabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)), ...NAVIGATION.map((item) => item.id).filter((id) => !tabOrder.includes(id))].map((id) => NAVIGATION.find((item) => item.id === id)!).filter(Boolean);
+  const currentPage = NAVIGATION.find((item) => pathname === item.href || (item.href === "/" && pathname === "/index")) ?? NAVIGATION[0];
+  const pageStyle = pageStyles[currentPage.id] ?? {};
+  const accentColor = pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
+  const backgroundColor = pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush;
+  const child = isValidElement(children) ? children as ReactElement<{ contentContainerStyle?: unknown }> : null;
+  const styledChildren = child ? cloneElement(child, { contentContainerStyle: [child.props.contentContainerStyle, { backgroundColor }] }) : children;
 
   const showInviteFeedback = (message: string) => {
     setInviteFeedback(message);
@@ -132,8 +139,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
             return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{item.glyph}</Text><Text style={[styles.tabLabel, active && styles.tabActiveText]}>{tabLabels[item.id]?.trim() || item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
-        <View style={styles.identityArea}>
-          <View style={styles.identityStrip}>
+          <View style={styles.identityArea}>
+            <View style={styles.identityStrip}>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
             <Text style={[styles.identityName, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name}</Text>
             <Text style={styles.identityDivider}>·</Text>
@@ -189,8 +196,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
               {inviteFeedback ? <Text accessibilityLiveRegion="polite" style={styles.inviteFeedback}>{inviteFeedback}</Text> : null}
             </View>
           ) : null}
+            <View style={styles.pageEditRow}>
+              <View><Text style={styles.pageEditKicker}>{currentPage.label.toUpperCase()} STYLE</Text><Text style={styles.pageEditCopy}>Shared colors for this page</Text></View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${currentPage.label} page style`} accessibilityState={{ expanded: pageEditorOpen }} onPress={() => setPageEditorOpen((open) => !open)} style={[styles.pageEditButton, { borderColor: accentColor }]}><Text style={[styles.pageEditButtonText, { color: accentColor }]}>{pageEditorOpen ? "DONE" : "EDIT PAGE"}</Text></TouchableOpacity>
+            </View>
+            {pageEditorOpen ? <View style={styles.pageEditorPanel}>
+              <Text style={styles.pageEditorLabel}>ACCENT</Text><View style={styles.pageSwatches}>{PAGE_ACCENT_SWATCHES.map((color) => <TouchableOpacity key={`accent-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} accent to ${color}`} onPress={() => setPageStyle(currentPage.id, { accentColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, accentColor === color && styles.pageSwatchActive]} />)}</View>
+              <Text style={styles.pageEditorLabel}>BACKGROUND</Text><View style={styles.pageSwatches}>{PAGE_BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`background-${color}`} accessibilityRole="button" accessibilityLabel={`Set ${currentPage.label} background to ${color}`} onPress={() => setPageStyle(currentPage.id, { backgroundColor: color })} style={[styles.pageSwatch, { backgroundColor: color }, backgroundColor === color && styles.pageSwatchActive]} />)}</View>
+              <TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.resetPageButton}><Text style={styles.resetPageText}>Use the main theme for this page</Text></TouchableOpacity>
+            </View> : null}
         </View>
-        <View style={styles.content}>{children}</View>
+        <View style={styles.content}>{styledChildren}</View>
       </View>
     </ScreenContainer>
   );
@@ -223,6 +239,18 @@ const styles = StyleSheet.create({
   identityRoom: { color: COLORS.slate, marginLeft: "auto", fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
   currentChip: { marginLeft: 4, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 7 },
   currentChipText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
+  pageEditRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 10, gap: 10 },
+  pageEditKicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  pageEditCopy: { color: COLORS.slate, fontSize: 10, marginTop: 2 },
+  pageEditButton: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 7 },
+  pageEditButtonText: { fontSize: 9, fontWeight: "900", letterSpacing: .8 },
+  pageEditorPanel: { borderTopWidth: 1, borderTopColor: "#2C2431", borderBottomWidth: 1, borderBottomColor: "#2C2431", backgroundColor: "#111014", paddingHorizontal: 20, paddingVertical: 12, gap: 7 },
+  pageEditorLabel: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: .9, marginTop: 2 },
+  pageSwatches: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  pageSwatch: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: "transparent" },
+  pageSwatchActive: { borderColor: COLORS.white },
+  resetPageButton: { alignSelf: "flex-start", paddingVertical: 6 },
+  resetPageText: { color: COLORS.slate, fontSize: 10, fontWeight: "900" },
   inviteRow: { paddingHorizontal: 20, paddingBottom: 10, gap: 8 },
   invitePanelHeader: { borderRadius: 12, borderWidth: 1, borderColor: "#3D2E43", backgroundColor: "#171218", minHeight: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   invitePanelLead: { gap: 2 },
