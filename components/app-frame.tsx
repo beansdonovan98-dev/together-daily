@@ -30,7 +30,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const member = memberId ? PARTNERS[memberId] : PARTNERS.beans;
   const partnerToInvite = memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
-  const isTodaySection = pathname === "/" || pathname === "/index";
   const roomInviteLink = roomCode ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}` : "";
   const orderedNavigation = [...tabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)), ...NAVIGATION.map((item) => item.id).filter((id) => !tabOrder.includes(id))].map((id) => NAVIGATION.find((item) => item.id === id)!).filter(Boolean);
   const currentPage = NAVIGATION.find((item) => pathname === item.href || (item.href === "/" && pathname === "/index")) ?? NAVIGATION[0];
@@ -150,6 +149,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             return <TouchableOpacity key={item.href} style={[styles.tab, active && styles.tabActive, active && { backgroundColor: accentColor }]} onPress={() => router.replace(item.href as never)}><Text style={[styles.tabGlyph, active && styles.tabActiveText]}>{tabGlyphs[item.id]?.trim() || item.glyph}</Text><Text style={[styles.tabLabel, { fontFamily }, active && styles.tabActiveText]}>{tabLabels[item.id]?.trim() || item.label}</Text>{item.href === "/log" ? <View style={styles.badge}><Text style={styles.badgeText}>LIVE</Text></View> : null}</TouchableOpacity>;
           })}
         </ScrollView>
+          {currentPage.id === "themes" ? (
           <View style={styles.identityArea}>
             <View style={styles.identityStrip}>
             <View style={[styles.identityDot, { backgroundColor: PARTNERS.beans.color }]} />
@@ -160,7 +160,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             <Text style={styles.identityRoom}>{roomCode ? `ROOM ${roomCode}` : "PRIVATE ROOM"}</Text>
             <View style={[styles.currentChip, { borderColor: member.color }]}><Text style={[styles.currentChipText, { color: member.color }]}>{member.name.toUpperCase()}</Text></View>
           </View>
-          {roomCode && isTodaySection ? (
+          {roomCode ? (
             <View style={styles.inviteRow}>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle invite tools" accessibilityState={{ expanded: inviteToolsOpen }} onPress={toggleInviteTools} style={styles.invitePanelHeader}>
                 <View style={styles.invitePanelLead}>
@@ -208,6 +208,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             </View>
           ) : null}
         </View>
+          ) : null}
         <View style={[styles.content, pageSurfaceStyle]}>{styledChildren}<TouchableOpacity accessibilityRole="button" onPress={() => resetPageStyle(currentPage.id)} style={styles.pageResetFooter}><Text style={styles.pageResetText}>Reset {currentPage.label} to default</Text></TouchableOpacity></View>
       </View>
     </ScreenContainer>

@@ -162,5 +162,6 @@
 - [x] Remove visible borders from cards and card subsections throughout the app.
 - [x] Remove shadows from all Together Daily card surfaces.
 - [x] Expand the Health period tracker with selectable cycle, flow, mood, symptom, pain, and notes options.
+- [x] Move shared room identity and Invite Tools from page headers into Themes.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
