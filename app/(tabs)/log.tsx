@@ -31,6 +31,16 @@ const CUSTOM_COLORS = [
   { name: "Sage", value: COLORS.sage },
   { name: "Orchid", value: COLORS.orchid },
   { name: "Peach", value: "#E6A267" },
+  { name: "Cherry", value: "#D94A65" },
+  { name: "Coral", value: "#F07A6A" },
+  { name: "Tangerine", value: "#F39B3D" },
+  { name: "Lemon", value: "#E0C84F" },
+  { name: "Mint", value: "#63C8A3" },
+  { name: "Teal", value: "#3AB4B1" },
+  { name: "Ocean", value: "#4E8FE8" },
+  { name: "Indigo", value: "#7883E8" },
+  { name: "Lavender", value: "#B084E8" },
+  { name: "Plum", value: "#C663B8" },
 ];
 
 function getEventStyle(entry: TimelineEntry): EventStyle {
