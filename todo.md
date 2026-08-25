@@ -147,5 +147,8 @@
 - [x] Add editable chronological medicine time records from 12:01 AM through 11:59 PM.
 - [x] Add reusable per-subsection background and border-line color controls across pages.
 - [x] Separate medicine dose logging from medicine notification management in Health.
+- [x] Replace medicine alerts with Daily Log-style chronological dose entries and add a Health period tracker.
+- [x] Redesign Edit page with richer palettes, card background/border/text colors, and retain font and card styles.
+- [x] Add more ready-made themes to the Themes library.
 - [x] Prevent preview private-gallery uploads from hanging and failing after a long wait.
 - [x] Show the selected private-gallery image immediately in preview while its durable upload completes.
