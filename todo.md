@@ -173,3 +173,8 @@
 - [x] Add shared Themes controls for choosing a specific card color for each tab.
 - [x] Test every tab’s custom card color and fix cards that ignore the selected color.
 - [x] Diagnose and repair the development preview that still will not open.
+- [x] Remove the water log and tracker from Habits.
+- [x] Move the unchanged Weight Tracker and Weight History cards from Habits to Health.
+- [x] Move the Period Tracker to the bottom of Health.
+- [x] Place Tab Card Colors in its own collapsible section below Rename & Sort Tabs.
+- [x] Add more saturated, vibrant Themes colors, especially background choices.

@@ -25,64 +25,40 @@ const SUBHEADING_FIELDS = [
   { key: "pastDays", label: "Past Days description" },
 ] as const;
 
-const ACCENT_SWATCHES = ["#8D5BA6", "#B66BD4", "#D56B88", "#E7779A", "#C65A73", "#E6A267", "#C6A04C", "#DB8C3D", "#90B99D", "#55A7A0", "#66B7DD", "#6289D8", "#9A7B61", "#B692A6", "#D9D1C7", "#E6D6A1"];
-const BACKGROUND_SWATCHES = ["#0D0B0F", "#18101E", "#16111A", "#251316", "#21140F", "#102019", "#0C1E21", "#111827", "#101522", "#101820", "#191515", "#20151D"];
-const PROFILE_SWATCHES = ["#8D5BA6", "#B66BD4", "#D56B88", "#E7779A", "#C65A73", "#E6A267", "#DB8C3D", "#C6A04C", "#90B99D", "#719F78", "#55A7A0", "#66B7DD", "#6289D8", "#9A7B61", "#B692A6", "#D9D1C7"];
+const ACCENT_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#FFCA3A", "#00B894", "#00A6FB"];
+const BACKGROUND_SWATCHES = ["#14001F", "#22002E", "#310A3D", "#2D0B4E", "#111B4A", "#002E5D", "#003A4D", "#004239", "#073D1C", "#2B3D00", "#4A3300", "#552000", "#4D0D10", "#4D082A", "#46003F", "#301044", "#142E5A", "#00535C", "#00513D", "#3B2500", "#5C1600", "#4C0038", "#26005C", "#001F46"];
+const PROFILE_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#00B894", "#00A6FB", "#FFCA3A"];
 const SAVED_THEMES = [
-  { name: "Together", accent: "#8D5BA6", background: "#0D0B0F" },
-  { name: "Blush Twilight", accent: "#D56B88", background: "#251316" },
-  { name: "Golden Keep", accent: "#C6A04C", background: "#18101E" },
-  { name: "Sage Afterglow", accent: "#90B99D", background: "#102019" },
-  { name: "Blue Hour", accent: "#66B7DD", background: "#111827" },
-  { name: "Rosewood", accent: "#E7779A", background: "#20151D" },
-  { name: "Desert Bloom", accent: "#E6A267", background: "#21140F" },
-  { name: "Coastal Ink", accent: "#55A7A0", background: "#0C1E21" },
-  { name: "Moss & Copper", accent: "#DB8C3D", background: "#102019" },
-  { name: "Mulberry", accent: "#B66BD4", background: "#18101E" },
-  { name: "Rainy Window", accent: "#6289D8", background: "#101820" },
-  { name: "Candlelight", accent: "#E6D6A1", background: "#191515" },
-  { name: "Lilac Fog", accent: "#C7A6E8", background: "#191525" },
-  { name: "Cherry Noir", accent: "#F06A8E", background: "#260E18" },
-  { name: "Emerald Hour", accent: "#5CC69A", background: "#0D201A" },
-  { name: "Midnight Iris", accent: "#8F84F4", background: "#10122B" },
-  { name: "Peach Tea", accent: "#F5A575", background: "#26170F" },
-  { name: "Arctic Glass", accent: "#8CD9E8", background: "#0C1C27" },
-  { name: "Berry Cream", accent: "#E88FB5", background: "#28151F" },
-  { name: "Olive Paper", accent: "#B2BC6E", background: "#1B2111" },
-] as const;
-const TAB_COLOR_FIELDS = [
-  { id: "today", label: "Today", glyph: "✦" },
-  { id: "log", label: "Daily Log", glyph: "☰" },
-  { id: "habits", label: "Habits", glyph: "✓" },
-  { id: "health", label: "Health", glyph: "✚" },
-  { id: "steamy", label: "Steamy", glyph: "♥" },
-  { id: "purchase", label: "Purchase", glyph: "▤" },
-  { id: "cleaning", label: "Cleaning", glyph: "✦" },
-  { id: "themes", label: "Themes", glyph: "◐" },
-  { id: "pastDays", label: "Past Days", glyph: "▤" },
+  { name: "Electric Together", accent: "#A421FF", background: "#22002E" },
+  { name: "Hot Pink Night", accent: "#FF2D95", background: "#4D082A" },
+  { name: "Ultraviolet", accent: "#C75CFF", background: "#310A3D" },
+  { name: "Royal Pulse", accent: "#6D4CFF", background: "#2D0B4E" },
+  { name: "Cobalt Glow", accent: "#3B82F6", background: "#111B4A" },
+  { name: "Ocean Electric", accent: "#00D1FF", background: "#003A4D" },
+  { name: "Teal Voltage", accent: "#00C2C7", background: "#00535C" },
+  { name: "Emerald Pop", accent: "#22E06F", background: "#004239" },
+  { name: "Lime After Dark", accent: "#76D900", background: "#2B3D00" },
+  { name: "Golden Flash", accent: "#FFD400", background: "#4A3300" },
+  { name: "Tangerine Heat", accent: "#FF7A00", background: "#552000" },
+  { name: "Scarlet Ember", accent: "#FF4D00", background: "#5C1600" },
+  { name: "Cherry Voltage", accent: "#E5004F", background: "#4D0D10" },
+  { name: "Berry Neon", accent: "#F700FF", background: "#46003F" },
+  { name: "Magenta Rush", accent: "#D946EF", background: "#4C0038" },
+  { name: "Skyline", accent: "#00A8FF", background: "#002E5D" },
+  { name: "Aqua Jewel", accent: "#00B894", background: "#00513D" },
+  { name: "Coral Fire", accent: "#FF6B35", background: "#552000" },
+  { name: "Sunburst", accent: "#FFCA3A", background: "#3B2500" },
+  { name: "Midnight Laser", accent: "#8A2BE2", background: "#26005C" },
 ] as const;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
-
-function tabColorDrafts(pageStyles: Record<string, { cardBackgroundColor?: string } | undefined>) {
-  return Object.fromEntries(
-    TAB_COLOR_FIELDS.map((tab) => [
-      tab.id,
-      pageStyles[tab.id]?.cardBackgroundColor ?? TAB_CARD_PALETTES[tab.id].surface,
-    ]),
-  ) as Record<string, string>;
-}
 
 export function getSubheading(customSubheadings: Record<string, string>, key: keyof typeof SUBHEADING_DEFAULTS) {
   return customSubheadings[key]?.trim() || SUBHEADING_DEFAULTS[key];
 }
 
-function TabCardColorControls({ values, onChange, onSave, onReset }: { values: Record<string, string>; onChange: (tabId: string, color: string) => void; onSave: () => void; onReset: () => void }) {
-  const themesColor = values.themes ?? TAB_CARD_PALETTES.themes.surface;
-  return <View style={[styles.tabColorPanel,{backgroundColor:themesColor}]}><Text style={styles.sectionLabel}>TAB CARD COLORS</Text><Text style={styles.paletteHint}>Choose a shared card color for each tab. It will apply to every card within that tab for both partners.</Text><View style={styles.tabColorGrid}>{TAB_COLOR_FIELDS.map((tab) => { const selected = values[tab.id] ?? TAB_CARD_PALETTES[tab.id].surface; return <View key={tab.id} style={[styles.tabColorCard,{backgroundColor:themesColor,borderColor:selected}]}><Text style={styles.tabColorTitle}>{tab.glyph} {tab.label}</Text><View style={styles.profileSwatches}>{BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={`${tab.id}-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} for ${tab.label} cards`} onPress={() => onChange(tab.id, color)} style={[styles.profileSwatch,{backgroundColor:color},selected===color&&styles.swatchActive]}/>)}</View><TextInput value={selected} onChangeText={(value) => onChange(tab.id, value)} placeholder={TAB_CARD_PALETTES[tab.id].surface} autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput}/></View>; })}</View><View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.profileResetButton} onPress={onReset}><Text style={styles.profileResetText}>Reset tab colors</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={onSave}><Text style={styles.saveText}>Save tab colors</Text></TouchableOpacity></View></View>;
-}
 
 export function PersonalizationEditor() {
-  const { customSubheadings, setCustomSubheading, theme, setTheme, pageStyles, setPageStyle, partnerNames, partnerColors, partnerAvatars, setPartnerProfiles, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
+  const { customSubheadings, setCustomSubheading, theme, setTheme, pageStyles, partnerNames, partnerColors, partnerAvatars, setPartnerProfiles, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
   const [accentDraft, setAccentDraft] = useState(theme.accentColor ?? COLORS.orchid);
@@ -96,14 +72,12 @@ export function PersonalizationEditor() {
   const [partnerColorDrafts, setPartnerColorDrafts] = useState(partnerColors);
   const [partnerAvatarDrafts, setPartnerAvatarDrafts] = useState(partnerAvatars);
   const [confirmProfileColorReset, setConfirmProfileColorReset] = useState(false);
-  const [tabCardColorDrafts, setTabCardColorDrafts] = useState(() => tabColorDrafts(pageStyles));
 
-  useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); setPartnerNameDrafts(partnerNames); setPartnerColorDrafts(partnerColors); setPartnerAvatarDrafts(partnerAvatars); setTabCardColorDrafts(tabColorDrafts(pageStyles)); } }, [customSubheadings, open, pageStyles, partnerAvatars, partnerColors, partnerNames, theme.accentColor, theme.backgroundColor]);
+  useEffect(() => { if (!open) { setSubheadingDrafts(customSubheadings); setAccentDraft(theme.accentColor ?? COLORS.orchid); setBackgroundDraft(theme.backgroundColor ?? COLORS.blush); setPartnerNameDrafts(partnerNames); setPartnerColorDrafts(partnerColors); setPartnerAvatarDrafts(partnerAvatars); } }, [customSubheadings, open, partnerAvatars, partnerColors, partnerNames, theme.accentColor, theme.backgroundColor]);
 
   const save = () => {
     SUBHEADING_FIELDS.forEach((field) => setCustomSubheading(field.key, subheadingDrafts[field.key] ?? ""));
     setTheme({ accentColor: HEX.test(accentDraft) ? accentDraft : COLORS.orchid, backgroundColor: HEX.test(backgroundDraft) ? backgroundDraft : COLORS.blush });
-    TAB_COLOR_FIELDS.forEach((tab) => setPageStyle(tab.id, { cardBackgroundColor: HEX.test(tabCardColorDrafts[tab.id]) ? tabCardColorDrafts[tab.id] : TAB_CARD_PALETTES[tab.id].surface }));
     setPartnerProfiles({ names: partnerNameDrafts, colors: partnerColorDrafts, avatars: partnerAvatarDrafts });
     setOpen(false);
   };
@@ -113,7 +87,6 @@ export function PersonalizationEditor() {
     setSubheadingDrafts({});
     setAccentDraft(COLORS.orchid);
     setBackgroundDraft(COLORS.blush);
-    setTabCardColorDrafts(tabColorDrafts({}));
     setConfirmReset(false);
   };
 
@@ -121,15 +94,6 @@ export function PersonalizationEditor() {
     setPartnerColorDrafts(DEFAULT_PARTNER_COLORS);
     setPartnerProfiles({ names: partnerNameDrafts, colors: DEFAULT_PARTNER_COLORS, avatars: partnerAvatarDrafts });
     setConfirmProfileColorReset(false);
-  };
-
-  const resetTabCardColors = () => {
-    TAB_COLOR_FIELDS.forEach((tab) => setPageStyle(tab.id, { cardBackgroundColor: undefined }));
-    setTabCardColorDrafts(tabColorDrafts({}));
-  };
-
-  const saveTabCardColors = () => {
-    TAB_COLOR_FIELDS.forEach((tab) => setPageStyle(tab.id, { cardBackgroundColor: HEX.test(tabCardColorDrafts[tab.id]) ? tabCardColorDrafts[tab.id] : TAB_CARD_PALETTES[tab.id].surface }));
   };
 
   const applyTheme = (accentColor: string, backgroundColor: string) => {
@@ -158,7 +122,6 @@ export function PersonalizationEditor() {
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle personalization editor" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}>
       <View><Text style={styles.kicker}>MAKE IT YOURS</Text><Text style={styles.title}>Names, descriptions & colors</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text>
     </TouchableOpacity>
-    <TabCardColorControls values={tabCardColorDrafts} onChange={(tabId, color) => setTabCardColorDrafts((current) => ({ ...current, [tabId]: color }))} onSave={saveTabCardColors} onReset={resetTabCardColors} />
     {open ? <View style={styles.editor}>
       <Text style={styles.helper}>Edit the descriptive words beneath the section titles. Leave one blank to restore its original words. Your color choices are shared with your room.</Text>
       <Text style={styles.sectionLabel}>PARTNER NAMES & ICONS</Text><View style={styles.partnerNameGrid}>{(["beans","princess"] as const).map((partnerId) => { const person = PARTNERS[partnerId]; return <View key={partnerId} style={styles.partnerNameCard}><Text style={[styles.partnerNameLabel,{color:partnerColorDrafts[partnerId]}]}>{partnerAvatarDrafts[partnerId]} {partnerNameDrafts[partnerId]}</Text><TextInput value={partnerNameDrafts[partnerId]} onChangeText={(value) => setPartnerNameDrafts((current) => ({ ...current, [partnerId]: value }))} placeholder={person.name} placeholderTextColor="#7F7582" maxLength={24} style={styles.input}/><Text style={styles.avatarInputLabel}>IDENTITY EMOJI</Text><TextInput value={partnerAvatarDrafts[partnerId]} onChangeText={(value) => setPartnerAvatarDrafts((current) => ({ ...current, [partnerId]: value }))} placeholder={person.avatar} placeholderTextColor="#7F7582" maxLength={12} style={styles.avatarInput} accessibilityLabel={`Identity emoji for ${partnerNameDrafts[partnerId]}`}/></View>; })}</View>

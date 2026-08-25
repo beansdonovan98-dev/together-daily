@@ -1,5 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
+import { WeightTrackerSections } from "@/components/weight-tracker-sections";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import * as Notifications from "expo-notifications";
@@ -371,6 +372,24 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     setMedicineDraft,
   );
   const medicineNotifications = null;
+  const periodTracker = <View style={[styles.card, { backgroundColor: cardColor }]}>
+    <Text style={styles.kicker}>PERIOD TRACKER</Text>
+    <Text style={styles.title}>Cycle check-in</Text>
+    <Text style={styles.copy}>Track cycle details privately in your shared Health page.</Text>
+    <Text style={styles.periodLabel}>CYCLE STATUS</Text>
+    <View style={styles.optionRow}>{["Not on period", "Started", "On period", "Ended", "Spotting"].map((option) => <TouchableOpacity key={option} onPress={() => save({ period: { ...period, status: option } })} style={[styles.optionChip, period.status === option && styles.optionChipActive]}><Text style={styles.optionText}>{option}</Text></TouchableOpacity>)}</View>
+    <Text style={styles.periodLabel}>FLOW</Text>
+    <View style={styles.optionRow}>{["None", "Light", "Medium", "Heavy"].map((option) => <TouchableOpacity key={option} onPress={() => save({ period: { ...period, flow: option } })} style={[styles.optionChip, period.flow === option && styles.optionChipActive]}><Text style={styles.optionText}>{option}</Text></TouchableOpacity>)}</View>
+    <Text style={styles.periodLabel}>MOOD</Text>
+    <View style={styles.optionRow}>{["🙂 Good", "😌 Calm", "🥺 Sensitive", "😣 Low", "😤 Irritable"].map((option) => <TouchableOpacity key={option} onPress={() => save({ period: { ...period, mood: option } })} style={[styles.optionChip, period.mood === option && styles.optionChipActive]}><Text style={styles.optionText}>{option}</Text></TouchableOpacity>)}</View>
+    <Text style={styles.periodLabel}>SYMPTOMS · TAP ALL THAT APPLY</Text>
+    <View style={styles.optionRow}>{["Cramps", "Headache", "Bloating", "Fatigue", "Back ache", "Nausea"].map((symptom) => <TouchableOpacity key={symptom} onPress={() => togglePeriodSymptom(symptom)} style={[styles.optionChip, periodSymptoms.includes(symptom) && styles.optionChipActive]}><Text style={styles.optionText}>{symptom}</Text></TouchableOpacity>)}</View>
+    <Text style={styles.periodLabel}>PAIN LEVEL</Text>
+    <View style={styles.optionRow}>{[0, 1, 2, 3, 4, 5].map((level) => <TouchableOpacity key={level} onPress={() => save({ period: { ...period, painLevel: level } })} style={[styles.levelChip, Number(period.painLevel ?? 0) === level && styles.optionChipActive]}><Text style={styles.optionText}>{level}</Text></TouchableOpacity>)}</View>
+    <TextInput value={String(period.startDate ?? "")} onChangeText={(value) => save({ period: { ...period, startDate: value } })} placeholder="Start date (YYYY-MM-DD)" placeholderTextColor="#7F7582" style={styles.mealInput}/>
+    <TextInput value={String(period.endDate ?? "")} onChangeText={(value) => save({ period: { ...period, endDate: value } })} placeholder="End date (YYYY-MM-DD)" placeholderTextColor="#7F7582" style={styles.mealInput}/>
+    <TextInput value={String(period.notes ?? "")} onChangeText={(value) => save({ period: { ...period, notes: value } })} multiline placeholder="Symptoms, flow, or notes…" placeholderTextColor="#7F7582" style={styles.mealInput}/>
+  </View>;
   return (
     <AppFrame>
       <ScrollView
@@ -419,81 +438,6 @@ function HealthContent({ userId }: { userId: PartnerId }) {
         </View>
         {medicineLog}
         {medicineNotifications}
-        <View style={[styles.card, { backgroundColor: cardColor }]}>
-          <Text style={styles.kicker}>PERIOD TRACKER</Text>
-          <Text style={styles.title}>Cycle check-in</Text>
-          <Text style={styles.copy}>
-            Track cycle details privately in your shared Health page.
-          </Text>
-          <Text style={styles.periodLabel}>CYCLE STATUS</Text>
-          <View style={styles.optionRow}>
-            {["Not on period", "Started", "On period", "Ended", "Spotting"].map((option) => (
-              <TouchableOpacity key={option} onPress={() => save({ period: { ...period, status: option } })} style={[styles.optionChip, period.status === option && styles.optionChipActive]}>
-                <Text style={styles.optionText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.periodLabel}>FLOW</Text>
-          <View style={styles.optionRow}>
-            {["None", "Light", "Medium", "Heavy"].map((option) => (
-              <TouchableOpacity key={option} onPress={() => save({ period: { ...period, flow: option } })} style={[styles.optionChip, period.flow === option && styles.optionChipActive]}>
-                <Text style={styles.optionText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.periodLabel}>MOOD</Text>
-          <View style={styles.optionRow}>
-            {["🙂 Good", "😌 Calm", "🥺 Sensitive", "😣 Low", "😤 Irritable"].map((option) => (
-              <TouchableOpacity key={option} onPress={() => save({ period: { ...period, mood: option } })} style={[styles.optionChip, period.mood === option && styles.optionChipActive]}>
-                <Text style={styles.optionText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.periodLabel}>SYMPTOMS · TAP ALL THAT APPLY</Text>
-          <View style={styles.optionRow}>
-            {["Cramps", "Headache", "Bloating", "Fatigue", "Back ache", "Nausea"].map((symptom) => (
-              <TouchableOpacity key={symptom} onPress={() => togglePeriodSymptom(symptom)} style={[styles.optionChip, periodSymptoms.includes(symptom) && styles.optionChipActive]}>
-                <Text style={styles.optionText}>{symptom}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.periodLabel}>PAIN LEVEL</Text>
-          <View style={styles.optionRow}>
-            {[0, 1, 2, 3, 4, 5].map((level) => (
-              <TouchableOpacity key={level} onPress={() => save({ period: { ...period, painLevel: level } })} style={[styles.levelChip, Number(period.painLevel ?? 0) === level && styles.optionChipActive]}>
-                <Text style={styles.optionText}>{level}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <TextInput
-            value={String(period.startDate ?? "")}
-            onChangeText={(value) =>
-              save({ period: { ...period, startDate: value } })
-            }
-            placeholder="Start date (YYYY-MM-DD)"
-            placeholderTextColor="#7F7582"
-            style={styles.mealInput}
-          />
-          <TextInput
-            value={String(period.endDate ?? "")}
-            onChangeText={(value) =>
-              save({ period: { ...period, endDate: value } })
-            }
-            placeholder="End date (YYYY-MM-DD)"
-            placeholderTextColor="#7F7582"
-            style={styles.mealInput}
-          />
-          <TextInput
-            value={String(period.notes ?? "")}
-            onChangeText={(value) =>
-              save({ period: { ...period, notes: value } })
-            }
-            multiline
-            placeholder="Symptoms, flow, or notes…"
-            placeholderTextColor="#7F7582"
-            style={styles.mealInput}
-          />
-        </View>
         <View style={[styles.card, { backgroundColor: cardColor }]}>
           <Text style={styles.kicker}>MEAL PLANNER</Text>
           <Text style={styles.title}>Meals</Text>
@@ -616,6 +560,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
             </View>
           </View>
         </View>
+        <WeightTrackerSections userId={userId} today={today} day={day} allDays={allDays} updateDay={updateDay} />
+        {periodTracker}
       </ScrollView>
     </AppFrame>
   );
