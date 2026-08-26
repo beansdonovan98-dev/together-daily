@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomWidth: 1,
     borderBottomColor: "#211C24",
-    backgroundColor: "#0C0A0E",
+    backgroundColor: "transparent",
   },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   brandMark: { color: COLORS.rose, fontSize: 25, lineHeight: 26 },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   },
   tabScroller: {
     flexGrow: 0,
-    backgroundColor: "#0C0A0E",
+    backgroundColor: "transparent",
     borderBottomWidth: 1,
     borderBottomColor: "#211C24",
   },
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   identityArea: {
     borderBottomWidth: 1,
     borderBottomColor: "#211C24",
-    backgroundColor: "#0C0A0E",
+    backgroundColor: "transparent",
   },
   identityStrip: {
     flexDirection: "row",

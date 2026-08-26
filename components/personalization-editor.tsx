@@ -4,6 +4,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { DEFAULT_PARTNER_COLORS, PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { colorContrastRatio, contrastGuidance } from "@/lib/color-contrast";
+import { SAVED_THEMES } from "@/lib/ready-made-themes";
 
 export const SUBHEADING_DEFAULTS = {
   relationshipTracker: "Every day, every hour, every little moment.",
@@ -28,40 +29,6 @@ const SUBHEADING_FIELDS = [
 const ACCENT_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#FFCA3A", "#00B894", "#00A6FB"];
 const BACKGROUND_SWATCHES = ["#14001F", "#22002E", "#310A3D", "#2D0B4E", "#111B4A", "#002E5D", "#003A4D", "#004239", "#073D1C", "#2B3D00", "#4A3300", "#552000", "#4D0D10", "#4D082A", "#46003F", "#301044", "#142E5A", "#00535C", "#00513D", "#3B2500", "#5C1600", "#4C0038", "#26005C", "#001F46"];
 const PROFILE_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#00B894", "#00A6FB", "#FFCA3A"];
-const SAVED_THEMES: readonly { name: string; accent: string; background: string; gradient?: readonly string[] }[] = [
-  { name: "Electric Together", accent: "#A421FF", background: "#22002E" },
-  { name: "Hot Pink Night", accent: "#FF2D95", background: "#4D082A" },
-  { name: "Ultraviolet", accent: "#C75CFF", background: "#310A3D" },
-  { name: "Royal Pulse", accent: "#6D4CFF", background: "#2D0B4E" },
-  { name: "Cobalt Glow", accent: "#3B82F6", background: "#111B4A" },
-  { name: "Ocean Electric", accent: "#00D1FF", background: "#003A4D" },
-  { name: "Teal Voltage", accent: "#00C2C7", background: "#00535C" },
-  { name: "Emerald Pop", accent: "#22E06F", background: "#004239" },
-  { name: "Lime After Dark", accent: "#76D900", background: "#2B3D00" },
-  { name: "Golden Flash", accent: "#FFD400", background: "#4A3300" },
-  { name: "Tangerine Heat", accent: "#FF7A00", background: "#552000" },
-  { name: "Scarlet Ember", accent: "#FF4D00", background: "#5C1600" },
-  { name: "Cherry Voltage", accent: "#E5004F", background: "#4D0D10" },
-  { name: "Berry Neon", accent: "#F700FF", background: "#46003F" },
-  { name: "Magenta Rush", accent: "#D946EF", background: "#4C0038" },
-  { name: "Skyline", accent: "#00A8FF", background: "#002E5D" },
-  { name: "Aqua Jewel", accent: "#00B894", background: "#00513D" },
-  { name: "Coral Fire", accent: "#FF6B35", background: "#552000" },
-  { name: "Sunburst", accent: "#FFCA3A", background: "#3B2500" },
-  { name: "Midnight Laser", accent: "#8A2BE2", background: "#26005C" },
-  { name: "Neon Tropic", accent: "#00F5D4", background: "#003D3B", gradient: ["#003D3B", "#00476E", "#32105A"] },
-  { name: "Purple Sunset", accent: "#FF5D8F", background: "#38002E", gradient: ["#38002E", "#6A123C", "#FF4D6D"] },
-  { name: "Laser Lime", accent: "#B8FF00", background: "#183900", gradient: ["#183900", "#365A00", "#005B45"] },
-  { name: "Blueberry Blast", accent: "#4D6CFF", background: "#170040", gradient: ["#170040", "#242C86", "#004F8F"] },
-  { name: "Electric Fiesta", accent: "#FF4D00", background: "#2A003D", gradient: ["#2A003D", "#6A103B", "#D84100"] },
-  { name: "Cyber Cherry", accent: "#FF1744", background: "#260019", gradient: ["#260019", "#6B062F", "#A90035"] },
-  { name: "Disco Pool", accent: "#00E5FF", background: "#001C4A", gradient: ["#001C4A", "#004C87", "#004F62"] },
-  { name: "Acid Candy", accent: "#D500F9", background: "#35004D", gradient: ["#35004D", "#73005E", "#DE176E"] },
-  { name: "Tropical Pop", accent: "#00E676", background: "#004B3A", gradient: ["#004B3A", "#00735C", "#126A24"] },
-  { name: "Golden Berry", accent: "#FFD740", background: "#351900", gradient: ["#351900", "#784000", "#9B174F"] },
-  { name: "Voltage Violet", accent: "#B517FF", background: "#20004A", gradient: ["#20004A", "#5A167A", "#284FAD"] },
-  { name: "Mermaid Neon", accent: "#19FFD1", background: "#002E46", gradient: ["#002E46", "#005C69", "#27409B"] },
-] as const;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 export function getSubheading(customSubheadings: Record<string, string>, key: keyof typeof SUBHEADING_DEFAULTS) {

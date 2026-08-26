@@ -188,3 +188,5 @@
 - [x] Upgrade ready-made Themes to use vivid gradient backgrounds.
 - [x] Make every card and subsection within a tab match that tab’s selected card background color.
 - [x] Make the open background outside cards follow the selected overall theme background or gradient.
+- [x] Extend the selected overall theme gradient through the top header, navigation, and Themes utility area.
+- [x] Convert every ready-made solid Theme into a vibrant gradient preset.
