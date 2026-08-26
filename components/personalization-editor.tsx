@@ -37,7 +37,7 @@ export function getSubheading(customSubheadings: Record<string, string>, key: ke
 
 
 export function PersonalizationEditor() {
-  const { customSubheadings, setCustomSubheading, theme, setTheme, pageStyles, partnerNames, partnerColors, partnerAvatars, setPartnerProfiles, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
+  const { customSubheadings, setCustomSubheading, theme, setTheme, partnerNames, partnerColors, partnerAvatars, setPartnerProfiles, resetPersonalization, namedColorThemes, saveNamedColorTheme, renameNamedColorTheme, deleteNamedColorTheme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [descriptionsOpen, setDescriptionsOpen] = useState(false);
   const [subheadingDrafts, setSubheadingDrafts] = useState<Record<string, string>>(customSubheadings);
@@ -96,7 +96,7 @@ export function PersonalizationEditor() {
   const previewBackground = HEX.test(backgroundDraft) ? backgroundDraft : COLORS.blush;
   const contrast = colorContrastRatio(previewAccent, previewBackground);
   const contrastNote = contrastGuidance(contrast);
-  const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
+  const themesCardColor = "transparent";
 
   return <View style={[styles.card, { backgroundColor: themesCardColor, borderColor: previewAccent }]}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle personalization editor" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}>

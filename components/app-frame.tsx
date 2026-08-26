@@ -1,5 +1,5 @@
 import { ScreenContainer } from "@/components/screen-container";
-import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
+import { COLORS } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -38,6 +38,7 @@ const NAVIGATION = [
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },
+  { id: "favorites", href: "/favorites", label: "Favorites", glyph: "★" },
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
@@ -122,9 +123,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const pageStyle = pageStyles[currentPage.id] ?? {};
-  const tabCardPalette =
-    TAB_CARD_PALETTES[currentPage.id as keyof typeof TAB_CARD_PALETTES] ??
-    TAB_CARD_PALETTES.today;
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor =
@@ -133,10 +131,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
   const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
-  const sectionBackgroundColor =
-    pageStyle.sectionBackgroundColor ?? tabCardPalette.surface;
-  const cardBackgroundColor =
-    pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
+  const cardBackgroundColor = "transparent";
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
   const webFontFamilies: Record<string, string> = {

@@ -1,7 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { PersonalizationEditor } from "@/components/personalization-editor";
 import { TabManager } from "@/components/tab-manager";
-import { TabCardColorEditor } from "@/components/tab-card-color-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
@@ -17,7 +16,6 @@ function ThemesContent() {
     <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose colors, save named looks, and make the little descriptions across Together Daily feel like yours.</Text></View>
 	    <PersonalizationEditor />
 	    <TabManager />
-	    <TabCardColorEditor />
   </ScrollView></AppFrame>;
 }
 

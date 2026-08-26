@@ -202,4 +202,7 @@
 - [x] Make the font picker options horizontally scrollable.
 - [x] Refresh daily jokes with adult, shock-style, non-targeted humor.
 - [x] Verify and strengthen pure-white text rendering across the app.
+- [x] Add shared favorite quote and joke saving with a dedicated Favorites tab.
+- [x] Remove per-card background color controls from Themes.
+- [x] Make cards inherit the active overall gradient background instead of using configurable card fills.
 - [x] Add a separate collection of lighter pastel gradient Themes.
