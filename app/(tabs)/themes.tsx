@@ -1,5 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
-import { PageDescriptionsEditor, PartnerProfilesEditor, PersonalizationEditor } from "@/components/personalization-editor";
+import { PageDescriptionsEditor, PartnerProfilesEditor } from "@/components/personalization-editor";
 import { TabManager } from "@/components/tab-manager";
 import { PageThemeEditor } from "@/components/page-theme-editor";
 import { PrivateGate } from "@/components/together-access";
@@ -15,10 +15,9 @@ function ThemesContent() {
   const { theme } = useLocalJournal();
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
     <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose a gradient, update shared profiles, and organize the words across Together Daily.</Text></View>
-	    <PersonalizationEditor />
+	    <PageThemeEditor />
 	    <PartnerProfilesEditor />
 	    <PageDescriptionsEditor />
-	    <PageThemeEditor />
 	    <TabManager />
   </ScrollView></AppFrame>;
 }

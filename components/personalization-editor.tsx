@@ -28,7 +28,7 @@ const SUBHEADING_FIELDS = [
 const PROFILE_SWATCHES = ["#A421FF", "#3B82F6", "#00C781", "#FFD400", "#FF4D00", "#FF2D95", "#F700FF", "#00A6FB", "#FFCA3A"];
 const FONT_OPTIONS = [
   { id: "handwritten", label: "Handwritten" },
-  { id: "script", label: "Script" },
+  { id: "typewriter", label: "Typewriter" },
   { id: "classic", label: "Classic" },
   { id: "serif", label: "Serif" },
   { id: "comicSans", label: "Comic Sans" },

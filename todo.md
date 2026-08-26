@@ -207,3 +207,6 @@
 - [x] Add a Themes section for choosing a different gradient and font for each page.
 - [x] Make Script visually distinct from Handwritten.
 - [x] Add a subtle crossfade when overall or page-specific gradient themes change.
+- [x] Combine overall and page-specific gradient controls into one preview-driven Themes section.
+- [x] Add an apply-to-all-pages gradient action while retaining optional individual-page choices.
+- [x] Remove Script and add a distinct Typewriter font option.
