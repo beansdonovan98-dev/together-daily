@@ -200,4 +200,6 @@
 - [x] Add a switchable Today quote control.
 - [x] Repair the app-wide font picker so selections visibly apply.
 - [x] Make the font picker options horizontally scrollable.
+- [x] Refresh daily jokes with adult, shock-style, non-targeted humor.
+- [x] Verify and strengthen pure-white text rendering across the app.
 - [x] Add a separate collection of lighter pastel gradient Themes.
