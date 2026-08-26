@@ -140,7 +140,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardBackgroundColor = "transparent";
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const selectedFont = pageStyle.fontStyle ?? customSubheadings.globalFont ?? "handwritten";
+  const selectedFont = customSubheadings.globalFont ?? "handwritten";
   const webFontFamilies: Record<string, string> = {
     handwritten: "cursive",
     script: "'Brush Script MT', 'Segoe Script', cursive",

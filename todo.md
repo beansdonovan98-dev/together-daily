@@ -210,3 +210,10 @@
 - [x] Combine overall and page-specific gradient controls into one preview-driven Themes section.
 - [x] Add an apply-to-all-pages gradient action while retaining optional individual-page choices.
 - [x] Remove Script and add a distinct Typewriter font option.
+- [x] Restore one global font choice that applies throughout the app.
+- [x] Add a dedicated gradient creator card between gradient controls and Partner Profiles.
+- [x] Add a switch control for the Quote of the Day.
+- [x] Refresh the daily jokes with a darker, non-targeted tone.
+- [x] Add a daily riddle with a Show Answer control.
+- [x] Add a daily Word of the Day card.
+- [x] Add a daily educational fact card.
