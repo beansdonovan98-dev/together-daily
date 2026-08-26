@@ -181,3 +181,5 @@
 - [x] Remove Meal Planner from Today.
 - [x] Remove the three Today mini trackers for love notes, tasks done, and days together.
 - [x] Change the Six Little Things card from purple to the Habits green.
+- [x] Make saved background, accent, and per-tab card colors apply consistently across every page.
+- [x] Make saved background, accent, and per-tab card colors apply consistently across every page.

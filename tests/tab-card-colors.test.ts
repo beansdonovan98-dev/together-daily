@@ -7,6 +7,7 @@ import {
   shouldApplyTabCardColor,
   tabCardColorDrafts,
   tabCardColorFromStyles,
+  tabCardColorStylePatches,
 } from "../lib/tab-card-colors";
 
 describe("per-tab card colors", () => {
@@ -39,6 +40,20 @@ describe("per-tab card colors", () => {
         "steamy",
       ),
     ).toBe(TAB_CARD_PALETTES.steamy.surface);
+  });
+
+  it("builds one valid save patch for every tab without dropping earlier choices", () => {
+    const patches = tabCardColorStylePatches({
+      today: "#102030",
+      health: "#204060",
+      themes: "#603080",
+    });
+
+    expect(Object.keys(patches)).toEqual(TAB_CARD_IDS);
+    expect(patches.today.cardBackgroundColor).toBe("#102030");
+    expect(patches.health.cardBackgroundColor).toBe("#204060");
+    expect(patches.themes.cardBackgroundColor).toBe("#603080");
+    expect(patches.habits.cardBackgroundColor).toBe(TAB_CARD_PALETTES.habits.surface);
   });
 
   it("targets card surfaces without recoloring compact controls", () => {

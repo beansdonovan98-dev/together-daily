@@ -183,18 +183,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
             elevation: 0,
           };
   const child = isValidElement(children)
-    ? (children as ReactElement<{
+      ? (children as ReactElement<{
         children?: ReactNode;
         contentContainerStyle?: unknown;
+        style?: unknown;
       }>)
     : null;
   const styledChildren = child
     ? cloneElement(child, {
-        contentContainerStyle: [
-          child.props.contentContainerStyle,
-          { backgroundColor },
-        ],
-        children: applyTabCardColor(child.props.children, cardBackgroundColor),
+          contentContainerStyle: [
+            child.props.contentContainerStyle,
+            { backgroundColor },
+          ],
+          style: [child.props.style, { backgroundColor }],
+          children: applyTabCardColor(child.props.children, cardBackgroundColor),
       })
     : children;
 

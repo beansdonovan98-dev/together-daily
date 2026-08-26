@@ -22,6 +22,15 @@ export function tabCardColorDrafts(pageStyles: TabCardStyleMap) {
   ) as Record<TabCardId, string>;
 }
 
+export function tabCardColorStylePatches(drafts: Partial<Record<TabCardId, string>>) {
+  return Object.fromEntries(
+    TAB_CARD_IDS.map((tabId) => [
+      tabId,
+      { cardBackgroundColor: resolveTabCardColor(tabId, drafts[tabId]) },
+    ]),
+  ) as Record<TabCardId, { cardBackgroundColor: string }>;
+}
+
 export function shouldApplyTabCardColor(style: Record<string, unknown>) {
   const borderRadius = Number(style.borderRadius ?? 0);
   const padding = Math.max(

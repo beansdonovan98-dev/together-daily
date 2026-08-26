@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { useLocalJournal } from "@/lib/local-journal";
-import { TAB_CARD_IDS, tabCardColorDrafts, type TabCardId } from "@/lib/tab-card-colors";
+import { TAB_CARD_IDS, tabCardColorDrafts, tabCardColorStylePatches, type TabCardId } from "@/lib/tab-card-colors";
 import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 
 const TAB_DETAILS: Record<TabCardId, { label: string; glyph: string }> = {
@@ -23,10 +23,8 @@ const TAB_SWATCHES = [
   "#6B164B", "#7A1430", "#863300", "#765600", "#007A45", "#00747C",
   "#0066A8", "#354FC7", "#6D38C9", "#A32378", "#B72F50", "#C45100",
 ];
-const HEX = /^#[0-9A-Fa-f]{6}$/;
-
 export function TabCardColorEditor() {
-  const { pageStyles, setPageStyle } = useLocalJournal();
+  const { pageStyles, setPageStyles } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [drafts, setDrafts] = useState(() => tabCardColorDrafts(pageStyles));
   const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
@@ -36,13 +34,11 @@ export function TabCardColorEditor() {
   }, [open, pageStyles]);
 
   const save = () => {
-    TAB_CARD_IDS.forEach((tabId) => setPageStyle(tabId, {
-      cardBackgroundColor: HEX.test(drafts[tabId]) ? drafts[tabId] : TAB_CARD_PALETTES[tabId].surface,
-    }));
+    setPageStyles(tabCardColorStylePatches(drafts));
     setOpen(false);
   };
   const reset = () => {
-    TAB_CARD_IDS.forEach((tabId) => setPageStyle(tabId, { cardBackgroundColor: undefined }));
+    setPageStyles(Object.fromEntries(TAB_CARD_IDS.map((tabId) => [tabId, { cardBackgroundColor: undefined }])));
     setDrafts(tabCardColorDrafts({}));
   };
 
