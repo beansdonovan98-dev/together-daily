@@ -86,7 +86,7 @@ function applyTabCardColor(node: ReactNode, color: string, accentColor: string):
   });
 }
 
-export function AppFrame({ children }: { children: ReactNode }) {
+export function AppFrame({ children, previewGradient }: { children: ReactNode; previewGradient?: readonly string[] | null }) {
   const pathname = usePathname();
   const {
     roomCode,
@@ -128,16 +128,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
-  const backgroundColor =
-    currentPage.id === "log"
+  const pageBackgroundColor = currentPage.id === "log"
       ? (theme.backgroundColor ?? COLORS.blush)
-      : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
-  const backgroundGradient = themeGradientColors(pageStyle.backgroundGradient ?? theme.backgroundGradient);
-  const gradientKey = backgroundGradient?.join(",") ?? backgroundColor;
-  const currentGradientRef = useRef(backgroundGradient);
-  const [previousGradient, setPreviousGradient] = useState<typeof backgroundGradient>(null);
+    : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
+  const pageGradient = themeGradientColors(pageStyle.backgroundGradient ?? theme.backgroundGradient);
+  const frameGradient = themeGradientColors(previewGradient ?? pageStyle.backgroundGradient ?? theme.backgroundGradient);
+  const frameBackgroundColor = previewGradient?.[0] ?? pageBackgroundColor;
+  const gradientKey = frameGradient?.join(",") ?? frameBackgroundColor;
+  const currentGradientRef = useRef(frameGradient);
+  const [previousGradient, setPreviousGradient] = useState<typeof frameGradient>(null);
   const previousGradientOpacity = useRef(new Animated.Value(0)).current;
-  const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
+  const scrollBackgroundColor = "transparent";
   const cardBackgroundColor = "transparent";
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
@@ -178,9 +179,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
   }, [fontFamily]);
   useEffect(() => {
     const priorGradient = currentGradientRef.current;
-    if ((priorGradient?.join(",") ?? backgroundColor) === gradientKey) return;
-    currentGradientRef.current = backgroundGradient;
-    if (!priorGradient || !backgroundGradient) {
+    if ((priorGradient?.join(",") ?? frameBackgroundColor) === gradientKey) return;
+    currentGradientRef.current = frameGradient;
+    if (!priorGradient || !frameGradient) {
       setPreviousGradient(null);
       return;
     }
@@ -189,7 +190,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     const transition = Animated.timing(previousGradientOpacity, { toValue: 0, duration: 260, useNativeDriver: true });
     transition.start(() => setPreviousGradient(null));
     return () => transition.stop();
-  }, [backgroundColor, backgroundGradient, gradientKey, previousGradientOpacity]);
+  }, [frameBackgroundColor, frameGradient, gradientKey, previousGradientOpacity]);
   const pageSurfaceStyle =
     cardStyle === "outlined"
       ? {
@@ -326,8 +327,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
-      <View style={[styles.frame, { backgroundColor }]}>
-        {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
+      <View style={[styles.frame, { backgroundColor: frameBackgroundColor }]}>
+        {frameGradient ? <LinearGradient pointerEvents="none" colors={frameGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
         {previousGradient ? <Animated.View pointerEvents="none" style={[styles.themeGradient, { opacity: previousGradientOpacity }]}><LinearGradient colors={previousGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : null}
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
@@ -556,7 +557,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
           </View>
         ) : null}
         <View style={[styles.content, pageSurfaceStyle]}>
-          {styledChildren}
+          <View style={styles.pageContentLayer}>
+            {pageGradient ? <LinearGradient pointerEvents="none" colors={pageGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
+            {styledChildren}
+          </View>
           <TouchableOpacity
             accessibilityRole="button"
             onPress={() => resetPageStyle(currentPage.id)}
@@ -913,7 +917,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 7,
   },
-  content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
+  content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" }, pageContentLayer: { flex: 1, width: "100%", overflow: "hidden" },
   pageResetFooter: {
     alignSelf: "center",
     marginVertical: 18,

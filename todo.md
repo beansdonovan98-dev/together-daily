@@ -220,3 +220,5 @@
 - [x] Preview selected gradients directly on the Themes page before confirmation.
 - [x] Make the Comic Sans option visibly comic-book-like and distinct from Handwritten.
 - [x] Preview selected fonts live on the Themes page before confirmation.
+- [x] Limit live Themes gradient previews to open teal and blue frame areas without recoloring Themes cards.
+- [x] Extend the temporary Themes gradient preview through the header, navigation, and bottom reset/footer area.

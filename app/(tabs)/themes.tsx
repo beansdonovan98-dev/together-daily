@@ -5,7 +5,6 @@ import { PageThemeEditor } from "@/components/page-theme-editor";
 import { GradientCreator } from "@/components/gradient-creator";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
-import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -24,11 +23,11 @@ function ThemesContent() {
 	    <PageDescriptionsEditor />
 	    <TabManager />
   </ScrollView>;
-  return <AppFrame>{preview ? <LinearGradient colors={preview.gradient as [string, string, ...string[]]} style={styles.previewFill}>{content}</LinearGradient> : content}</AppFrame>;
+  return <AppFrame previewGradient={preview?.gradient ?? null}>{content}</AppFrame>;
 }
 
 const styles = StyleSheet.create({
-  page: { padding: 18, paddingBottom: 40, gap: 16, backgroundColor: "transparent", flexGrow: 1 }, previewFill: { flex: 1 },
+  page: { padding: 18, paddingBottom: 40, gap: 16, backgroundColor: "transparent", flexGrow: 1 },
   hero: { gap: 4, paddingTop: 4 },
   eyebrow: { color: COLORS.gold, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
   title: { color: COLORS.plum, fontSize: 34, fontWeight: "900", fontStyle: "italic" },
