@@ -28,7 +28,7 @@ const SUBHEADING_FIELDS = [
 const ACCENT_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#FFCA3A", "#00B894", "#00A6FB"];
 const BACKGROUND_SWATCHES = ["#14001F", "#22002E", "#310A3D", "#2D0B4E", "#111B4A", "#002E5D", "#003A4D", "#004239", "#073D1C", "#2B3D00", "#4A3300", "#552000", "#4D0D10", "#4D082A", "#46003F", "#301044", "#142E5A", "#00535C", "#00513D", "#3B2500", "#5C1600", "#4C0038", "#26005C", "#001F46"];
 const PROFILE_SWATCHES = ["#A421FF", "#C75CFF", "#8A2BE2", "#6D4CFF", "#3B82F6", "#00A8FF", "#00D1FF", "#00C2C7", "#00C781", "#22E06F", "#76D900", "#FFD400", "#FFB000", "#FF7A00", "#FF4D00", "#FF406C", "#FF2D95", "#F700FF", "#D946EF", "#E5004F", "#FF6B35", "#00B894", "#00A6FB", "#FFCA3A"];
-const SAVED_THEMES = [
+const SAVED_THEMES: readonly { name: string; accent: string; background: string; gradient?: readonly string[] }[] = [
   { name: "Electric Together", accent: "#A421FF", background: "#22002E" },
   { name: "Hot Pink Night", accent: "#FF2D95", background: "#4D082A" },
   { name: "Ultraviolet", accent: "#C75CFF", background: "#310A3D" },
@@ -49,18 +49,18 @@ const SAVED_THEMES = [
   { name: "Coral Fire", accent: "#FF6B35", background: "#552000" },
   { name: "Sunburst", accent: "#FFCA3A", background: "#3B2500" },
   { name: "Midnight Laser", accent: "#8A2BE2", background: "#26005C" },
-  { name: "Neon Tropic", accent: "#00F5D4", background: "#003D3B" },
-  { name: "Purple Sunset", accent: "#FF5D8F", background: "#38002E" },
-  { name: "Laser Lime", accent: "#B8FF00", background: "#183900" },
-  { name: "Blueberry Blast", accent: "#4D6CFF", background: "#170040" },
-  { name: "Electric Fiesta", accent: "#FF4D00", background: "#2A003D" },
-  { name: "Cyber Cherry", accent: "#FF1744", background: "#260019" },
-  { name: "Disco Pool", accent: "#00E5FF", background: "#001C4A" },
-  { name: "Acid Candy", accent: "#D500F9", background: "#35004D" },
-  { name: "Tropical Pop", accent: "#00E676", background: "#004B3A" },
-  { name: "Golden Berry", accent: "#FFD740", background: "#351900" },
-  { name: "Voltage Violet", accent: "#B517FF", background: "#20004A" },
-  { name: "Mermaid Neon", accent: "#19FFD1", background: "#002E46" },
+  { name: "Neon Tropic", accent: "#00F5D4", background: "#003D3B", gradient: ["#003D3B", "#00476E", "#32105A"] },
+  { name: "Purple Sunset", accent: "#FF5D8F", background: "#38002E", gradient: ["#38002E", "#6A123C", "#FF4D6D"] },
+  { name: "Laser Lime", accent: "#B8FF00", background: "#183900", gradient: ["#183900", "#365A00", "#005B45"] },
+  { name: "Blueberry Blast", accent: "#4D6CFF", background: "#170040", gradient: ["#170040", "#242C86", "#004F8F"] },
+  { name: "Electric Fiesta", accent: "#FF4D00", background: "#2A003D", gradient: ["#2A003D", "#6A103B", "#D84100"] },
+  { name: "Cyber Cherry", accent: "#FF1744", background: "#260019", gradient: ["#260019", "#6B062F", "#A90035"] },
+  { name: "Disco Pool", accent: "#00E5FF", background: "#001C4A", gradient: ["#001C4A", "#004C87", "#004F62"] },
+  { name: "Acid Candy", accent: "#D500F9", background: "#35004D", gradient: ["#35004D", "#73005E", "#DE176E"] },
+  { name: "Tropical Pop", accent: "#00E676", background: "#004B3A", gradient: ["#004B3A", "#00735C", "#126A24"] },
+  { name: "Golden Berry", accent: "#FFD740", background: "#351900", gradient: ["#351900", "#784000", "#9B174F"] },
+  { name: "Voltage Violet", accent: "#B517FF", background: "#20004A", gradient: ["#20004A", "#5A167A", "#284FAD"] },
+  { name: "Mermaid Neon", accent: "#19FFD1", background: "#002E46", gradient: ["#002E46", "#005C69", "#27409B"] },
 ] as const;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -89,7 +89,7 @@ export function PersonalizationEditor() {
 
   const save = () => {
     SUBHEADING_FIELDS.forEach((field) => setCustomSubheading(field.key, subheadingDrafts[field.key] ?? ""));
-    setTheme({ accentColor: HEX.test(accentDraft) ? accentDraft : COLORS.orchid, backgroundColor: HEX.test(backgroundDraft) ? backgroundDraft : COLORS.blush });
+    setTheme({ accentColor: HEX.test(accentDraft) ? accentDraft : COLORS.orchid, backgroundColor: HEX.test(backgroundDraft) ? backgroundDraft : COLORS.blush, backgroundGradient: undefined });
     setPartnerProfiles({ names: partnerNameDrafts, colors: partnerColorDrafts, avatars: partnerAvatarDrafts });
     setOpen(false);
   };
@@ -108,10 +108,10 @@ export function PersonalizationEditor() {
     setConfirmProfileColorReset(false);
   };
 
-  const applyTheme = (accentColor: string, backgroundColor: string) => {
+  const applyTheme = (accentColor: string, backgroundColor: string, backgroundGradient?: string[]) => {
     setAccentDraft(accentColor);
     setBackgroundDraft(backgroundColor);
-    setTheme({ accentColor, backgroundColor });
+    setTheme({ accentColor, backgroundColor, backgroundGradient });
   };
 
   const saveNamedTheme = () => {
@@ -140,7 +140,7 @@ export function PersonalizationEditor() {
       <Text style={styles.sectionLabel}>PROFILE COLORS</Text><View style={styles.profileColorList}>{(["beans","princess"] as const).map((partnerId) => { const person = PARTNERS[partnerId]; return <View key={partnerId} style={styles.profileColorCard}><Text style={[styles.partnerNameLabel,{color:partnerColorDrafts[partnerId]}]}>{person.avatar} {partnerNameDrafts[partnerId]}</Text><View style={styles.profileSwatches}>{PROFILE_SWATCHES.map((color) => <TouchableOpacity key={`${partnerId}-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} for ${partnerNameDrafts[partnerId]}`} onPress={() => setPartnerColorDrafts((current) => ({ ...current, [partnerId]: color }))} style={[styles.profileSwatch,{backgroundColor:color},partnerColorDrafts[partnerId]===color&&styles.swatchActive]}/>)}</View><TextInput value={partnerColorDrafts[partnerId]} onChangeText={(value) => setPartnerColorDrafts((current) => ({ ...current, [partnerId]: value }))} placeholder={person.color} autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput}/></View>; })}</View>{confirmProfileColorReset ? <View style={styles.confirmCard}><Text style={styles.confirmTitle}>Reset profile colors?</Text><Text style={styles.confirmCopy}>Daddy returns to purple and Princess returns to pink. Their names and icons will stay the same.</Text><View style={styles.actions}><TouchableOpacity accessibilityRole="button" style={styles.resetButton} onPress={() => setConfirmProfileColorReset(false)}><Text style={styles.resetText}>Keep colors</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={styles.confirmButton} onPress={resetProfileColors}><Text style={styles.confirmText}>Reset colors</Text></TouchableOpacity></View></View> : <TouchableOpacity accessibilityRole="button" style={styles.profileResetButton} onPress={() => setConfirmProfileColorReset(true)}><Text style={styles.profileResetText}>Reset profile colors to defaults</Text></TouchableOpacity>}
       {SUBHEADING_FIELDS.map((field) => <View key={field.key} style={styles.field}><Text style={styles.label}>{field.label}</Text><TextInput value={subheadingDrafts[field.key] ?? ""} onChangeText={(value) => setSubheadingDrafts((current) => ({ ...current, [field.key]: value }))} placeholder={SUBHEADING_DEFAULTS[field.key]} placeholderTextColor="#7F7582" maxLength={80} style={styles.input} /></View>)}
       <Text style={styles.sectionLabel}>LIVE THEME PREVIEW</Text><View testID="preserve-card-color" style={[styles.previewCard,{backgroundColor:previewBackground,borderColor:previewAccent}]}><View style={styles.previewTop}><Text style={[styles.previewPartners,{color:previewAccent}]}>{partnerAvatarDrafts.beans} {partnerNameDrafts.beans}  ·  {partnerAvatarDrafts.princess} {partnerNameDrafts.princess}</Text><View style={[styles.previewDot,{backgroundColor:previewAccent}]}/></View><Text style={styles.previewTitle}>Our Daily Log</Text><Text style={styles.previewCopy}>A quiet shared space for the little moments.</Text><View style={[styles.previewButton,{backgroundColor:previewAccent}]}><Text style={[styles.previewButtonText,{color:previewBackground}]}>Shared today</Text></View></View><View style={[styles.contrastCard,contrastNote.tone === "strong" ? styles.contrastStrong : contrastNote.tone === "moderate" ? styles.contrastModerate : styles.contrastLow]}><Text style={styles.contrastTitle}>{contrastNote.label} · {contrast.toFixed(1)}:1</Text><Text style={styles.contrastCopy}>{contrastNote.detail}</Text></View>
-      <Text style={styles.sectionLabel}>READY-MADE THEMES</Text><Text style={styles.paletteHint}>Tap a pair to preview a complete look, then save your favorite combination below.</Text><View style={styles.themeGrid}>{SAVED_THEMES.map((themeOption) => { const active = accentDraft === themeOption.accent && backgroundDraft === themeOption.background; return <TouchableOpacity key={themeOption.name} accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accent, themeOption.background)} style={[styles.themeButton, active && { borderColor: themeOption.accent }]}><View style={styles.themeColors}><View style={[styles.themeColor,{backgroundColor:themeOption.accent}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.background}]}/></View><Text style={[styles.themeName,active&&{color:themeOption.accent}]}>{themeOption.name}</Text></TouchableOpacity>; })}</View>
+      <Text style={styles.sectionLabel}>READY-MADE THEMES</Text><Text style={styles.paletteHint}>Tap a vibrant gradient to apply it across every page, then save a solid favorite below if you want.</Text><View style={styles.themeGrid}>{SAVED_THEMES.map((themeOption) => { const active = accentDraft === themeOption.accent && backgroundDraft === themeOption.background; return <TouchableOpacity key={themeOption.name} accessibilityRole="button" accessibilityLabel={`Apply ${themeOption.name} theme`} onPress={() => applyTheme(themeOption.accent, themeOption.background, themeOption.gradient ? [...themeOption.gradient] : undefined)} style={[styles.themeButton, active && { borderColor: themeOption.accent }]}><View style={styles.themeColors}>{themeOption.gradient ? themeOption.gradient.map((color: string) => <View key={color} style={[styles.themeColor,{backgroundColor:color}]}/>) : <><View style={[styles.themeColor,{backgroundColor:themeOption.accent}]}/><View style={[styles.themeColor,{backgroundColor:themeOption.background}]}/></>}</View><Text style={[styles.themeName,active&&{color:themeOption.accent}]}>{themeOption.name}</Text></TouchableOpacity>; })}</View>
       <Text style={styles.sectionLabel}>FONT</Text><Text style={styles.paletteHint}>Choose one shared font for navigation, card content, and body text.</Text><View style={styles.actions}><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "handwritten")} style={styles.confirmButton}><Text style={styles.confirmText}>Handwritten</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "script")} style={styles.resetButton}><Text style={styles.resetText}>Script</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "notebook")} style={styles.resetButton}><Text style={styles.resetText}>Notebook</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "casual")} style={styles.resetButton}><Text style={styles.resetText}>Casual</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "classic")} style={styles.resetButton}><Text style={styles.resetText}>Classic</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "serif")} style={styles.resetButton}><Text style={styles.resetText}>Serif</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setCustomSubheading("globalFont", "mono")} style={styles.resetButton}><Text style={styles.resetText}>Mono</Text></TouchableOpacity></View>
       <Text style={styles.sectionLabel}>ACCENT COLOR</Text><Text style={styles.paletteHint}>Choose the color used for highlights, buttons, and active states.</Text><View style={styles.swatches}>{ACCENT_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setAccentDraft(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accentDraft === color && styles.swatchActive]} />)}</View><TextInput value={accentDraft} onChangeText={setAccentDraft} placeholder="#8D5BA6" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />
       <Text style={styles.sectionLabel}>BACKGROUND COLOR</Text><Text style={styles.paletteHint}>Choose a deep backdrop that keeps the Daily Log comfortable to read.</Text><View style={styles.swatches}>{BACKGROUND_SWATCHES.map((color) => <TouchableOpacity key={color} onPress={() => setBackgroundDraft(color)} accessibilityLabel={`Choose ${color} background`} style={[styles.swatch, { backgroundColor: color }, backgroundDraft === color && styles.swatchActive]} />)}</View><TextInput value={backgroundDraft} onChangeText={setBackgroundDraft} placeholder="#0D0B0F" autoCapitalize="characters" maxLength={7} placeholderTextColor="#7F7582" style={styles.hexInput} />

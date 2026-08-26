@@ -185,3 +185,4 @@
 - [x] Make saved background, accent, and per-tab card colors apply consistently across every page.
 - [x] Directly wire each tab’s saved card color into every page’s primary card renderers.
 - [x] Add more ready-made Themes that mix saturated, vibrant colors.
+- [x] Upgrade ready-made Themes to use vivid gradient backgrounds.

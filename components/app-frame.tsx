@@ -3,6 +3,7 @@ import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
 import QRCode from "react-native-qrcode-svg";
 import {
   Children,
@@ -26,6 +27,7 @@ import {
 } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
+import { themeGradientColors } from "@/lib/theme-gradients";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -123,6 +125,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
     currentPage.id === "log"
       ? (theme.backgroundColor ?? COLORS.blush)
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
+  const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
+  const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const sectionBackgroundColor =
     pageStyle.sectionBackgroundColor ?? tabCardPalette.surface;
   const cardBackgroundColor =
@@ -198,9 +202,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
     ? cloneElement(child, {
           contentContainerStyle: [
             child.props.contentContainerStyle,
-            { backgroundColor },
+            { backgroundColor: scrollBackgroundColor },
           ],
-          style: [child.props.style, { backgroundColor }],
+          style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
           children: applyTabCardColor(child.props.children, cardBackgroundColor),
       })
     : children;
@@ -296,6 +300,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
       <View style={[styles.frame, { backgroundColor }]}>
+        {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
@@ -540,6 +545,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  themeGradient: { ...StyleSheet.absoluteFillObject },
   frame: { flex: 1, backgroundColor: COLORS.blush },
   topbar: {
     paddingHorizontal: 20,
