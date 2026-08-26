@@ -219,3 +219,4 @@
 - [x] Add a daily educational fact card.
 - [x] Preview selected gradients directly on the Themes page before confirmation.
 - [x] Make the Comic Sans option visibly comic-book-like and distinct from Handwritten.
+- [x] Preview selected fonts live on the Themes page before confirmation.

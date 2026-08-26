@@ -15,9 +15,10 @@ export default function ThemesScreen() {
 
 function ThemesContent() {
   const [preview, setPreview] = useState<{ background: string; gradient: readonly string[] } | null>(null);
+  const [, setPreviewFont] = useState<string | null>(null);
   const content = <ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} showsVerticalScrollIndicator={false}>
     <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose a gradient, update shared profiles, and organize the words across Together Daily.</Text></View>
-	    <PageThemeEditor onPreview={(next) => setPreview(next)} onClearPreview={() => setPreview(null)} />
+	    <PageThemeEditor onPreview={(next) => setPreview(next)} onClearPreview={() => setPreview(null)} onFontPreview={setPreviewFont} />
 	    <GradientCreator />
 	    <PartnerProfilesEditor />
 	    <PageDescriptionsEditor />

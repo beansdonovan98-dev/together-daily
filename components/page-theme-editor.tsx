@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useLocalJournal } from "@/lib/local-journal";
 import { PASTEL_THEMES, SAVED_THEMES } from "@/lib/ready-made-themes";
+import { clearPreviewTypographyFont, previewTypographyFont } from "@/lib/typography";
 
 const PAGES = [
   { id: "today", label: "Today" }, { id: "log", label: "Daily Log" }, { id: "habits", label: "Habits" }, { id: "health", label: "Health" }, { id: "steamy", label: "Steamy" }, { id: "purchase", label: "Purchase" }, { id: "cleaning", label: "Cleaning" }, { id: "themes", label: "Themes" }, { id: "pastDays", label: "Past Days" },
@@ -11,13 +12,15 @@ const FONTS = ["handwritten", "classic", "serif", "comicSans", "typewriter"] as 
 
 type GradientOption = { name: string; accent: string; background: string; gradient: readonly string[] };
 
-export function PageThemeEditor({ onPreview, onClearPreview }: { onPreview: (theme: GradientOption) => void; onClearPreview: () => void }) {
+export function PageThemeEditor({ onPreview, onClearPreview, onFontPreview }: { onPreview: (theme: GradientOption) => void; onClearPreview: () => void; onFontPreview: (font: string | null) => void }) {
   const { setTheme, setPageStyle, setPageStyles, customSubheadings, setCustomSubheading } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<(typeof PAGES)[number]["id"]>("today");
   const [previewThemeName, setPreviewThemeName] = useState(SAVED_THEMES[0].name);
   const themes = useMemo(() => [...SAVED_THEMES, ...PASTEL_THEMES], []);
   const previewTheme = themes.find((themeOption) => themeOption.name === previewThemeName) ?? themes[0];
+  const [previewFont, setPreviewFont] = useState<string | null>(null);
+  useEffect(() => () => clearPreviewTypographyFont(), []);
   const applyToAll = () => {
     setTheme({ accentColor: previewTheme.accent, backgroundColor: previewTheme.background, backgroundGradient: [...previewTheme.gradient] });
     setPageStyles(Object.fromEntries(PAGES.map((page) => [page.id, { accentColor: undefined, backgroundColor: undefined, backgroundGradient: undefined }])));
@@ -33,7 +36,7 @@ export function PageThemeEditor({ onPreview, onClearPreview }: { onPreview: (the
     <Text style={styles.label}>CHOOSE A GRADIENT</Text><View style={styles.gradientGrid}>{themes.map((themeOption) => <TouchableOpacity key={themeOption.name} accessibilityRole="button" accessibilityState={{ selected: previewTheme.name === themeOption.name }} accessibilityLabel={`Preview ${themeOption.name} gradient`} onPress={() => { setPreviewThemeName(themeOption.name); onPreview(themeOption); }} style={[styles.gradientButton, previewTheme.name === themeOption.name && styles.gradientActive]}><View style={styles.gradientSwatches}>{themeOption.gradient.map((color) => <View key={color} style={[styles.gradientSwatch, { backgroundColor: color }]} />)}</View><Text style={styles.gradientName}>{themeOption.name}</Text></TouchableOpacity>)}</View>
     <View style={styles.previewActions}><TouchableOpacity accessibilityRole="button" onPress={applyToAll} style={styles.applyAll}><Text style={styles.applyAllText}>Confirm for all pages</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={onClearPreview} style={styles.cancelPreview}><Text style={styles.cancelPreviewText}>Cancel preview</Text></TouchableOpacity></View>
     <Text style={styles.label}>OPTIONAL: STYLE ONE PAGE</Text><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pageRow}>{PAGES.map((page) => <TouchableOpacity key={page.id} accessibilityRole="button" accessibilityState={{ selected: selectedPage === page.id }} onPress={() => setSelectedPage(page.id)} style={[styles.pageButton, selectedPage === page.id && styles.pageButtonActive]}><Text style={styles.pageButtonText}>{page.label}</Text></TouchableOpacity>)}</ScrollView><TouchableOpacity accessibilityRole="button" onPress={applyToPage} style={styles.secondary}><Text style={styles.secondaryText}>Apply preview to {PAGES.find((page) => page.id === selectedPage)?.label}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setPageStyle(selectedPage, { accentColor: undefined, backgroundColor: undefined, backgroundGradient: undefined, fontStyle: undefined })} style={styles.reset}><Text style={styles.resetText}>Use shared gradient for this page</Text></TouchableOpacity>
-    <Text style={styles.label}>FONT FOR EVERYTHING</Text><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pageRow}>{FONTS.map((font) => <TouchableOpacity key={font} accessibilityRole="button" accessibilityState={{ selected: customSubheadings.globalFont === font }} onPress={() => setCustomSubheading("globalFont", font)} style={[styles.pageButton, customSubheadings.globalFont === font && styles.pageButtonActive]}><Text style={styles.pageButtonText}>{font === "comicSans" ? "Comic Sans" : font[0].toUpperCase() + font.slice(1)}</Text></TouchableOpacity>)}</ScrollView>
+    <Text style={styles.label}>FONT FOR EVERYTHING</Text><Text style={styles.helper}>Choose one to preview it across this Themes page before confirming.</Text><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pageRow}>{FONTS.map((font) => <TouchableOpacity key={font} accessibilityRole="button" accessibilityState={{ selected: previewFont === font || (!previewFont && customSubheadings.globalFont === font) }} onPress={() => { setPreviewFont(font); previewTypographyFont(font); onFontPreview(font); }} style={[styles.pageButton, (previewFont === font || (!previewFont && customSubheadings.globalFont === font)) && styles.pageButtonActive]}><Text style={styles.pageButtonText}>{font === "comicSans" ? "Comic Sans" : font[0].toUpperCase() + font.slice(1)}</Text></TouchableOpacity>)}</ScrollView>{previewFont ? <View style={styles.previewActions}><TouchableOpacity accessibilityRole="button" onPress={() => { setCustomSubheading("globalFont", previewFont); clearPreviewTypographyFont(); setPreviewFont(null); onFontPreview(null); }} style={styles.applyAll}><Text style={styles.applyAllText}>Confirm font</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => { clearPreviewTypographyFont(); setPreviewFont(null); onFontPreview(null); }} style={styles.cancelPreview}><Text style={styles.cancelPreviewText}>Cancel font preview</Text></TouchableOpacity></View> : null}
   </View> : null}</View>;
 }
 
