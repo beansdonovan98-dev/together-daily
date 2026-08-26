@@ -197,12 +197,9 @@
 - [x] Make every tab’s navigation, controls, inputs, and accents match the active theme.
 - [x] Add a date-based inspirational quote card to Today.
 - [x] Add a separate date-based mature, non-targeted joke card to Today.
-- [x] Add a switchable Today quote control.
-- [x] Repair the app-wide font picker so selections visibly apply.
-- [x] Make the font picker options horizontally scrollable.
-- [x] Refresh daily jokes with adult, shock-style, non-targeted humor.
-- [x] Verify and strengthen pure-white text rendering across the app.
-- [x] Add shared favorite quote and joke saving with a dedicated Favorites tab.
-- [x] Remove per-card background color controls from Themes.
-- [x] Make cards inherit the active overall gradient background instead of using configurable card fills.
 - [x] Add a separate collection of lighter pastel gradient Themes.
+- [x] Remove the Tab Card Colors area from Themes.
+- [x] Move Page Descriptions into its own Themes section.
+- [x] Move partner names, profile icons, and profile colors into their own Themes section.
+- [x] Remove custom theme creation controls from Themes.
+- [x] Clean up the font list and add Comic Sans as an app-wide font option.

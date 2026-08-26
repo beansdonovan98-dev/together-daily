@@ -12,14 +12,13 @@ const TABS = [
   { id: "steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", label: "Purchase", glyph: "▤" },
   { id: "cleaning", label: "Cleaning", glyph: "✦" },
-  { id: "favorites", label: "Favorites", glyph: "★" },
   { id: "themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", label: "Past Days", glyph: "▤" },
 ];
 
 export function TabManager() {
-  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, theme } = useLocalJournal();
-  const themesCardColor = "transparent";
+  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, pageStyles, theme } = useLocalJournal();
+  const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const controlBackground = `${accentColor}26`;
   const [open, setOpen] = useState(false);

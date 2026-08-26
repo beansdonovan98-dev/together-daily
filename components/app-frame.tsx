@@ -1,5 +1,5 @@
 import { ScreenContainer } from "@/components/screen-container";
-import { COLORS } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -28,7 +28,6 @@ import {
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
 import { themeGradientColors } from "@/lib/theme-gradients";
-import { setTogetherFontFamily } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -38,7 +37,6 @@ const NAVIGATION = [
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },
-  { id: "favorites", href: "/favorites", label: "Favorites", glyph: "★" },
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
@@ -123,6 +121,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const pageStyle = pageStyles[currentPage.id] ?? {};
+  const tabCardPalette =
+    TAB_CARD_PALETTES[currentPage.id as keyof typeof TAB_CARD_PALETTES] ??
+    TAB_CARD_PALETTES.today;
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor =
@@ -131,7 +132,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
   const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
-  const cardBackgroundColor = "transparent";
+  const sectionBackgroundColor =
+    pageStyle.sectionBackgroundColor ?? tabCardPalette.surface;
+  const cardBackgroundColor =
+    pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
   const webFontFamilies: Record<string, string> = {
@@ -139,6 +143,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     script: "'Brush Script MT', 'Segoe Script', cursive",
     notebook: "'Bradley Hand', 'Segoe Print', cursive",
     casual: "'Comic Sans MS', 'Chalkboard SE', cursive",
+    comicSans: "'Comic Sans MS', 'Comic Sans', cursive",
     classic: "system-ui, sans-serif",
     serif: "Georgia, serif",
     mono: "monospace",
@@ -148,6 +153,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     script: "cursive",
     notebook: "cursive",
     casual: "cursive",
+    comicSans: "cursive",
     classic: Platform.OS === "ios" ? "System" : "sans-serif",
     serif: "serif",
     mono: "monospace",
@@ -156,11 +162,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
     Platform.OS === "web"
       ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
       : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
-  setTogetherFontFamily(fontFamily);
   useEffect(() => {
+    const defaultStyle = { fontFamily };
     (
       Text as typeof Text & { defaultProps?: { style?: unknown } }
-    ).defaultProps = { style: { color: "#FFFFFF", fontFamily } };
+    ).defaultProps = { style: defaultStyle };
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);

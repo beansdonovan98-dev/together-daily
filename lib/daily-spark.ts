@@ -15,14 +15,14 @@ export const DAILY_QUOTES = [
 ];
 
 export const DAILY_MATURE_JOKES = [
-  "Our relationship survived because we communicate openly, except during the drive home when we are both pretending the GPS is the problem.",
-  "We agreed to be honest with each other. Then one of us asked, ‘Do you really need another blanket?’ and peace left the chat.",
-  "Couples therapy is expensive, so we stare silently at the dishwasher until somebody says sorry.",
-  "We tried role-play once: one of us was organized and the other one believed them.",
-  "Our date night got wild. We ordered appetizers and checked the bank app without crying.",
-  "The bedroom spark is alive and well; it is just currently trapped under three loads of laundry and a charger cable.",
-  "We promised not to go to bed angry. Now we stay up angry, hydrated, and increasingly dramatic.",
-  "Our shared hobby is spending forty minutes choosing food, then eating snacks over the sink like raccoons with a joint checking account.",
+  "Our relationship is built on trust, communication, and pretending neither of us saw the online shopping total.",
+  "We said we would go to bed early, then opened one tiny argument from 2017 and suddenly it was 1:30 AM.",
+  "We split chores fairly: one of us creates the mess, and one of us creates a spreadsheet about the mess.",
+  "Our love language is sending memes instead of discussing why we are both annoyed.",
+  "Date night is expensive, so we stared into the fridge and critiqued each other’s leftovers.",
+  "Romance is not dead; it is exhausted, under-caffeinated, and hiding from the laundry.",
+  "We tried couples yoga. Now we are both sore and suspicious of the person who said, ‘one more stretch.’",
+  "The secret to a long relationship is simple: apologize quickly, snack often, and do not start serious talks at bedtime.",
 ];
 
 function seedForDate(dateKey: string) {
@@ -32,15 +32,10 @@ function seedForDate(dateKey: string) {
   );
 }
 
-export function dailySparkFor(dateKey: string, quoteOffset = 0): DailySpark {
+export function dailySparkFor(dateKey: string): DailySpark {
   const seed = seedForDate(dateKey);
-  const normalizedQuoteOffset = Math.max(0, Math.floor(quoteOffset)) % DAILY_QUOTES.length;
   return {
-    quote: DAILY_QUOTES[(seed + normalizedQuoteOffset) % DAILY_QUOTES.length],
+    quote: DAILY_QUOTES[seed % DAILY_QUOTES.length],
     joke: DAILY_MATURE_JOKES[(seed * 3 + 1) % DAILY_MATURE_JOKES.length],
   };
-}
-
-export function nextQuoteOffset(currentOffset: number) {
-  return (Math.max(0, Math.floor(currentOffset)) + 1) % DAILY_QUOTES.length;
 }
