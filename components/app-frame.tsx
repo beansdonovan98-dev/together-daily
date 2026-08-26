@@ -41,7 +41,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function applyTabCardColor(node: ReactNode, color: string): ReactNode {
+function applyTabCardColor(node: ReactNode, color: string, accentColor: string): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -50,7 +50,7 @@ function applyTabCardColor(node: ReactNode, color: string): ReactNode {
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? applyTabCardColor(element.props.children, color)
+      ? applyTabCardColor(element.props.children, color, accentColor)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
@@ -63,13 +63,20 @@ function applyTabCardColor(node: ReactNode, color: string): ReactNode {
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
       shouldApplyTabCardColor(flatStyle);
+    const hasInteractiveOutline =
+      element.props.testID !== "preserve-card-color" &&
+      flatStyle &&
+      ("borderWidth" in flatStyle || "borderTopWidth" in flatStyle) &&
+      !tintSurface;
 
-    if (!tintSurface && nextChildren === element.props.children) return element;
+    if (!tintSurface && !hasInteractiveOutline && nextChildren === element.props.children) return element;
     return cloneElement(element, {
       children: nextChildren,
       ...(tintSurface
         ? { style: [element.props.style, { backgroundColor: color }] }
-        : {}),
+        : hasInteractiveOutline
+          ? { style: [element.props.style, { borderColor: accentColor }] }
+          : {}),
     });
   });
 }
@@ -203,7 +210,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: applyTabCardColor(child.props.children, cardBackgroundColor),
+          children: applyTabCardColor(child.props.children, cardBackgroundColor, accentColor),
       })
     : children;
 

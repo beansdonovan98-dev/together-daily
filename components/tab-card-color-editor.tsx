@@ -24,10 +24,12 @@ const TAB_SWATCHES = [
   "#0066A8", "#354FC7", "#6D38C9", "#A32378", "#B72F50", "#C45100",
 ];
 export function TabCardColorEditor() {
-  const { pageStyles, setPageStyles } = useLocalJournal();
+  const { pageStyles, setPageStyles, theme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [drafts, setDrafts] = useState(() => tabCardColorDrafts(pageStyles));
   const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
+  const accentColor = theme.accentColor ?? COLORS.orchid;
+  const controlBackground = `${accentColor}26`;
 
   useEffect(() => {
     if (!open) setDrafts(tabCardColorDrafts(pageStyles));
@@ -42,9 +44,9 @@ export function TabCardColorEditor() {
     setDrafts(tabCardColorDrafts({}));
   };
 
-  return <View style={[styles.card, { backgroundColor: themesCardColor }]}>
+  return <View style={[styles.card, { backgroundColor: themesCardColor, borderColor: accentColor }]}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle tab card colors" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}><View><Text style={styles.kicker}>SHARED TAB APPEARANCE</Text><Text style={styles.title}>Tab card colors</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text></TouchableOpacity>
-    {open ? <View style={styles.content}><Text style={styles.copy}>Choose one vivid shared card color for every tab. Tap a swatch or enter any six-digit hex color.</Text><View style={styles.list}>{TAB_CARD_IDS.map((tabId) => { const detail = TAB_DETAILS[tabId]; const selected = drafts[tabId]; return <View key={tabId} style={[styles.tabCard, { borderColor: selected }]}><Text style={styles.tabTitle}>{detail.glyph} {detail.label}</Text><View style={styles.swatches}>{TAB_SWATCHES.map((color) => <TouchableOpacity key={`${tabId}-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} for ${detail.label} cards`} onPress={() => setDrafts((current) => ({ ...current, [tabId]: color }))} style={[styles.swatch, { backgroundColor: color }, selected === color && styles.swatchActive]}/>)}</View><TextInput value={selected} onChangeText={(value) => setDrafts((current) => ({ ...current, [tabId]: value }))} placeholder={TAB_CARD_PALETTES[tabId].surface} placeholderTextColor="#8E7A95" autoCapitalize="characters" maxLength={7} style={styles.input}/></View>; })}</View><View style={styles.actions}><TouchableOpacity accessibilityRole="button" onPress={reset} style={styles.resetButton}><Text style={styles.resetText}>Reset tab colors</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={save} style={styles.saveButton}><Text style={styles.saveText}>Save tab colors</Text></TouchableOpacity></View></View> : null}
+    {open ? <View style={[styles.content, { borderTopColor: accentColor }]}><Text style={styles.copy}>Choose one vivid shared card color for every tab. Tap a swatch or enter any six-digit hex color.</Text><View style={styles.list}>{TAB_CARD_IDS.map((tabId) => { const detail = TAB_DETAILS[tabId]; const selected = drafts[tabId]; return <View key={tabId} style={[styles.tabCard, { borderColor: accentColor }]}><Text style={styles.tabTitle}>{detail.glyph} {detail.label}</Text><View style={styles.swatches}>{TAB_SWATCHES.map((color) => <TouchableOpacity key={`${tabId}-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} for ${detail.label} cards`} onPress={() => setDrafts((current) => ({ ...current, [tabId]: color }))} style={[styles.swatch, { backgroundColor: color }, selected === color && styles.swatchActive]}/>)}</View><TextInput value={selected} onChangeText={(value) => setDrafts((current) => ({ ...current, [tabId]: value }))} placeholder={TAB_CARD_PALETTES[tabId].surface} placeholderTextColor="#FFFFFF" autoCapitalize="characters" maxLength={7} style={[styles.input, { borderColor: accentColor, backgroundColor: controlBackground }]}/></View>; })}</View><View style={styles.actions}><TouchableOpacity accessibilityRole="button" onPress={reset} style={[styles.resetButton, { borderColor: accentColor }]}><Text style={styles.resetText}>Reset tab colors</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={save} style={[styles.saveButton, { backgroundColor: accentColor }]}><Text style={styles.saveText}>Save tab colors</Text></TouchableOpacity></View></View> : null}
   </View>;
 }
 
