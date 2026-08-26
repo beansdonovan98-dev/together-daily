@@ -28,6 +28,7 @@ import {
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
 import { themeGradientColors } from "@/lib/theme-gradients";
+import { setTogetherFontFamily } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -160,11 +161,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
     Platform.OS === "web"
       ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
       : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
+  setTogetherFontFamily(fontFamily);
   useEffect(() => {
-    const defaultStyle = { fontFamily };
     (
       Text as typeof Text & { defaultProps?: { style?: unknown } }
-    ).defaultProps = { style: defaultStyle };
+    ).defaultProps = { style: { color: "#FFFFFF", fontFamily } };
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);

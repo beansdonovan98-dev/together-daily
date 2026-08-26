@@ -197,4 +197,7 @@
 - [x] Make every tab’s navigation, controls, inputs, and accents match the active theme.
 - [x] Add a date-based inspirational quote card to Today.
 - [x] Add a separate date-based mature, non-targeted joke card to Today.
+- [x] Add a switchable Today quote control.
+- [x] Repair the app-wide font picker so selections visibly apply.
+- [x] Make the font picker options horizontally scrollable.
 - [x] Add a separate collection of lighter pastel gradient Themes.

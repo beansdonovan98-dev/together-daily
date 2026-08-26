@@ -32,10 +32,15 @@ function seedForDate(dateKey: string) {
   );
 }
 
-export function dailySparkFor(dateKey: string): DailySpark {
+export function dailySparkFor(dateKey: string, quoteOffset = 0): DailySpark {
   const seed = seedForDate(dateKey);
+  const normalizedQuoteOffset = Math.max(0, Math.floor(quoteOffset)) % DAILY_QUOTES.length;
   return {
-    quote: DAILY_QUOTES[seed % DAILY_QUOTES.length],
+    quote: DAILY_QUOTES[(seed + normalizedQuoteOffset) % DAILY_QUOTES.length],
     joke: DAILY_MATURE_JOKES[(seed * 3 + 1) % DAILY_MATURE_JOKES.length],
   };
+}
+
+export function nextQuoteOffset(currentOffset: number) {
+  return (Math.max(0, Math.floor(currentOffset)) + 1) % DAILY_QUOTES.length;
 }
