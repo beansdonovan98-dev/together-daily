@@ -186,3 +186,4 @@
 - [x] Directly wire each tab’s saved card color into every page’s primary card renderers.
 - [x] Add more ready-made Themes that mix saturated, vibrant colors.
 - [x] Upgrade ready-made Themes to use vivid gradient backgrounds.
+- [x] Make every card and subsection within a tab match that tab’s selected card background color.

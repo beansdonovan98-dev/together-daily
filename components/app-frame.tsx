@@ -56,12 +56,10 @@ function applyTabCardColor(node: ReactNode, color: string): ReactNode {
       | Record<string, unknown>
       | undefined;
     const nativeType = element.type as { displayName?: string; name?: string };
-    const isViewSurface =
-      element.type === View ||
-      nativeType.displayName === "View" ||
-      nativeType.name === "View";
+    const componentName = `${nativeType.displayName ?? ""} ${nativeType.name ?? ""}`;
+    const preservesOwnColor = /Touchable|Pressable|TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
     const tintSurface =
-      isViewSurface &&
+      !preservesOwnColor &&
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
       shouldApplyTabCardColor(flatStyle);
