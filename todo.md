@@ -217,3 +217,5 @@
 - [x] Add a daily riddle with a Show Answer control.
 - [x] Add a daily Word of the Day card.
 - [x] Add a daily educational fact card.
+- [x] Preview selected gradients directly on the Themes page before confirmation.
+- [x] Make the Comic Sans option visibly comic-book-like and distinct from Handwritten.

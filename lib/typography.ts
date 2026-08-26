@@ -1,9 +1,13 @@
-let activeTypographyFont = "cursive";
+type TypographyStyle = { fontFamily: string; fontWeight?: "900"; letterSpacing?: number };
 
-export function setActiveTypographyFont(fontFamily: string) {
-  activeTypographyFont = fontFamily;
+let activeTypographyStyle: TypographyStyle = { fontFamily: "cursive" };
+
+export function setActiveTypographyFont(fontFamily: string, fontId?: string) {
+  activeTypographyStyle = fontId === "comicSans"
+    ? { fontFamily, fontWeight: "900", letterSpacing: 0.45 }
+    : { fontFamily };
 }
 
-export function getActiveTypographyFont() {
-  return activeTypographyFont;
+export function getActiveTypographyStyle() {
+  return activeTypographyStyle;
 }

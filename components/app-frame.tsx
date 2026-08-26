@@ -157,7 +157,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     script: Platform.OS === "ios" ? "Snell Roundhand" : "serif",
     notebook: "cursive",
     casual: "cursive",
-    comicSans: "cursive",
+    comicSans: "sans-serif",
     typewriter: "monospace",
     classic: Platform.OS === "ios" ? "System" : "sans-serif",
     serif: "serif",
@@ -167,7 +167,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     Platform.OS === "web"
       ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
       : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
-  setActiveTypographyFont(fontFamily);
+  setActiveTypographyFont(fontFamily, selectedFont);
   useEffect(() => {
     const defaultStyle = { fontFamily };
     (
