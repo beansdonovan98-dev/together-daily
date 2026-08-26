@@ -203,3 +203,6 @@
 - [x] Move partner names, profile icons, and profile colors into their own Themes section.
 - [x] Remove custom theme creation controls from Themes.
 - [x] Clean up the font list and add Comic Sans as an app-wide font option.
+- [x] Make all cards across every tab inherit that page’s active gradient background.
+- [x] Add a Themes section for choosing a different gradient and font for each page.
+- [x] Make Script visually distinct from Handwritten.

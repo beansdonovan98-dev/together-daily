@@ -17,8 +17,8 @@ const TABS = [
 ];
 
 export function TabManager() {
-  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, pageStyles, theme } = useLocalJournal();
-  const themesCardColor = pageStyles.themes?.cardBackgroundColor ?? TAB_CARD_PALETTES.themes.surface;
+  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, theme } = useLocalJournal();
+  const themesCardColor = "transparent";
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const controlBackground = `${accentColor}26`;
   const [open, setOpen] = useState(false);

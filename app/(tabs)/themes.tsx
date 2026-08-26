@@ -1,6 +1,7 @@
 import { AppFrame } from "@/components/app-frame";
 import { PageDescriptionsEditor, PartnerProfilesEditor, PersonalizationEditor } from "@/components/personalization-editor";
 import { TabManager } from "@/components/tab-manager";
+import { PageThemeEditor } from "@/components/page-theme-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
@@ -17,6 +18,7 @@ function ThemesContent() {
 	    <PersonalizationEditor />
 	    <PartnerProfilesEditor />
 	    <PageDescriptionsEditor />
+	    <PageThemeEditor />
 	    <TabManager />
   </ScrollView></AppFrame>;
 }

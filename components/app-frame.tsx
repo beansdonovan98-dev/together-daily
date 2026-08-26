@@ -1,5 +1,5 @@
 import { ScreenContainer } from "@/components/screen-container";
-import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
+import { COLORS } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -28,6 +28,7 @@ import {
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
 import { themeGradientColors } from "@/lib/theme-gradients";
+import { setActiveTypographyFont } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -57,7 +58,9 @@ function applyTabCardColor(node: ReactNode, color: string, accentColor: string):
       | undefined;
     const nativeType = element.type as { displayName?: string; name?: string };
     const componentName = `${nativeType.displayName ?? ""} ${nativeType.name ?? ""}`;
-    const preservesOwnColor = /Touchable|Pressable|TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
+    const minHeight = Number(flatStyle?.minHeight ?? 0);
+    const compactTouchable = /Touchable|Pressable/i.test(componentName) && minHeight > 0 && minHeight <= 56 && Number(flatStyle?.padding ?? flatStyle?.paddingHorizontal ?? 0) <= 12;
+    const preservesOwnColor = compactTouchable || /TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
     const tintSurface =
       !preservesOwnColor &&
       element.props.testID !== "preserve-card-color" &&
@@ -121,23 +124,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const pageStyle = pageStyles[currentPage.id] ?? {};
-  const tabCardPalette =
-    TAB_CARD_PALETTES[currentPage.id as keyof typeof TAB_CARD_PALETTES] ??
-    TAB_CARD_PALETTES.today;
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
   const backgroundColor =
     currentPage.id === "log"
       ? (theme.backgroundColor ?? COLORS.blush)
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
-  const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
+  const backgroundGradient = themeGradientColors(pageStyle.backgroundGradient ?? theme.backgroundGradient);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
-  const sectionBackgroundColor =
-    pageStyle.sectionBackgroundColor ?? tabCardPalette.surface;
-  const cardBackgroundColor =
-    pageStyle.cardBackgroundColor ?? sectionBackgroundColor;
+  const cardBackgroundColor = "transparent";
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const selectedFont = customSubheadings.globalFont ?? "handwritten";
+  const selectedFont = pageStyle.fontStyle ?? customSubheadings.globalFont ?? "handwritten";
   const webFontFamilies: Record<string, string> = {
     handwritten: "cursive",
     script: "'Brush Script MT', 'Segoe Script', cursive",
@@ -150,7 +147,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   };
   const nativeFontFamilies: Record<string, string> = {
     handwritten: "cursive",
-    script: "cursive",
+    script: Platform.OS === "ios" ? "Snell Roundhand" : "serif",
     notebook: "cursive",
     casual: "cursive",
     comicSans: "cursive",
@@ -162,6 +159,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     Platform.OS === "web"
       ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
       : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
+  setActiveTypographyFont(fontFamily);
   useEffect(() => {
     const defaultStyle = { fontFamily };
     (
