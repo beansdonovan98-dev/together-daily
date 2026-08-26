@@ -49,6 +49,18 @@ const SAVED_THEMES = [
   { name: "Coral Fire", accent: "#FF6B35", background: "#552000" },
   { name: "Sunburst", accent: "#FFCA3A", background: "#3B2500" },
   { name: "Midnight Laser", accent: "#8A2BE2", background: "#26005C" },
+  { name: "Neon Tropic", accent: "#00F5D4", background: "#003D3B" },
+  { name: "Purple Sunset", accent: "#FF5D8F", background: "#38002E" },
+  { name: "Laser Lime", accent: "#B8FF00", background: "#183900" },
+  { name: "Blueberry Blast", accent: "#4D6CFF", background: "#170040" },
+  { name: "Electric Fiesta", accent: "#FF4D00", background: "#2A003D" },
+  { name: "Cyber Cherry", accent: "#FF1744", background: "#260019" },
+  { name: "Disco Pool", accent: "#00E5FF", background: "#001C4A" },
+  { name: "Acid Candy", accent: "#D500F9", background: "#35004D" },
+  { name: "Tropical Pop", accent: "#00E676", background: "#004B3A" },
+  { name: "Golden Berry", accent: "#FFD740", background: "#351900" },
+  { name: "Voltage Violet", accent: "#B517FF", background: "#20004A" },
+  { name: "Mermaid Neon", accent: "#19FFD1", background: "#002E46" },
 ] as const;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
