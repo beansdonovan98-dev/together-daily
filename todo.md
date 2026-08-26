@@ -206,3 +206,4 @@
 - [x] Make all cards across every tab inherit that page’s active gradient background.
 - [x] Add a Themes section for choosing a different gradient and font for each page.
 - [x] Make Script visually distinct from Handwritten.
+- [x] Add a subtle crossfade when overall or page-specific gradient themes change.

@@ -12,9 +12,11 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
+  Animated,
   Linking,
   Platform,
   Pressable,
@@ -131,6 +133,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
       ? (theme.backgroundColor ?? COLORS.blush)
       : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
   const backgroundGradient = themeGradientColors(pageStyle.backgroundGradient ?? theme.backgroundGradient);
+  const gradientKey = backgroundGradient?.join(",") ?? backgroundColor;
+  const currentGradientRef = useRef(backgroundGradient);
+  const [previousGradient, setPreviousGradient] = useState<typeof backgroundGradient>(null);
+  const previousGradientOpacity = useRef(new Animated.Value(0)).current;
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardBackgroundColor = "transparent";
   const cardStyle = pageStyle.cardStyle ?? "soft";
@@ -168,6 +174,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
+  useEffect(() => {
+    const priorGradient = currentGradientRef.current;
+    if ((priorGradient?.join(",") ?? backgroundColor) === gradientKey) return;
+    currentGradientRef.current = backgroundGradient;
+    if (!priorGradient || !backgroundGradient) {
+      setPreviousGradient(null);
+      return;
+    }
+    setPreviousGradient(priorGradient);
+    previousGradientOpacity.setValue(1);
+    const transition = Animated.timing(previousGradientOpacity, { toValue: 0, duration: 260, useNativeDriver: true });
+    transition.start(() => setPreviousGradient(null));
+    return () => transition.stop();
+  }, [backgroundColor, backgroundGradient, gradientKey, previousGradientOpacity]);
   const pageSurfaceStyle =
     cardStyle === "outlined"
       ? {
@@ -306,6 +326,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <ScreenContainer containerClassName="bg-background" className="flex-1">
       <View style={[styles.frame, { backgroundColor }]}>
         {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
+        {previousGradient ? <Animated.View pointerEvents="none" style={[styles.themeGradient, { opacity: previousGradientOpacity }]}><LinearGradient colors={previousGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : null}
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
