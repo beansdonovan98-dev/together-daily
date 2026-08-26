@@ -167,7 +167,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
           marginHorizontal: 8,
           marginTop: 8,
           borderWidth: 0,
-          backgroundColor: cardBackgroundColor,
+          backgroundColor: "transparent",
           borderRadius: 16,
           overflow: "hidden" as const,
         }
@@ -175,13 +175,13 @@ export function AppFrame({ children }: { children: ReactNode }) {
         ? {
             marginTop: 0,
             borderRadius: 0,
-            backgroundColor: cardBackgroundColor,
+            backgroundColor: "transparent",
           }
         : {
             marginHorizontal: 8,
             marginTop: 8,
             borderWidth: 0,
-            backgroundColor: cardBackgroundColor,
+            backgroundColor: "transparent",
             borderRadius: 20,
             overflow: "hidden" as const,
             shadowOpacity: 0,

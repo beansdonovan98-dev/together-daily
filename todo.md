@@ -187,3 +187,4 @@
 - [x] Add more ready-made Themes that mix saturated, vibrant colors.
 - [x] Upgrade ready-made Themes to use vivid gradient backgrounds.
 - [x] Make every card and subsection within a tab match that tab’s selected card background color.
+- [x] Make the open background outside cards follow the selected overall theme background or gradient.
