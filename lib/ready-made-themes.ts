@@ -39,3 +39,14 @@ export const SAVED_THEMES: readonly ReadyMadeTheme[] = [
   { name: "Voltage Violet", accent: "#B517FF", background: "#20004A", gradient: ["#20004A", "#5A167A", "#284FAD"] },
   { name: "Mermaid Neon", accent: "#19FFD1", background: "#002E46", gradient: ["#002E46", "#005C69", "#27409B"] },
 ];
+
+export const PASTEL_THEMES: readonly ReadyMadeTheme[] = [
+  { name: "Blush Cloud", accent: "#FF9FC5", background: "#713C68", gradient: ["#F7B6D2", "#B96EAA", "#7B5BC3"] },
+  { name: "Peach Milk", accent: "#FFB096", background: "#7A4655", gradient: ["#FFD0B5", "#D88389", "#87558E"] },
+  { name: "Mint Sorbet", accent: "#98E8CF", background: "#316C68", gradient: ["#B9F1DE", "#65BFA8", "#5B78A8"] },
+  { name: "Lavender Haze", accent: "#CEBFFF", background: "#5C4A98", gradient: ["#DED4FF", "#A78EDB", "#687DBA"] },
+  { name: "Powder Sky", accent: "#B8E1FF", background: "#3E6692", gradient: ["#C9E8FF", "#7DB8DA", "#687AC2"] },
+  { name: "Lemon Cream", accent: "#FFE69C", background: "#856436", gradient: ["#FFF1BD", "#E7C66B", "#C1797D"] },
+  { name: "Rose Quartz", accent: "#FFB8CF", background: "#8B4C69", gradient: ["#FFD1DD", "#E78BAE", "#9369A9"] },
+  { name: "Lilac Bloom", accent: "#E5B7FF", background: "#714D99", gradient: ["#F0CBFF", "#C28BDB", "#6F83BC"] },
+];

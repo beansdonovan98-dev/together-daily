@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SAVED_THEMES } from "../lib/ready-made-themes";
+import { PASTEL_THEMES, SAVED_THEMES } from "../lib/ready-made-themes";
 import { isThemeGradient, themeGradientColors } from "../lib/theme-gradients";
 
 describe("theme gradients", () => {
@@ -16,7 +16,8 @@ describe("theme gradients", () => {
   });
 
   it("gives every ready-made Theme a valid vibrant gradient", () => {
-    expect(SAVED_THEMES.length).toBeGreaterThan(0);
-    expect(SAVED_THEMES.every((theme) => isThemeGradient(theme.gradient))).toBe(true);
+    const allThemes = [...SAVED_THEMES, ...PASTEL_THEMES];
+    expect(allThemes.length).toBeGreaterThan(0);
+    expect(allThemes.every((theme) => isThemeGradient(theme.gradient))).toBe(true);
   });
 });

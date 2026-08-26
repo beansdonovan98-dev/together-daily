@@ -190,3 +190,7 @@
 - [x] Make the open background outside cards follow the selected overall theme background or gradient.
 - [x] Extend the selected overall theme gradient through the top header, navigation, and Themes utility area.
 - [x] Convert every ready-made solid Theme into a vibrant gradient preset.
+- [x] Add a separate collection of lighter pastel gradient Themes.
+- [x] Move page-description fields into their own collapsible Themes card.
+- [x] Make app-wide text white across pages, cards, and sections.
+- [x] Add a separate collection of lighter pastel gradient Themes.
