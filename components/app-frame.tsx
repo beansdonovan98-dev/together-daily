@@ -53,8 +53,13 @@ function applyTabCardColor(node: ReactNode, color: string): ReactNode {
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
       | undefined;
+    const nativeType = element.type as { displayName?: string; name?: string };
+    const isViewSurface =
+      element.type === View ||
+      nativeType.displayName === "View" ||
+      nativeType.name === "View";
     const tintSurface =
-      element.type === View &&
+      isViewSurface &&
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
       shouldApplyTabCardColor(flatStyle);

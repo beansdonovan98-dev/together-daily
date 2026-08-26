@@ -183,3 +183,4 @@
 - [x] Change the Six Little Things card from purple to the Habits green.
 - [x] Make saved background, accent, and per-tab card colors apply consistently across every page.
 - [x] Make saved background, accent, and per-tab card colors apply consistently across every page.
+- [x] Directly wire each tab’s saved card color into every page’s primary card renderers.
