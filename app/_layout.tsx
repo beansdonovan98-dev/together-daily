@@ -24,8 +24,22 @@ import { LocalJournalProvider } from "@/lib/local-journal";
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
 const handwrittenDefault = { color: "#FFFFFF", fontFamily: "cursive" };
-(Text as typeof Text & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
-(TextInput as typeof TextInput & { defaultProps?: { style?: unknown } }).defaultProps = { style: handwrittenDefault };
+type TypographyComponent = {
+  defaultProps?: { placeholderTextColor?: string; style?: unknown };
+  render?: (props: Record<string, unknown>, ref: unknown) => unknown;
+  [key: symbol]: unknown;
+};
+const whiteTypographyPatch = Symbol.for("together-daily.force-white-typography");
+const forceWhiteTypography = (component: unknown, isInput = false) => {
+  const target = component as TypographyComponent;
+  target.defaultProps = { ...target.defaultProps, style: handwrittenDefault, ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) };
+  if (target[whiteTypographyPatch] || !target.render) return;
+  const originalRender = target.render;
+  target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF" }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
+  target[whiteTypographyPatch] = true;
+};
+forceWhiteTypography(Text);
+forceWhiteTypography(TextInput, true);
 const originalCreate = StyleSheet.create;
 const textStyleKeys = ["color", "fontSize", "fontWeight", "fontStyle", "lineHeight", "letterSpacing", "textAlign"];
 StyleSheet.create = ((styles: Record<string, Record<string, unknown>>) => {

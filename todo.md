@@ -193,4 +193,5 @@
 - [x] Add a separate collection of lighter pastel gradient Themes.
 - [x] Move page-description fields into their own collapsible Themes card.
 - [x] Make app-wide text white across pages, cards, and sections.
+- [x] Enforce pure white text for every visible label, control, input, header, and card across the app.
 - [x] Add a separate collection of lighter pastel gradient Themes.
