@@ -217,3 +217,5 @@
 - [x] Correct the gradient-inheriting color treatment of the Gradients & Fonts, Gradient Creator, Partner Profiles, and Page Descriptions cards.
 - [x] Verify the four Themes cards with both a vivid and a pastel gradient selection.
 - [x] Verify the four Themes cards with both a vivid and a pastel gradient selection.
+- [x] Repair iPhone/TestFlight theme rendering so active gradients and colors display smoothly instead of as blocky opaque surfaces.
+- [x] Repair iPhone/TestFlight theme rendering so active gradients and colors display smoothly instead of as blocky opaque surfaces.

@@ -5,7 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { Platform, StyleSheet, Text, TextInput } from "react-native";
+import { Platform, Text, TextInput } from "react-native";
 import * as Notifications from "expo-notifications";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
@@ -23,7 +23,7 @@ import { LocalJournalProvider } from "@/lib/local-journal";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
-const handwrittenDefault = { color: "#FFFFFF", fontFamily: "cursive" };
+const whiteTextDefault = { color: "#FFFFFF" };
 type TypographyComponent = {
   defaultProps?: { placeholderTextColor?: string; style?: unknown };
   render?: (props: Record<string, unknown>, ref: unknown) => unknown;
@@ -32,7 +32,7 @@ type TypographyComponent = {
 const whiteTypographyPatch = Symbol.for("together-daily.force-white-typography");
 const forceWhiteTypography = (component: unknown, isInput = false) => {
   const target = component as TypographyComponent;
-  target.defaultProps = { ...target.defaultProps, style: handwrittenDefault, ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) };
+  target.defaultProps = { ...target.defaultProps, style: whiteTextDefault, ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) };
   if (target[whiteTypographyPatch] || !target.render) return;
   const originalRender = target.render;
   target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF" }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
@@ -40,17 +40,6 @@ const forceWhiteTypography = (component: unknown, isInput = false) => {
 };
 forceWhiteTypography(Text);
 forceWhiteTypography(TextInput, true);
-const originalCreate = StyleSheet.create;
-const textStyleKeys = ["color", "fontSize", "fontWeight", "fontStyle", "lineHeight", "letterSpacing", "textAlign"];
-StyleSheet.create = ((styles: Record<string, Record<string, unknown>>) => {
-  const cardLike = /(card|section|panel|block|list|entry|task|habit|tracker|water|medicine|note|cover|weekly|daily|item|row)/i;
-  const interactive = /(input|button|pill|badge|tab|swatch|avatar|control)/i;
-  const handwrittenStyles = Object.fromEntries(Object.entries(styles).map(([name, style]) => {
-    const contentStyle = textStyleKeys.some((key) => key in style) ? { ...style, color: "#FFFFFF", fontFamily: "cursive" } : style;
-    return [name, cardLike.test(name) && !interactive.test(name) ? { ...contentStyle, backgroundColor: "transparent", borderWidth: 1, borderTopWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderLeftWidth: 1, borderColor: "#000000", shadowColor: "transparent", shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 } : contentStyle];
-  }));
-  return originalCreate(handwrittenStyles);
-}) as typeof StyleSheet.create;
 
 export const unstable_settings = {
   anchor: "(tabs)",

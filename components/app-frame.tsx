@@ -28,7 +28,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
-import { themeGradientColors } from "@/lib/theme-gradients";
+import { resolveThemeBackdrop } from "@/lib/theme-gradients";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -42,7 +42,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function applyTabCardColor(node: ReactNode, accentColor: string): ReactNode {
+function revealGradientCardSurfaces(node: ReactNode): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -51,35 +51,39 @@ function applyTabCardColor(node: ReactNode, accentColor: string): ReactNode {
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? applyTabCardColor(element.props.children, accentColor)
+      ? revealGradientCardSurfaces(element.props.children)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
       | undefined;
-    const nativeType = element.type as { displayName?: string; name?: string };
-    const componentName = `${nativeType.displayName ?? ""} ${nativeType.name ?? ""}`;
-    const preservesOwnColor = /TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
-    const tintSurface =
-      !preservesOwnColor &&
+    const isNativeView = element.type === View;
+    const isCardSurface =
+      isNativeView &&
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
-      Boolean(flatStyle.backgroundColor) &&
+      typeof flatStyle.backgroundColor === "string" &&
+      flatStyle.backgroundColor !== "transparent" &&
       Number(flatStyle.borderRadius ?? 0) >= 8 &&
       (Number(flatStyle.padding ?? flatStyle.paddingHorizontal ?? flatStyle.paddingVertical ?? 0) > 0 || flatStyle.overflow === "hidden");
-    const hasInteractiveOutline =
-      element.props.testID !== "preserve-card-color" &&
-      flatStyle &&
-      ("borderWidth" in flatStyle || "borderTopWidth" in flatStyle) &&
-      !tintSurface;
 
-    if (!tintSurface && !hasInteractiveOutline && nextChildren === element.props.children) return element;
+    if (!isCardSurface && nextChildren === element.props.children) return element;
     return cloneElement(element, {
       children: nextChildren,
-      ...(tintSurface
-        ? { style: [element.props.style, { backgroundColor: "transparent" }] }
-        : hasInteractiveOutline
-          ? { style: [element.props.style, { borderColor: accentColor }] }
-          : {}),
+      ...(isCardSurface
+        ? {
+            style: [
+              element.props.style,
+              {
+                backgroundColor: "transparent",
+                borderColor: "#000000",
+                shadowOpacity: 0,
+                shadowRadius: 0,
+                shadowOffset: { width: 0, height: 0 },
+                elevation: 0,
+              },
+            ],
+          }
+        : {}),
     });
   });
 }
@@ -129,11 +133,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
-  const backgroundColor =
-    currentPage.id === "log"
-      ? (theme.backgroundColor ?? COLORS.blush)
-      : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
-  const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
+  const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(
+    theme,
+    currentPage.id === "log" ? undefined : pageStyle,
+    COLORS.blush,
+  );
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
@@ -209,7 +213,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: applyTabCardColor(child.props.children, accentColor),
+          children: revealGradientCardSurfaces(child.props.children),
       })
     : children;
 
@@ -302,8 +306,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ScreenContainer containerClassName="bg-background" className="flex-1">
-      <View style={[styles.frame, { backgroundColor }]}>
+    <ScreenContainer containerClassName="bg-transparent" className="flex-1">
+      <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
         <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
           <View style={styles.brandRow}>

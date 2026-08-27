@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PASTEL_THEMES, SAVED_THEMES } from "../lib/ready-made-themes";
-import { isThemeGradient, themeGradientColors } from "../lib/theme-gradients";
+import { isThemeGradient, resolveThemeBackdrop, themeGradientColors } from "../lib/theme-gradients";
 
 describe("theme gradients", () => {
   it("accepts vivid two-to-four stop hex gradients", () => {
@@ -15,6 +15,22 @@ describe("theme gradients", () => {
     expect(isThemeGradient(["#003D3B"])).toBe(false);
     expect(isThemeGradient(["#003D3B", "blue"])).toBe(false);
     expect(themeGradientColors(undefined)).toBeNull();
+  });
+
+  it("keeps a selected gradient above legacy per-page solid colors on iPhone", () => {
+    const vivid = SAVED_THEMES[0];
+    const pastel = PASTEL_THEMES[0];
+
+    for (const theme of [vivid, pastel]) {
+      const backdrop = resolveThemeBackdrop(
+        { backgroundColor: theme.background, backgroundGradient: theme.gradient },
+        { backgroundColor: "#171218" },
+        "#000000",
+      );
+
+      expect(backdrop.gradient).toEqual(theme.gradient);
+      expect(backdrop.backgroundColor).toBe(theme.gradient[0]);
+    }
   });
 
   it("gives every ready-made Theme a valid vibrant gradient", () => {
@@ -46,5 +62,15 @@ describe("theme gradients", () => {
         expect(source).not.toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)", backgroundColor: "rgba(20,12,30,0.42)"');
       }
     }
+  });
+
+  it("does not rely on production-minified component names or global stylesheet rewrites", () => {
+    const appFrame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
+    const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
+
+    expect(appFrame).toContain("function revealGradientCardSurfaces");
+    expect(appFrame).toContain("const isNativeView = element.type === View");
+    expect(appFrame).not.toContain("componentName");
+    expect(rootLayout).not.toContain("StyleSheet.create =");
   });
 });
