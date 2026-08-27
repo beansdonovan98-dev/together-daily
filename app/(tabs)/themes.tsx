@@ -1,7 +1,9 @@
 import { AppFrame } from "@/components/app-frame";
-import { PersonalizationEditor } from "@/components/personalization-editor";
+import { GradientCreator } from "@/components/gradient-creator";
+import { PageDescriptionsEditor } from "@/components/page-descriptions-editor";
+import { PartnerProfilesEditor } from "@/components/partner-profiles-editor";
+import { PageThemeEditor } from "@/components/page-theme-editor";
 import { TabManager } from "@/components/tab-manager";
-import { TabCardColorEditor } from "@/components/tab-card-color-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
@@ -14,10 +16,12 @@ export default function ThemesScreen() {
 function ThemesContent() {
   const { theme } = useLocalJournal();
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
-    <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose colors, save named looks, and make the little descriptions across Together Daily feel like yours.</Text></View>
-	    <PersonalizationEditor />
-	    <TabManager />
-	    <TabCardColorEditor />
+    <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose gradients, update shared profiles, and organize the words across Together Daily.</Text></View>
+    <PageThemeEditor />
+    <GradientCreator />
+    <PartnerProfilesEditor />
+    <TabManager />
+    <PageDescriptionsEditor />
   </ScrollView></AppFrame>;
 }
 

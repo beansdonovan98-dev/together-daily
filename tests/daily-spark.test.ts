@@ -1,4 +1,4 @@
-import { DAILY_MATURE_JOKES, DAILY_QUOTES, dailySparkFor } from "../lib/daily-spark";
+import { DAILY_FACTS, DAILY_MATURE_JOKES, DAILY_QUOTES, DAILY_WORDS, dailySparkFor } from "../lib/daily-spark";
 import { describe, expect, it } from "vitest";
 
 describe("dailySparkFor", () => {
@@ -10,5 +10,7 @@ describe("dailySparkFor", () => {
     const spark = dailySparkFor("2026-08-26");
     expect(DAILY_QUOTES).toContain(spark.quote);
     expect(DAILY_MATURE_JOKES).toContain(spark.joke);
+    expect(DAILY_WORDS).toContainEqual(spark.word);
+    expect(DAILY_FACTS).toContain(spark.fact);
   });
 });

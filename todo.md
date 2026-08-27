@@ -204,3 +204,8 @@
 - [x] Make Quote of the Day switching reliably select a different quote.
 - [x] Replace the joke collection with darker, non-targeted adult humor.
 - [x] Add a riddle answer reveal with a flip-style animation.
+- [x] Add rotating Word of the Day and educational historical or fun fact cards to Today.
+- [x] Strengthen the daily joke collection with darker, non-targeted humor.
+- [x] Remove the current accent and background color creator from Themes.
+- [x] Add a dedicated Gradient Creator card between Gradients & Fonts and Partner Profiles.
+- [x] Move Page Descriptions into the former page-tab color section and remove its old placement.
