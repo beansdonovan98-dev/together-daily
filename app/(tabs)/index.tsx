@@ -8,7 +8,6 @@ import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { preparePickedImageForUpload } from "@/lib/media-base64";
-import { tabCardColorFromStyles } from "@/lib/tab-card-colors";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -45,11 +44,7 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme, pageStyles } = useLocalJournal();
-  const cardColor = tabCardColorFromStyles(pageStyles, "today");
-  const [todoText, setTodoText] = useState("");
-  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
-  const [todoDraft, setTodoDraft] = useState("");
+  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -61,7 +56,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const riddleFlip = useRef(new Animated.Value(0)).current;
 
   const content = asObject(getDay(date));
-  const todos = Array.isArray(content.todos) ? content.todos : [];
   const cover = asObject(content.coverPhoto);
   const secondCover = asObject(content.coverPhotoTwo);
   const loveNotes = asObject(content.loveNotes);
@@ -79,16 +73,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   }, [loveDraftKey, ready, savedLoveNote]);
 
   const save = (patch: Record<string, unknown>) => updateDay(date, patch);
-  const addTodo = () => {
-    const text = todoText.trim();
-    if (!text) return;
-    updateDay(date, { todos: [...todos, { id: `todo-${Date.now()}`, text, completed: false, assignedTo: "both" }] }, "todo");
-    setTodoText("");
-  };
-  const toggleTodo = (todoId: string) => updateDay(date, { todos: todos.map((item: any) => item.id === todoId ? { ...item, completed: !item.completed } : item) }, "todo");
-  const removeTodo = (todoId: string) => updateDay(date, { todos: todos.filter((item: any) => item.id !== todoId) }, "todo");
-  const startTodoEdit = (item: any) => { setEditingTodoId(String(item.id)); setTodoDraft(String(item.text ?? "")); };
-  const saveTodoEdit = () => { const text = todoDraft.trim(); if (!editingTodoId || !text) return; updateDay(date, { todos: todos.map((item: any) => String(item.id) === editingTodoId ? { ...item, text } : item) }, "todo"); setEditingTodoId(null); setTodoDraft(""); };
   const saveLoveNote = () => {
     const nextNotes = { ...loveNotes };
     const trimmed = loveDraft.trim();
@@ -168,16 +152,15 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 
   if (!ready) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Opening your daily journal…</Text></View></AppFrame>;
 
-  const completedTodos = todos.filter((item: any) => item.completed).length;
   const covers = [{ key: "first" as const, cover, label: "DAILY COVER" }, { key: "second" as const, cover: secondCover, label: "SECOND COVER" }];
 
-  return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
     <View style={styles.topRow}><View><Text style={[styles.eyebrow, { color: partner.color }]}>{prettyDate(date).toUpperCase()}</Text><Text style={styles.title}>{coupleName}</Text></View><View style={[styles.avatar, { backgroundColor: partner.color }]}><Text style={styles.avatarText}>{memberName.slice(0, 1).toUpperCase()}</Text></View></View>
     <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
     <View style={styles.coverGrid}>{covers.map(({ key, cover: coverSlot, label }) => {
       const captions = asObject(coverSlot.captions);
       return <View key={key} style={styles.coverSlot}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${coverSlot.url ? "Change" : "Add"} ${label.toLowerCase()}`} style={[styles.coverCard, { backgroundColor: cardColor }]} onPress={() => selectCover(key)} disabled={uploading || removingSlot === key}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${coverSlot.url ? "Change" : "Add"} ${label.toLowerCase()}`} style={[styles.coverCard, { backgroundColor: "transparent", borderColor: "#000000" }]} onPress={() => selectCover(key)} disabled={uploading || removingSlot === key}>
           {coverSlot.url ? <Image source={{ uri: mediaUrl(String(coverSlot.url)) }} style={StyleSheet.absoluteFillObject} /> : <><View style={[StyleSheet.absoluteFillObject, styles.coverShade]} /><View style={styles.coverContent}><Text style={styles.coverKicker}>{uploading ? "SAVING PHOTO" : label}</Text><Text style={styles.coverTitle}>Add a photo</Text><Text style={styles.coverCopy}>A visual little memory for today.</Text></View></>}
           <View style={styles.coverAdd}><Text style={styles.coverAddText}>+</Text></View>
         </TouchableOpacity>
@@ -193,7 +176,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
       <View style={styles.dailySparkCard}><Text style={styles.cardKicker}>LEARN SOMETHING TODAY</Text><Text style={styles.dailySparkText}>{dailySpark.fact}</Text></View>
     </View>
     <View style={styles.card}><Text style={styles.cardKicker}>LOVE NOTES</Text><Text style={styles.cardTitle}>{getSubheading(customSubheadings, "loveNotes")}</Text><View style={styles.loveStack}>{(["beans", "princess"] as PartnerId[]).map((id) => { const person = PARTNERS[id]; const saved = String(loveNotes[id] ?? ""); const mine = id === userId; return <View key={id} style={[styles.loveCard, { borderColor: person.color }]}><View style={styles.loveHeader}><Text style={[styles.loveName, { color: person.color }]}>{person.avatar} {person.name}</Text><Text style={styles.loveState}>{saved ? "SAVED" : mine ? "YOUR NOTE" : "WAITING"}</Text></View>{mine ? <><TextInput value={loveDraft} onChangeText={setLoveDraft} multiline placeholder="Leave a little love note…" placeholderTextColor="#7F7582" style={styles.textArea} /><TouchableOpacity style={[styles.smallPrimary, { backgroundColor: person.color }]} onPress={saveLoveNote}><Text style={styles.smallPrimaryText}>{saved ? "Save changes" : "Save my note"}</Text></TouchableOpacity></> : saved ? <Text style={styles.loveSaved}>{saved}</Text> : <Text style={styles.loveWaiting}>This note space is waiting for {person.name}.</Text>}</View>; })}</View></View>
-    <View style={styles.card}><View style={styles.cardHeader}><Text style={styles.cardTitle}>Shared to-dos</Text><Text style={[styles.cardMeta, { color: partner.color }]}>{completedTodos}/{todos.length}</Text></View><Text style={styles.cardDescription}>{getSubheading(customSubheadings, "sharedTodos")}</Text>{todos.map((item: any) => { const editing = editingTodoId === String(item.id); return <View key={item.id} style={styles.todoRow}>{editing ? <View style={styles.todoEditBody}><TextInput value={todoDraft} onChangeText={setTodoDraft} onSubmitEditing={saveTodoEdit} returnKeyType="done" placeholder="To-do" placeholderTextColor="#7F7582" style={styles.todoEditInput}/><View style={styles.todoEditActions}><TouchableOpacity onPress={saveTodoEdit} style={[styles.todoSaveButton,{backgroundColor:partner.color}]}><Text style={styles.todoSaveText}>Save</Text></TouchableOpacity><TouchableOpacity onPress={() => { setEditingTodoId(null); setTodoDraft(""); }} style={styles.todoCancelButton}><Text style={styles.todoCancelText}>Cancel</Text></TouchableOpacity></View></View> : <><TouchableOpacity accessibilityRole="checkbox" accessibilityState={{checked:Boolean(item.completed)}} onPress={() => toggleTodo(String(item.id))} style={[styles.todoCircle, item.completed && styles.todoCircleDone]}>{item.completed ? <Text style={styles.check}>✓</Text> : null}</TouchableOpacity><Text style={[styles.todoText, item.completed && styles.todoDone]}>{String(item.text)}</Text><TouchableOpacity accessibilityRole="button" onPress={() => startTodoEdit(item)} style={styles.todoTextButton}><Text style={styles.todoTextButtonLabel}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => removeTodo(String(item.id))} style={styles.todoDeleteButton}><Text style={styles.todoDeleteText}>×</Text></TouchableOpacity></>}</View>; })}<View style={styles.addRow}><TextInput value={todoText} onChangeText={setTodoText} onSubmitEditing={addTodo} returnKeyType="done" placeholder="Add something for today" placeholderTextColor="#7F7582" style={styles.addInput} /><TouchableOpacity style={[styles.addButton, { backgroundColor: partner.soft }]} onPress={addTodo}><Text style={[styles.addButtonText, { color: partner.color }]}>Add</Text></TouchableOpacity></View></View>
   </ScrollView></AppFrame>;
 }
 

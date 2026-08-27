@@ -55,10 +55,8 @@ export default function HealthScreen() {
 }
 function HealthContent({ userId }: { userId: PartnerId }) {
   const today = localDateKey();
-  const { ready, ensureDay, getDay, updateDay, allDays, theme, pageStyles } =
+  const { ready, ensureDay, getDay, updateDay, allDays } =
     useLocalJournal();
-  const cardColor =
-    pageStyles.health?.cardBackgroundColor ?? TAB_CARD_PALETTES.health.surface;
   const [taskDraft, setTaskDraft] = useState("");
   const [medicineDraft, setMedicineDraft] = useState("");
   const [medicineTimeDraft, setMedicineTimeDraft] =
@@ -256,7 +254,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     draft: string,
     setDraft: (text: string) => void,
   ) => (
-    <View style={[styles.card, { backgroundColor: cardColor }]}>
+    <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
       <Text style={styles.kicker}>
         {kind === "tasks" ? "DAILY HEALTH" : "MEDICINE"}
       </Text>
@@ -372,7 +370,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     setMedicineDraft,
   );
   const medicineNotifications = null;
-  const periodTracker = <View style={[styles.card, { backgroundColor: cardColor }]}>
+  const periodTracker = <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
     <Text style={styles.kicker}>PERIOD TRACKER</Text>
     <Text style={styles.title}>Cycle check-in</Text>
     <Text style={styles.copy}>Track cycle details privately in your shared Health page.</Text>
@@ -395,7 +393,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
       <ScrollView
         contentContainerStyle={[
           styles.page,
-          { backgroundColor: theme.backgroundColor ?? COLORS.blush },
+          { backgroundColor: "transparent" },
         ]}
       >
         {
@@ -438,7 +436,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
         </View>
         {medicineLog}
         {medicineNotifications}
-        <View style={[styles.card, { backgroundColor: cardColor }]}>
+        <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
           <Text style={styles.kicker}>MEAL PLANNER</Text>
           <Text style={styles.title}>Meals</Text>
           {HEALTH_MEALS.map((item) => {
@@ -514,7 +512,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
             );
           })}
         </View>
-        <View style={[styles.card, { backgroundColor: cardColor }]}>
+        <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
           <Text style={styles.kicker}>DAILY WATER</Text>
           <Text style={styles.title}>Water tracker</Text>
           <Text style={styles.copy}>Eight glasses each, reset daily.</Text>

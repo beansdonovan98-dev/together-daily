@@ -209,3 +209,8 @@
 - [x] Remove the current accent and background color creator from Themes.
 - [x] Add a dedicated Gradient Creator card between Gradients & Fonts and Partner Profiles.
 - [x] Move Page Descriptions into the former page-tab color section and remove its old placement.
+- [x] Restore the full vivid and pastel ready-made gradient Theme collections.
+- [x] Replace Gradient Creator color-code inputs with visual color choices.
+- [x] Fix Rename & Sort, Weight Tracker, and Weight History card gradient inheritance.
+- [x] Remove Shared To-Do from Today.
+- [x] Add solid black outlines around cards and subsections across every page.

@@ -6,7 +6,6 @@ import { PageThemeEditor } from "@/components/page-theme-editor";
 import { TabManager } from "@/components/tab-manager";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
-import { useLocalJournal } from "@/lib/local-journal";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function ThemesScreen() {
@@ -14,8 +13,7 @@ export default function ThemesScreen() {
 }
 
 function ThemesContent() {
-  const { theme } = useLocalJournal();
-  return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} showsVerticalScrollIndicator={false}>
     <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose gradients, update shared profiles, and organize the words across Together Daily.</Text></View>
     <PageThemeEditor />
     <GradientCreator />
