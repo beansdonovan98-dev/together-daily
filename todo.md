@@ -199,3 +199,4 @@
 - [x] Add a separate date-based mature, non-targeted joke card to Today.
 - [x] Add a separate collection of lighter pastel gradient Themes.
 - [x] Fix card backgrounds so they visibly switch with the active theme gradient.
+- [x] Audit and refine responsive layout, scrolling, navigation, and controls for laptop browsers and Android devices.

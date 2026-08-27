@@ -23,8 +23,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { themeGradientColors } from "@/lib/theme-gradients";
 
@@ -84,6 +86,9 @@ function applyTabCardColor(node: ReactNode, accentColor: string): ReactNode {
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const isLaptopLayout = width >= 900;
   const {
     roomCode,
     memberId,
@@ -300,7 +305,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <ScreenContainer containerClassName="bg-background" className="flex-1">
       <View style={[styles.frame, { backgroundColor }]}>
         {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
-        <View style={styles.topbar}>
+        <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
             <View>
@@ -327,7 +332,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabs}
+          contentContainerStyle={[styles.tabs, isLaptopLayout && styles.tabsLaptop]}
           style={styles.tabScroller}
         >
           {orderedNavigation.map((item) => {
@@ -526,7 +531,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             ) : null}
           </View>
         ) : null}
-        <View style={[styles.content, pageSurfaceStyle]}>
+        <View style={[styles.content, pageSurfaceStyle, { paddingBottom: Math.max(insets.bottom, 12) }, isLaptopLayout && styles.contentLaptop]}>
           {styledChildren}
           <TouchableOpacity
             accessibilityRole="button"
@@ -557,6 +562,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#211C24",
     backgroundColor: "transparent",
   },
+  topbarLaptop: { paddingHorizontal: 32, paddingTop: 18, paddingBottom: 16 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   brandMark: { color: COLORS.rose, fontSize: 25, lineHeight: 26 },
   brand: {
@@ -595,8 +601,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#211C24",
   },
   tabs: { gap: 7, paddingHorizontal: 16, paddingVertical: 11 },
+  tabsLaptop: { paddingHorizontal: 32, justifyContent: "center" },
   tab: {
-    height: 43,
+    height: 48,
     paddingHorizontal: 13,
     borderRadius: 16,
     flexDirection: "row",
@@ -885,6 +892,7 @@ const styles = StyleSheet.create({
     marginTop: 7,
   },
   content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
+  contentLaptop: { maxWidth: 1120, paddingHorizontal: 12 },
   pageResetFooter: {
     alignSelf: "center",
     marginVertical: 18,
