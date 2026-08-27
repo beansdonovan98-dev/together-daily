@@ -214,3 +214,4 @@
 - [x] Fix Rename & Sort, Weight Tracker, and Weight History card gradient inheritance.
 - [x] Remove Shared To-Do from Today.
 - [x] Add solid black outlines around cards and subsections across every page.
+- [x] Correct the gradient-inheriting color treatment of the Gradients & Fonts, Gradient Creator, Partner Profiles, and Page Descriptions cards.

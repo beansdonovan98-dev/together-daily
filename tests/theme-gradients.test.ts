@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PASTEL_THEMES, SAVED_THEMES } from "../lib/ready-made-themes";
@@ -19,5 +21,21 @@ describe("theme gradients", () => {
     const allThemes = [...SAVED_THEMES, ...PASTEL_THEMES];
     expect(allThemes.length).toBeGreaterThan(0);
     expect(allThemes.every((theme) => isThemeGradient(theme.gradient))).toBe(true);
+  });
+
+  it("keeps every Themes utility card transparent so the selected gradient stays visible", () => {
+    const cardFiles = [
+      "components/page-theme-editor.tsx",
+      "components/gradient-creator.tsx",
+      "components/partner-profiles-editor.tsx",
+      "components/page-descriptions-editor.tsx",
+    ];
+
+    for (const file of cardFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+      expect(source).toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "#000000", backgroundColor: "transparent"');
+      expect(source).toContain('body: { borderTopWidth: 1, borderTopColor: "#000000"');
+      expect(source).not.toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)", backgroundColor: "rgba(20,12,30,0.42)"');
+    }
   });
 });
