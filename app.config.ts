@@ -88,6 +88,18 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     [
+      "expo-font",
+      {
+        fonts: [
+          "./assets/fonts/Kalam-Regular.ttf",
+          "./assets/fonts/PatrickHand-Regular.ttf",
+          "./assets/fonts/Caveat-Variable.ttf",
+          "./assets/fonts/Bangers-Regular.ttf",
+          "./assets/fonts/CourierPrime-Regular.ttf",
+        ],
+      },
+    ],
+    [
       "expo-image-picker",
       {
         "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can share private memories and daily cover photos."

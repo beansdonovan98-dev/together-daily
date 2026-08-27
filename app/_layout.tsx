@@ -2,6 +2,7 @@ import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -20,6 +21,8 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { LocalJournalProvider } from "@/lib/local-journal";
+import { BUNDLED_FONT_RESOURCES } from "@/lib/font-resources";
+import { activeGlobalFontFamily } from "@/lib/typography";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -35,7 +38,7 @@ const forceWhiteTypography = (component: unknown, isInput = false) => {
   target.defaultProps = { ...target.defaultProps, style: whiteTextDefault, ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) };
   if (target[whiteTypographyPatch] || !target.render) return;
   const originalRender = target.render;
-  target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF" }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
+  target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF", fontFamily: activeGlobalFontFamily() }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
   target[whiteTypographyPatch] = true;
 };
 forceWhiteTypography(Text);
@@ -61,6 +64,7 @@ function usePartnerNotificationNavigation() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(BUNDLED_FONT_RESOURCES);
   usePartnerNotificationNavigation();
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
@@ -112,6 +116,8 @@ export default function RootLayout() {
       },
     };
   }, [initialInsets, initialFrame]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>

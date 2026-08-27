@@ -29,6 +29,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
+import { type FontPlatform, fontFamilyFor, normalizeGlobalFont, setActiveGlobalFont } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -140,34 +141,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
   );
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const selectedFont = customSubheadings.globalFont ?? "handwritten";
-  const webFontFamilies: Record<string, string> = {
-    handwritten: "cursive",
-    script: "'Brush Script MT', 'Segoe Script', cursive",
-    notebook: "'Bradley Hand', 'Segoe Print', cursive",
-    casual: "'Comic Sans MS', 'Chalkboard SE', cursive",
-    classic: "system-ui, sans-serif",
-    serif: "Georgia, serif",
-    mono: "monospace",
-  };
-  const nativeFontFamilies: Record<string, string> = {
-    handwritten: "cursive",
-    script: "cursive",
-    notebook: "cursive",
-    casual: "cursive",
-    classic: Platform.OS === "ios" ? "System" : "sans-serif",
-    serif: "serif",
-    mono: "monospace",
-  };
-  const fontFamily =
-    Platform.OS === "web"
-      ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
-      : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
+  const selectedFont = normalizeGlobalFont(customSubheadings.globalFont);
+  const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
+  setActiveGlobalFont(selectedFont, fontFamily);
   useEffect(() => {
-    const defaultStyle = { fontFamily };
-    (
-      Text as typeof Text & { defaultProps?: { style?: unknown } }
-    ).defaultProps = { style: defaultStyle };
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);

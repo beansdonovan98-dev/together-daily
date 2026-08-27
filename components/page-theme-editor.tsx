@@ -4,10 +4,9 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { useLocalJournal } from "@/lib/local-journal";
 import { PASTEL_THEMES, SAVED_THEMES, type ReadyMadeTheme } from "@/lib/ready-made-themes";
+import { FONT_OPTIONS, fontFamilyFor } from "@/lib/typography";
 
 const PRESETS: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_THEMES];
-
-const FONTS = [["handwritten", "Handwritten"], ["notebook", "Notebook"], ["casual", "Casual"], ["classic", "Classic"], ["serif", "Serif"], ["mono", "Mono"], ["comic", "Comic Sans"], ["typewriter", "Typewriter"]] as const;
 
 export function PageThemeEditor() {
   const { theme, setTheme, customSubheadings, setCustomSubheading } = useLocalJournal();
@@ -25,7 +24,7 @@ export function PageThemeEditor() {
       <Text style={styles.collectionLabel}>PASTEL GRADIENTS</Text><View style={styles.grid}>{PASTEL_THEMES.map((preset) => <TouchableOpacity key={preset.name} accessibilityRole="button" accessibilityLabel={`Preview ${preset.name}`} onPress={() => setDraft(preset)} style={[styles.preset, draft.name === preset.name && styles.selected]}><LinearGradient colors={preset.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.presetStrip}/><Text style={styles.presetName}>{preset.name}</Text></TouchableOpacity>)}</View>
       <TouchableOpacity accessibilityRole="button" onPress={apply} style={styles.apply}><Text style={styles.applyText}>Apply gradient to all pages</Text></TouchableOpacity>
       <Text style={styles.sectionLabel}>GLOBAL FONT</Text><Text style={styles.copy}>Your chosen font applies throughout the app.</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>{FONTS.map(([id, label]) => <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Use ${label} font`} onPress={() => setCustomSubheading("globalFont", id)} style={[styles.fontChip, activeFont === id && styles.fontChipSelected]}><Text style={styles.fontChipText}>{label}</Text></TouchableOpacity>)}</ScrollView>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>{FONT_OPTIONS.map(([id, label]) => <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Use ${label} font`} onPress={() => setCustomSubheading("globalFont", id)} style={[styles.fontChip, activeFont === id && styles.fontChipSelected]}><Text style={[styles.fontChipText, { fontFamily: fontFamilyFor(id) }]}>{label}</Text></TouchableOpacity>)}</ScrollView>
     </View> : null}
   </View>;
 }
