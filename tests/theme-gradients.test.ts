@@ -23,19 +23,28 @@ describe("theme gradients", () => {
     expect(allThemes.every((theme) => isThemeGradient(theme.gradient))).toBe(true);
   });
 
-  it("keeps every Themes utility card transparent so the selected gradient stays visible", () => {
+  it("keeps every Themes utility card transparent for both vivid and pastel gradients", () => {
     const cardFiles = [
       "components/page-theme-editor.tsx",
       "components/gradient-creator.tsx",
       "components/partner-profiles-editor.tsx",
       "components/page-descriptions-editor.tsx",
     ];
+    const gradientCases = [
+      { label: "vivid", theme: SAVED_THEMES[0] },
+      { label: "pastel", theme: PASTEL_THEMES[0] },
+    ];
 
-    for (const file of cardFiles) {
-      const source = readFileSync(resolve(process.cwd(), file), "utf8");
-      expect(source).toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "#000000", backgroundColor: "transparent"');
-      expect(source).toContain('body: { borderTopWidth: 1, borderTopColor: "#000000"');
-      expect(source).not.toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)", backgroundColor: "rgba(20,12,30,0.42)"');
+    for (const { label, theme } of gradientCases) {
+      expect(theme, `${label} test theme`).toBeDefined();
+      expect(isThemeGradient(theme.gradient), `${label} theme must be a valid gradient`).toBe(true);
+
+      for (const file of cardFiles) {
+        const source = readFileSync(resolve(process.cwd(), file), "utf8");
+        expect(source).toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "#000000", backgroundColor: "transparent"');
+        expect(source).toContain('body: { borderTopWidth: 1, borderTopColor: "#000000"');
+        expect(source).not.toContain('card: { borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)", backgroundColor: "rgba(20,12,30,0.42)"');
+      }
     }
   });
 });

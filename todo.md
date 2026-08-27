@@ -215,3 +215,5 @@
 - [x] Remove Shared To-Do from Today.
 - [x] Add solid black outlines around cards and subsections across every page.
 - [x] Correct the gradient-inheriting color treatment of the Gradients & Fonts, Gradient Creator, Partner Profiles, and Page Descriptions cards.
+- [x] Verify the four Themes cards with both a vivid and a pastel gradient selection.
+- [x] Verify the four Themes cards with both a vivid and a pastel gradient selection.
