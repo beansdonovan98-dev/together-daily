@@ -70,7 +70,12 @@ describe("theme gradients", () => {
 
     expect(appFrame).toContain("function revealGradientCardSurfaces");
     expect(appFrame).toContain("const isNativeView = element.type === View");
+    expect(appFrame).toContain('containerClassName="bg-transparent"');
+    expect(appFrame).toContain('backgroundColor: backgroundGradient ? "transparent" : backgroundColor');
     expect(appFrame).not.toContain("componentName");
+    expect(appFrame).not.toContain("applyTabCardColor");
+    expect(appFrame).not.toContain("borderColor: accentColor");
     expect(rootLayout).not.toContain("StyleSheet.create =");
+    expect(rootLayout).not.toContain("cardLike");
   });
 });

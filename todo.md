@@ -219,3 +219,5 @@
 - [x] Verify the four Themes cards with both a vivid and a pastel gradient selection.
 - [x] Repair iPhone/TestFlight theme rendering so active gradients and colors display smoothly instead of as blocky opaque surfaces.
 - [x] Repair iPhone/TestFlight theme rendering so active gradients and colors display smoothly instead of as blocky opaque surfaces.
+- [x] Remove the screenshot-confirmed black block layout and purple outline boxes from the iPhone/TestFlight theme rendering.
+- [x] Remove the screenshot-confirmed black block layout and purple outline boxes from the iPhone/TestFlight theme rendering.
