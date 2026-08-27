@@ -1,6 +1,7 @@
 export type DailySpark = {
   quote: string;
   joke: string;
+  riddle: { prompt: string; answer: string };
 };
 
 export const DAILY_QUOTES = [
@@ -15,14 +16,23 @@ export const DAILY_QUOTES = [
 ];
 
 export const DAILY_MATURE_JOKES = [
-  "Our relationship is built on trust, communication, and pretending neither of us saw the online shopping total.",
-  "We said we would go to bed early, then opened one tiny argument from 2017 and suddenly it was 1:30 AM.",
-  "We split chores fairly: one of us creates the mess, and one of us creates a spreadsheet about the mess.",
-  "Our love language is sending memes instead of discussing why we are both annoyed.",
-  "Date night is expensive, so we stared into the fridge and critiqued each other’s leftovers.",
-  "Romance is not dead; it is exhausted, under-caffeinated, and hiding from the laundry.",
-  "We tried couples yoga. Now we are both sore and suspicious of the person who said, ‘one more stretch.’",
-  "The secret to a long relationship is simple: apologize quickly, snack often, and do not start serious talks at bedtime.",
+  "We promised ‘in sickness and in health.’ Nobody said this included a 3 AM thermostat argument conducted like hostage negotiations.",
+  "Marriage is two people building a home, then taking turns being haunted by the other person’s laundry mountain.",
+  "Our communication is so advanced we can ruin each other’s mood with one sigh from the next room.",
+  "We address problems in this relationship. Then resurrect them, polish them, and invite them back to dinner.",
+  "Love is beautiful: you slowly realize their weird family is now your weird family with a group chat.",
+  "Date night: we got dressed up to sit across from each other in silence and calculate a tip.",
+  "We do not hold grudges. We file them alphabetically and review the archive whenever someone says, ‘Nothing’s wrong.’",
+  "We are soulmates. That is why our mutual exhaustion feels spiritually binding.",
+];
+
+export const DAILY_RIDDLES = [
+  { prompt: "What can fill a room but takes up no space?", answer: "Light." },
+  { prompt: "What has many keys but cannot open a single lock?", answer: "A piano." },
+  { prompt: "What gets wetter the more it dries?", answer: "A towel." },
+  { prompt: "What can travel around the world while staying in one corner?", answer: "A stamp." },
+  { prompt: "What has one eye but cannot see?", answer: "A needle." },
+  { prompt: "What has hands but cannot clap?", answer: "A clock." },
 ];
 
 function seedForDate(dateKey: string) {
@@ -32,10 +42,11 @@ function seedForDate(dateKey: string) {
   );
 }
 
-export function dailySparkFor(dateKey: string): DailySpark {
+export function dailySparkFor(dateKey: string, quoteOffset = 0): DailySpark {
   const seed = seedForDate(dateKey);
   return {
-    quote: DAILY_QUOTES[seed % DAILY_QUOTES.length],
+    quote: DAILY_QUOTES[(seed + quoteOffset) % DAILY_QUOTES.length],
     joke: DAILY_MATURE_JOKES[(seed * 3 + 1) % DAILY_MATURE_JOKES.length],
+    riddle: DAILY_RIDDLES[(seed * 5 + 2) % DAILY_RIDDLES.length],
   };
 }

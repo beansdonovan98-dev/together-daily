@@ -200,3 +200,7 @@
 - [x] Add a separate collection of lighter pastel gradient Themes.
 - [x] Fix card backgrounds so they visibly switch with the active theme gradient.
 - [x] Audit and refine responsive layout, scrolling, navigation, and controls for laptop browsers and Android devices.
+- [x] Move Relationship Tracker to the first card on Today.
+- [x] Make Quote of the Day switching reliably select a different quote.
+- [x] Replace the joke collection with darker, non-targeted adult humor.
+- [x] Add a riddle answer reveal with a flip-style animation.
