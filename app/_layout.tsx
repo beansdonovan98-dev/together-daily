@@ -20,7 +20,6 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { LocalJournalProvider } from "@/lib/local-journal";
-import { getActiveTypographyStyle } from "@/lib/typography";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -36,7 +35,7 @@ const forceWhiteTypography = (component: unknown, isInput = false) => {
   target.defaultProps = { ...target.defaultProps, style: handwrittenDefault, ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) };
   if (target[whiteTypographyPatch] || !target.render) return;
   const originalRender = target.render;
-  target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF", ...getActiveTypographyStyle() }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
+  target.render = (props, ref) => originalRender({ ...props, style: [props.style, { color: "#FFFFFF" }], ...(isInput ? { placeholderTextColor: "#FFFFFF" } : {}) }, ref);
   target[whiteTypographyPatch] = true;
 };
 forceWhiteTypography(Text);
@@ -47,7 +46,7 @@ StyleSheet.create = ((styles: Record<string, Record<string, unknown>>) => {
   const cardLike = /(card|section|panel|block|list|entry|task|habit|tracker|water|medicine|note|cover|weekly|daily|item|row)/i;
   const interactive = /(input|button|pill|badge|tab|swatch|avatar|control)/i;
   const handwrittenStyles = Object.fromEntries(Object.entries(styles).map(([name, style]) => {
-    const contentStyle = textStyleKeys.some((key) => key in style) ? { ...style, color: "#FFFFFF" } : style;
+    const contentStyle = textStyleKeys.some((key) => key in style) ? { ...style, color: "#FFFFFF", fontFamily: "cursive" } : style;
     return [name, cardLike.test(name) && !interactive.test(name) ? { ...contentStyle, backgroundColor: "transparent", borderWidth: 0, borderTopWidth: 0, borderRightWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderColor: "transparent", shadowColor: "transparent", shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 } : contentStyle];
   }));
   return originalCreate(handwrittenStyles);

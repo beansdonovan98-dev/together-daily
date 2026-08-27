@@ -12,11 +12,9 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import {
-  Animated,
   Linking,
   Platform,
   Pressable,
@@ -28,9 +26,7 @@ import {
   View,
 } from "react-native";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
-import { shouldApplyTabCardColor } from "@/lib/tab-card-colors";
 import { themeGradientColors } from "@/lib/theme-gradients";
-import { setActiveTypographyFont } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -44,7 +40,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function applyTabCardColor(node: ReactNode, color: string, accentColor: string): ReactNode {
+function applyTabCardColor(node: ReactNode, accentColor: string): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -53,21 +49,21 @@ function applyTabCardColor(node: ReactNode, color: string, accentColor: string):
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? applyTabCardColor(element.props.children, color, accentColor)
+      ? applyTabCardColor(element.props.children, accentColor)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
       | undefined;
     const nativeType = element.type as { displayName?: string; name?: string };
     const componentName = `${nativeType.displayName ?? ""} ${nativeType.name ?? ""}`;
-    const minHeight = Number(flatStyle?.minHeight ?? 0);
-    const compactTouchable = /Touchable|Pressable/i.test(componentName) && minHeight > 0 && minHeight <= 56 && Number(flatStyle?.padding ?? flatStyle?.paddingHorizontal ?? 0) <= 12;
-    const preservesOwnColor = compactTouchable || /TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
+    const preservesOwnColor = /TextInput|Image|LinearGradient|Svg|Icon/i.test(componentName);
     const tintSurface =
       !preservesOwnColor &&
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
-      shouldApplyTabCardColor(flatStyle);
+      Boolean(flatStyle.backgroundColor) &&
+      Number(flatStyle.borderRadius ?? 0) >= 8 &&
+      (Number(flatStyle.padding ?? flatStyle.paddingHorizontal ?? flatStyle.paddingVertical ?? 0) > 0 || flatStyle.overflow === "hidden");
     const hasInteractiveOutline =
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
@@ -78,7 +74,7 @@ function applyTabCardColor(node: ReactNode, color: string, accentColor: string):
     return cloneElement(element, {
       children: nextChildren,
       ...(tintSurface
-        ? { style: [element.props.style, { backgroundColor: color }] }
+        ? { style: [element.props.style, { backgroundColor: "transparent" }] }
         : hasInteractiveOutline
           ? { style: [element.props.style, { borderColor: accentColor }] }
           : {}),
@@ -86,7 +82,7 @@ function applyTabCardColor(node: ReactNode, color: string, accentColor: string):
   });
 }
 
-export function AppFrame({ children, previewGradient }: { children: ReactNode; previewGradient?: readonly string[] | null }) {
+export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const {
     roomCode,
@@ -128,18 +124,12 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
-  const pageBackgroundColor = currentPage.id === "log"
+  const backgroundColor =
+    currentPage.id === "log"
       ? (theme.backgroundColor ?? COLORS.blush)
-    : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
-  const pageGradient = themeGradientColors(pageStyle.backgroundGradient ?? theme.backgroundGradient);
-  const frameGradient = themeGradientColors(previewGradient ?? pageStyle.backgroundGradient ?? theme.backgroundGradient);
-  const frameBackgroundColor = previewGradient?.[0] ?? pageBackgroundColor;
-  const gradientKey = frameGradient?.join(",") ?? frameBackgroundColor;
-  const currentGradientRef = useRef(frameGradient);
-  const [previousGradient, setPreviousGradient] = useState<typeof frameGradient>(null);
-  const previousGradientOpacity = useRef(new Animated.Value(0)).current;
-  const scrollBackgroundColor = "transparent";
-  const cardBackgroundColor = "transparent";
+      : (pageStyle.backgroundColor ?? theme.backgroundColor ?? COLORS.blush);
+  const backgroundGradient = pageStyle.backgroundColor ? null : themeGradientColors(theme.backgroundGradient);
+  const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = customSubheadings.globalFont ?? "handwritten";
   const webFontFamilies: Record<string, string> = {
@@ -147,19 +137,15 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
     script: "'Brush Script MT', 'Segoe Script', cursive",
     notebook: "'Bradley Hand', 'Segoe Print', cursive",
     casual: "'Comic Sans MS', 'Chalkboard SE', cursive",
-    comicSans: "'Comic Sans MS', 'Comic Sans', cursive",
-    typewriter: "'Courier New', 'American Typewriter', monospace",
     classic: "system-ui, sans-serif",
     serif: "Georgia, serif",
     mono: "monospace",
   };
   const nativeFontFamilies: Record<string, string> = {
     handwritten: "cursive",
-    script: Platform.OS === "ios" ? "Snell Roundhand" : "serif",
+    script: "cursive",
     notebook: "cursive",
     casual: "cursive",
-    comicSans: "sans-serif",
-    typewriter: "monospace",
     classic: Platform.OS === "ios" ? "System" : "sans-serif",
     serif: "serif",
     mono: "monospace",
@@ -168,7 +154,6 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
     Platform.OS === "web"
       ? (webFontFamilies[selectedFont] ?? webFontFamilies.handwritten)
       : (nativeFontFamilies[selectedFont] ?? nativeFontFamilies.handwritten);
-  setActiveTypographyFont(fontFamily, selectedFont);
   useEffect(() => {
     const defaultStyle = { fontFamily };
     (
@@ -177,20 +162,6 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
-  useEffect(() => {
-    const priorGradient = currentGradientRef.current;
-    if ((priorGradient?.join(",") ?? frameBackgroundColor) === gradientKey) return;
-    currentGradientRef.current = frameGradient;
-    if (!priorGradient || !frameGradient) {
-      setPreviousGradient(null);
-      return;
-    }
-    setPreviousGradient(priorGradient);
-    previousGradientOpacity.setValue(1);
-    const transition = Animated.timing(previousGradientOpacity, { toValue: 0, duration: 260, useNativeDriver: true });
-    transition.start(() => setPreviousGradient(null));
-    return () => transition.stop();
-  }, [frameBackgroundColor, frameGradient, gradientKey, previousGradientOpacity]);
   const pageSurfaceStyle =
     cardStyle === "outlined"
       ? {
@@ -233,7 +204,7 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: applyTabCardColor(child.props.children, cardBackgroundColor, accentColor),
+          children: applyTabCardColor(child.props.children, accentColor),
       })
     : children;
 
@@ -327,9 +298,8 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
 
   return (
     <ScreenContainer containerClassName="bg-background" className="flex-1">
-      <View style={[styles.frame, { backgroundColor: frameBackgroundColor }]}>
-        {frameGradient ? <LinearGradient pointerEvents="none" colors={frameGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
-        {previousGradient ? <Animated.View pointerEvents="none" style={[styles.themeGradient, { opacity: previousGradientOpacity }]}><LinearGradient colors={previousGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : null}
+      <View style={[styles.frame, { backgroundColor }]}>
+        {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
         <View style={styles.topbar}>
           <View style={styles.brandRow}>
             <Text style={styles.brandMark}>♥</Text>
@@ -557,10 +527,7 @@ export function AppFrame({ children, previewGradient }: { children: ReactNode; p
           </View>
         ) : null}
         <View style={[styles.content, pageSurfaceStyle]}>
-          <View style={styles.pageContentLayer}>
-            {pageGradient ? <LinearGradient pointerEvents="none" colors={pageGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
-            {styledChildren}
-          </View>
+          {styledChildren}
           <TouchableOpacity
             accessibilityRole="button"
             onPress={() => resetPageStyle(currentPage.id)}
@@ -917,7 +884,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 7,
   },
-  content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" }, pageContentLayer: { flex: 1, width: "100%", overflow: "hidden" },
+  content: { flex: 1, width: "100%", maxWidth: 920, alignSelf: "center" },
   pageResetFooter: {
     alignSelf: "center",
     marginVertical: 18,
