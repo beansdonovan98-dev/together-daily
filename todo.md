@@ -231,4 +231,6 @@
 - [x] Fix iPhone status-bar contrast, make Invite Tools gradient-inheriting with white text, and black-outline the Quote, Joke, Riddle, Word, and Fact cards.
 - [x] Preview every selected gradient across the surrounding Themes page and apply selected gradients to every page by default.
 - [x] Preview every selected gradient across the surrounding Themes page and apply selected gradients to every page by default.
+- [x] Add a shared Themes font-color control, default it to pure white, and fix remaining black daily-content and Daddy/Princess text.
+- [x] Add a shared Themes font-color control, default it to pure white, and fix remaining black daily-content and Daddy/Princess text.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

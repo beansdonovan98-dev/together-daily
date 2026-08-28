@@ -12,6 +12,13 @@ export const FONT_OPTIONS = [
 export type GlobalFontId = (typeof FONT_OPTIONS)[number][0];
 export type FontPlatform = "ios" | "android" | "web";
 
+export const FONT_COLOR_OPTIONS = [
+  ["#FFFFFF", "White"],
+  ["#FFEAF4", "Soft blush"],
+  ["#E7F0FF", "Ice blue"],
+  ["#F3E8FF", "Soft lilac"],
+] as const;
+
 const CUSTOM_FONT_FAMILIES: Record<Exclude<GlobalFontId, "classic" | "serif" | "mono">, string> = {
   handwritten: "TogetherDaily-Handwritten",
   notebook: "TogetherDaily-Notebook",
@@ -21,6 +28,7 @@ const CUSTOM_FONT_FAMILIES: Record<Exclude<GlobalFontId, "classic" | "serif" | "
 };
 
 let activeGlobalFontFamilyName = "TogetherDaily-Handwritten";
+let activeGlobalTextColorValue = "#FFFFFF";
 
 export function normalizeGlobalFont(value: unknown): GlobalFontId {
   return FONT_OPTIONS.some(([id]) => id === value) ? value as GlobalFontId : "handwritten";
@@ -39,4 +47,16 @@ export function setActiveGlobalFont(fontId: GlobalFontId, fontFamily = fontFamil
 
 export function activeGlobalFontFamily(): string {
   return activeGlobalFontFamilyName;
+}
+
+export function normalizeGlobalTextColor(value: unknown): string {
+  return FONT_COLOR_OPTIONS.some(([color]) => color === value) ? String(value) : "#FFFFFF";
+}
+
+export function setActiveGlobalTextColor(color: string) {
+  activeGlobalTextColorValue = normalizeGlobalTextColor(color);
+}
+
+export function activeGlobalTextColor(): string {
+  return activeGlobalTextColorValue;
 }

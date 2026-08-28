@@ -30,7 +30,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
-import { type FontPlatform, fontFamilyFor, normalizeGlobalFont, setActiveGlobalFont } from "@/lib/typography";
+import { type FontPlatform, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -44,7 +44,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactNode {
+function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textColor: string): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -53,7 +53,7 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactN
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? revealGradientCardSurfaces(element.props.children, fontFamily)
+      ? revealGradientCardSurfaces(element.props.children, fontFamily, textColor)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
@@ -85,7 +85,7 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactN
             style: [
               element.props.style,
               {
-                color: "#FFFFFF",
+                color: textColor,
                 fontFamily,
                 ...(baseFontSize ? { fontSize: Math.round(baseFontSize * 1.16) } : {}),
                 ...(baseLineHeight ? { lineHeight: Math.round(baseLineHeight * 1.16) } : {}),
@@ -166,7 +166,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = normalizeGlobalFont(customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
+  const textColor = normalizeGlobalTextColor(theme.fontColor);
   setActiveGlobalFont(selectedFont, fontFamily);
+  setActiveGlobalTextColor(textColor);
   useEffect(() => {
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
@@ -213,7 +215,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: revealGradientCardSurfaces(child.props.children, fontFamily),
+          children: revealGradientCardSurfaces(child.props.children, fontFamily, textColor),
       })
     : children;
 
