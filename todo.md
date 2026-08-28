@@ -233,4 +233,6 @@
 - [x] Preview every selected gradient across the surrounding Themes page and apply selected gradients to every page by default.
 - [x] Add a shared Themes font-color control, default it to pure white, and fix remaining black daily-content and Daddy/Princess text.
 - [x] Add a shared Themes font-color control, default it to pure white, and fix remaining black daily-content and Daddy/Princess text.
+- [x] Make the shared Font Color control authoritative across Today, Health, Habits, and Daily Log, and replace remaining colored main-card and inner-section outlines with black.
+- [x] Make the shared Font Color control authoritative across Today, Health, Habits, and Daily Log, and replace remaining colored main-card and inner-section outlines with black.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

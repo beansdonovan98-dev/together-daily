@@ -83,6 +83,9 @@ describe("theme gradients", () => {
     expect(appFrame).toContain("function revealGradientCardSurfaces");
     expect(appFrame).toContain("const isNativeView = element.type === View");
     expect(appFrame).toContain("const isTextElement = element.type === Text || element.type === TextInput");
+    expect(appFrame).toContain("const hasRoundedOutline =");
+    expect(appFrame).toContain("Number(flatStyle.borderWidth ?? 0) > 0");
+    expect(appFrame).toContain("isCardSurface || hasRoundedOutline");
     expect(appFrame).toContain('color: "#FFFFFF",');
     expect(appFrame).toContain("fontFamily,");
     expect(appFrame).toContain("fontSize: Math.round(baseFontSize * 1.16)");

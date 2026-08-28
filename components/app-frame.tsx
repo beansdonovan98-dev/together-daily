@@ -77,7 +77,14 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textCol
       Number(flatStyle.borderRadius ?? 0) >= 8 &&
       (Number(flatStyle.padding ?? flatStyle.paddingHorizontal ?? flatStyle.paddingVertical ?? 0) > 0 || flatStyle.overflow === "hidden");
 
-    if (!isCardSurface && !isTextElement && nextChildren === element.props.children) return element;
+    const hasRoundedOutline =
+      isNativeView &&
+      element.props.testID !== "preserve-card-color" &&
+      flatStyle &&
+      Number(flatStyle.borderRadius ?? 0) >= 8 &&
+      Number(flatStyle.borderWidth ?? 0) > 0;
+
+    if (!isCardSurface && !hasRoundedOutline && !isTextElement && nextChildren === element.props.children) return element;
     return cloneElement(element, {
       children: nextChildren,
       ...(isTextElement
@@ -93,12 +100,12 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textCol
             ],
           }
         : {}),
-      ...(isCardSurface
+      ...(isCardSurface || hasRoundedOutline
         ? {
             style: [
               element.props.style,
               {
-                backgroundColor: "transparent",
+                ...(isCardSurface ? { backgroundColor: "transparent" } : {}),
                 borderColor: "#000000",
                 shadowOpacity: 0,
                 shadowRadius: 0,
