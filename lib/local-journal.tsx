@@ -72,7 +72,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     customSubheadings:state.customSubheadings??{},
     setCustomSubheading:(key,value)=>{const current=state.customSubheadings??{};const next={...current};const trimmed=value.trim();if(trimmed)next[key]=trimmed;else delete next[key];persist({...state,customSubheadings:next});},
     theme:state.theme??{},
-    setTheme:(patch)=>persist({...state,theme:{...(state.theme??{}),...patch}}),
+    setTheme:(patch)=>{const currentPageStyles=state.pageStyles??{};const pageStyles=patch.backgroundGradient?Object.fromEntries(Object.entries(currentPageStyles).map(([pageId,pageStyle])=>[pageId,{...pageStyle,backgroundColor:undefined,backgroundGradient:undefined}])):currentPageStyles;persist({...state,theme:{...(state.theme??{}),...patch},pageStyles});},
     pageStyles:state.pageStyles??{},
     setPageStyle:(pageId,patch)=>{const current=state.pageStyles??{};persist({...state,pageStyles:{...current,[pageId]:{...(current[pageId]??{}),...patch}}});},
     setPageStyles:(patches)=>{const current=state.pageStyles??{};const next={...current};Object.entries(patches).forEach(([pageId,patch])=>{next[pageId]={...(current[pageId]??{}),...patch};});persist({...state,pageStyles:next});},

@@ -229,4 +229,6 @@
 - [x] Make daily content and Daddy/Princess labels pure white, remove remaining Steamy dark card fills, and increase app-wide mobile text size.
 - [x] Fix iPhone status-bar contrast, make Invite Tools gradient-inheriting with white text, and black-outline the Quote, Joke, Riddle, Word, and Fact cards.
 - [x] Fix iPhone status-bar contrast, make Invite Tools gradient-inheriting with white text, and black-outline the Quote, Joke, Riddle, Word, and Fact cards.
+- [x] Preview every selected gradient across the surrounding Themes page and apply selected gradients to every page by default.
+- [x] Preview every selected gradient across the surrounding Themes page and apply selected gradients to every page by default.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

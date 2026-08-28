@@ -64,6 +64,18 @@ describe("theme gradients", () => {
     }
   });
 
+  it("previews selected gradients across Themes and clears older page overrides by default", () => {
+    const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+
+    expect(editor).toContain("const previewAcrossPages = (preset: ReadyMadeTheme)");
+    expect(editor).toContain("setTheme({ accentColor: preset.accent, backgroundColor: preset.background, backgroundGradient: [...preset.gradient] })");
+    expect(editor).toContain("preview it across this entire Themes page");
+    expect(editor).toContain("Keep this gradient on every page");
+    expect(journal).toContain("pageStyles=patch.backgroundGradient?Object.fromEntries");
+    expect(journal).toContain("backgroundGradient:undefined");
+  });
+
   it("does not rely on production-minified component names or global stylesheet rewrites", () => {
     const appFrame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
     const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
