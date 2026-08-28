@@ -225,4 +225,6 @@
 - [x] Embed distinct native font files so every Themes font choice visibly works in iPhone/TestFlight builds.
 - [x] Restore gradient-inheriting card surfaces and pure-white typography across Today, Cleaning, Habits, Health, Steamy, Past Days, and Themes in iPhone/TestFlight builds.
 - [x] Restore gradient-inheriting card surfaces and pure-white typography across Today, Cleaning, Habits, Health, Steamy, Past Days, and Themes in iPhone/TestFlight builds.
+- [x] Make daily content and Daddy/Princess labels pure white, remove remaining Steamy dark card fills, and increase app-wide mobile text size.
+- [x] Make daily content and Daddy/Princess labels pure white, remove remaining Steamy dark card fills, and increase app-wide mobile text size.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

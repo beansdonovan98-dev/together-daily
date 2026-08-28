@@ -60,6 +60,14 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactN
       | undefined;
     const isNativeView = element.type === View;
     const isTextElement = element.type === Text || element.type === TextInput;
+    const baseFontSize = typeof flatStyle?.fontSize === "number"
+      ? flatStyle.fontSize
+      : isTextElement
+        ? 14
+        : undefined;
+    const baseLineHeight = typeof flatStyle?.lineHeight === "number"
+      ? flatStyle.lineHeight
+      : undefined;
     const isCardSurface =
       isNativeView &&
       element.props.testID !== "preserve-card-color" &&
@@ -76,7 +84,12 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactN
         ? {
             style: [
               element.props.style,
-              { color: "#FFFFFF", fontFamily },
+              {
+                color: "#FFFFFF",
+                fontFamily,
+                ...(baseFontSize ? { fontSize: Math.round(baseFontSize * 1.16) } : {}),
+                ...(baseLineHeight ? { lineHeight: Math.round(baseLineHeight * 1.16) } : {}),
+              },
             ],
           }
         : {}),

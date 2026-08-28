@@ -71,7 +71,9 @@ describe("theme gradients", () => {
     expect(appFrame).toContain("function revealGradientCardSurfaces");
     expect(appFrame).toContain("const isNativeView = element.type === View");
     expect(appFrame).toContain("const isTextElement = element.type === Text || element.type === TextInput");
-    expect(appFrame).toContain('{ color: "#FFFFFF", fontFamily }');
+    expect(appFrame).toContain('color: "#FFFFFF",');
+    expect(appFrame).toContain("fontFamily,");
+    expect(appFrame).toContain("fontSize: Math.round(baseFontSize * 1.16)");
     expect(appFrame).toContain('containerClassName="bg-transparent"');
     expect(appFrame).toContain('backgroundColor: backgroundGradient ? "transparent" : backgroundColor');
     expect(appFrame).not.toContain("componentName");
@@ -79,6 +81,15 @@ describe("theme gradients", () => {
     expect(appFrame).not.toContain("borderColor: accentColor");
     expect(rootLayout).not.toContain("StyleSheet.create =");
     expect(rootLayout).not.toContain("cardLike");
+  });
+
+  it("keeps Steamy’s primary safe, chat, gallery, and log cards on the active gradient", () => {
+    const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
+
+    expect(steamy).toContain('const gradientCard = { backgroundColor: "transparent", borderColor: "#000000" }');
+    expect(steamy).toContain('style={[styles.safeCard, gradientCard]}');
+    expect((steamy.match(/style=\{\[styles\.card, gradientCard\]\}/g) ?? [])).toHaveLength(2);
+    expect(steamy).toContain('style={[styles.cumCard, gradientCard]}');
   });
 
   it("uses transparent shared tab-card surfaces with true-white shared text tokens", async () => {
