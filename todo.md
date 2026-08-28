@@ -243,4 +243,7 @@
 - [x] Repair the global Font Color setting so it visibly updates native app text everywhere.
 - [x] Add a daily Puzzle tab between Daily Log and Habits with Sudoku plus two rotating smaller puzzles in the shared app layout.
 - [x] Make the Health Period section optional with an in-app show/hide setting.
+- [ ] Identify why the latest saved checkpoint is not appearing in the installed TestFlight app and provide the required update path.
+- [ ] Verify and restore the current preview’s visibility of the Puzzle tab and latest saved app changes.
+- [x] Remove the dark fill from Daily Log’s “Make this event yours” section so it inherits the active gradient.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

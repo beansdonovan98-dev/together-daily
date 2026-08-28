@@ -184,4 +184,11 @@ describe("theme gradients", () => {
     expect(health).toContain("healthPeriodVisible ? periodTracker : null");
     expect(journal).toContain("healthPeriodVisible:state.healthPeriodVisible!==false");
   });
+
+  it("keeps the Daily Log event creator transparent above the active gradient", () => {
+    const dailyLog = readFileSync(resolve(process.cwd(), "app/(tabs)/log.tsx"), "utf8");
+
+    expect(dailyLog).toContain('composer: { backgroundColor: "transparent"');
+    expect(dailyLog).toContain('customPanel: { borderRadius: 12, backgroundColor: "transparent"');
+  });
 });
