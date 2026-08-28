@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { FONT_COLOR_OPTIONS, FONT_OPTIONS, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor } from "../lib/typography";
+import { BORDER_COLOR_OPTIONS, FONT_COLOR_OPTIONS, FONT_OPTIONS, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor } from "../lib/typography";
 
 describe("global typography", () => {
   const customFontIds = ["handwritten", "notebook", "casual", "comic", "typewriter"] as const;
@@ -25,6 +25,13 @@ describe("global typography", () => {
     expect(normalizeGlobalTextColor("#FFEAF4")).toBe("#FFEAF4");
     expect(normalizeGlobalTextColor("#000000")).toBe("#FFFFFF");
     expect(normalizeGlobalTextColor(undefined)).toBe("#FFFFFF");
+  });
+
+  it("defaults the shared border color to black and accepts only the Themes border choices", () => {
+    expect(BORDER_COLOR_OPTIONS[0]).toEqual(["#000000", "Black"]);
+    expect(normalizeGlobalBorderColor("#E454A7")).toBe("#E454A7");
+    expect(normalizeGlobalBorderColor("#123456")).toBe("#000000");
+    expect(normalizeGlobalBorderColor(undefined)).toBe("#000000");
   });
 
   it("bundles every decorative font and registers it with the Expo font plugin", () => {
@@ -55,5 +62,7 @@ describe("global typography", () => {
     expect(today).toContain('style={[styles.loveName, { color: textColor }]}');
     expect(editor).toContain("FONT COLOR");
     expect(editor).toContain("all app text, including Daddy and Princess labels");
+    expect(editor).toContain("BORDER COLOR");
+    expect(editor).toContain("every card, subsection, and nested habit item");
   });
 });

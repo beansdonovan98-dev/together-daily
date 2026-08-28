@@ -19,6 +19,14 @@ export const FONT_COLOR_OPTIONS = [
   ["#F3E8FF", "Soft lilac"],
 ] as const;
 
+export const BORDER_COLOR_OPTIONS = [
+  ["#000000", "Black"],
+  ["#FFFFFF", "White"],
+  ["#6A4E91", "Deep purple"],
+  ["#E454A7", "Berry pink"],
+  ["#D9B65D", "Gold"],
+] as const;
+
 const CUSTOM_FONT_FAMILIES: Record<Exclude<GlobalFontId, "classic" | "serif" | "mono">, string> = {
   handwritten: "TogetherDaily-Handwritten",
   notebook: "TogetherDaily-Notebook",
@@ -59,4 +67,8 @@ export function setActiveGlobalTextColor(color: string) {
 
 export function activeGlobalTextColor(): string {
   return activeGlobalTextColorValue;
+}
+
+export function normalizeGlobalBorderColor(value: unknown): string {
+  return BORDER_COLOR_OPTIONS.some(([color]) => color === value) ? String(value) : "#000000";
 }

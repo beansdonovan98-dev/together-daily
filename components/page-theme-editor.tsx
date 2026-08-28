@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { useLocalJournal } from "@/lib/local-journal";
 import { PASTEL_THEMES, SAVED_THEMES, type ReadyMadeTheme } from "@/lib/ready-made-themes";
-import { FONT_COLOR_OPTIONS, FONT_OPTIONS, fontFamilyFor, normalizeGlobalTextColor } from "@/lib/typography";
+import { BORDER_COLOR_OPTIONS, FONT_COLOR_OPTIONS, FONT_OPTIONS, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalTextColor } from "@/lib/typography";
 
 const PRESETS: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_THEMES];
 
@@ -14,6 +14,7 @@ export function PageThemeEditor() {
   const [draft, setDraft] = useState<ReadyMadeTheme>(() => PRESETS.find((preset) => preset.background === theme.backgroundColor) ?? PRESETS[0]);
   const activeFont = customSubheadings.globalFont ?? "handwritten";
   const activeFontColor = normalizeGlobalTextColor(theme.fontColor);
+  const activeBorderColor = normalizeGlobalBorderColor(theme.borderColor);
   const preview = useMemo(() => draft.gradient, [draft]);
   const previewAcrossPages = (preset: ReadyMadeTheme) => {
     setDraft(preset);
@@ -32,6 +33,8 @@ export function PageThemeEditor() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>{FONT_OPTIONS.map(([id, label]) => <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Use ${label} font`} onPress={() => setCustomSubheading("globalFont", id)} style={[styles.fontChip, activeFont === id && styles.fontChipSelected]}><Text style={[styles.fontChipText, { fontFamily: fontFamilyFor(id) }]}>{label}</Text></TouchableOpacity>)}</ScrollView>
       <Text style={styles.sectionLabel}>FONT COLOR</Text><Text style={styles.copy}>This color is used for all app text, including Daddy and Princess labels.</Text>
       <View style={styles.colorRow}>{FONT_COLOR_OPTIONS.map(([color, label]) => <TouchableOpacity key={color} accessibilityRole="button" accessibilityLabel={`Use ${label} font color`} onPress={() => setTheme({ fontColor: color })} style={[styles.colorChip, activeFontColor === color && styles.colorChipSelected]}><View style={[styles.colorSwatch, { backgroundColor: color }]} /><Text style={styles.colorChipLabel}>{label}</Text></TouchableOpacity>)}</View>
+      <Text style={styles.sectionLabel}>BORDER COLOR</Text><Text style={styles.copy}>This color outlines every card, subsection, and nested habit item. Black is the default.</Text>
+      <View style={styles.colorRow}>{BORDER_COLOR_OPTIONS.map(([color, label]) => <TouchableOpacity key={color} accessibilityRole="button" accessibilityLabel={`Use ${label} border color`} onPress={() => setTheme({ borderColor: color })} style={[styles.colorChip, activeBorderColor === color && styles.colorChipSelected]}><View style={[styles.colorSwatch, { backgroundColor: color }]} /><Text style={styles.colorChipLabel}>{label}</Text></TouchableOpacity>)}</View>
     </View> : null}
   </View>;
 }

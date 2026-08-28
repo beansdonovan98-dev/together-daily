@@ -235,4 +235,6 @@
 - [x] Add a shared Themes font-color control, default it to pure white, and fix remaining black daily-content and Daddy/Princess text.
 - [x] Make the shared Font Color control authoritative across Today, Health, Habits, and Daily Log, and replace remaining colored main-card and inner-section outlines with black.
 - [x] Make the shared Font Color control authoritative across Today, Health, Habits, and Daily Log, and replace remaining colored main-card and inner-section outlines with black.
+- [x] Add a shared Border Color control in Themes, default it to black, and apply it to every card, subsection, and nested habit item.
+- [x] Add a shared Border Color control in Themes, default it to black, and apply it to every card, subsection, and nested habit item.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

@@ -30,7 +30,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
-import { type FontPlatform, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
+import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -44,7 +44,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textColor: string): ReactNode {
+function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textColor: string, borderColor: string): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -53,7 +53,7 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textCol
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? revealGradientCardSurfaces(element.props.children, fontFamily, textColor)
+      ? revealGradientCardSurfaces(element.props.children, fontFamily, textColor, borderColor)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
@@ -78,7 +78,6 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textCol
       (Number(flatStyle.padding ?? flatStyle.paddingHorizontal ?? flatStyle.paddingVertical ?? 0) > 0 || flatStyle.overflow === "hidden");
 
     const hasRoundedOutline =
-      isNativeView &&
       element.props.testID !== "preserve-card-color" &&
       flatStyle &&
       Number(flatStyle.borderRadius ?? 0) >= 8 &&
@@ -106,7 +105,7 @@ function revealGradientCardSurfaces(node: ReactNode, fontFamily: string, textCol
               element.props.style,
               {
                 ...(isCardSurface ? { backgroundColor: "transparent" } : {}),
-                borderColor: "#000000",
+                borderColor,
                 shadowOpacity: 0,
                 shadowRadius: 0,
                 shadowOffset: { width: 0, height: 0 },
@@ -174,6 +173,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const selectedFont = normalizeGlobalFont(customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
   const textColor = normalizeGlobalTextColor(theme.fontColor);
+  const borderColor = normalizeGlobalBorderColor(theme.borderColor);
   setActiveGlobalFont(selectedFont, fontFamily);
   setActiveGlobalTextColor(textColor);
   useEffect(() => {
@@ -222,7 +222,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: revealGradientCardSurfaces(child.props.children, fontFamily, textColor),
+          children: revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
       })
     : children;
 
