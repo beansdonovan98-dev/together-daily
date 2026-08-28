@@ -79,6 +79,7 @@ describe("theme gradients", () => {
   it("does not rely on production-minified component names or global stylesheet rewrites", () => {
     const appFrame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
     const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
+    const tabManager = readFileSync(resolve(process.cwd(), "components/tab-manager.tsx"), "utf8");
 
     expect(appFrame).toContain("function revealGradientCardSurfaces");
     expect(appFrame).toContain("const isNativeView = element.type === View");
@@ -88,6 +89,10 @@ describe("theme gradients", () => {
     expect(appFrame).toContain("isCardSurface || hasRoundedOutline");
     expect(appFrame).toContain("const borderColor = normalizeGlobalBorderColor(theme.borderColor)");
     expect(appFrame).toContain("borderColor,");
+    expect(tabManager).toContain("const textColor = normalizeGlobalTextColor(theme.fontColor)");
+    expect(tabManager).toContain("const borderColor = normalizeGlobalBorderColor(theme.borderColor)");
+    expect(tabManager).toContain("borderTopColor: borderColor");
+    expect(tabManager).toContain("style={[styles.kicker, { color: textColor }]}");
     expect(appFrame).toContain('color: "#FFFFFF",');
     expect(appFrame).toContain("fontFamily,");
     expect(appFrame).toContain("fontSize: Math.round(baseFontSize * 1.16)");

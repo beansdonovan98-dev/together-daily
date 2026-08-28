@@ -237,4 +237,6 @@
 - [x] Make the shared Font Color control authoritative across Today, Health, Habits, and Daily Log, and replace remaining colored main-card and inner-section outlines with black.
 - [x] Add a shared Border Color control in Themes, default it to black, and apply it to every card, subsection, and nested habit item.
 - [x] Add a shared Border Color control in Themes, default it to black, and apply it to every card, subsection, and nested habit item.
+- [x] Make Font Color update visible Themes labels and replace residual purple Rename & Sort option outlines with the selected Border Color.
+- [x] Repair Font Color and Border Color as genuine global settings that visibly apply to every label and bordered item on iPhone.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.
