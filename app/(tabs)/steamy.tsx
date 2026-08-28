@@ -7,7 +7,8 @@ import * as ImagePicker from "expo-image-picker";
 import { preparePickedImageForUpload } from "@/lib/media-base64";
 import { Image as ExpoImage } from "expo-image";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet } from "react-native";
+import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 function mime(value?: string | null, fileName?: string | null): "image/jpeg" | "image/png" | "image/webp" | "image/gif" { if (value === "image/png" || value === "image/webp" || value === "image/gif") return value; return fileName?.toLowerCase().endsWith(".gif") ? "image/gif" : "image/jpeg"; }
 export default function SteamyScreen() { return <PrivateGate>{({ userId }) => <SteamyContent userId={userId} />}</PrivateGate>; }

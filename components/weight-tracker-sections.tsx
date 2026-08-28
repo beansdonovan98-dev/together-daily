@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 import { WeightHistoryGraph, type WeightPoint } from "@/components/weight-history-graph";
 import { PARTNERS, type PartnerId } from "@/lib/local-journal";

@@ -1,5 +1,6 @@
 import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { VisualText as Text, VisualView as View } from "@/components/visual-primitives";
 
 import { COLORS } from "@/lib/together";
 import { PARTNERS, type PartnerId } from "@/lib/local-journal";

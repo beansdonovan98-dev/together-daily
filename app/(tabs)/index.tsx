@@ -9,7 +9,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { preparePickedImageForUpload } from "@/lib/media-base64";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Animated, Image, ScrollView, StyleSheet } from "react-native";
+import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
 const COLORS = {

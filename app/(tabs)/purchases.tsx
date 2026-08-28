@@ -3,7 +3,8 @@ import { PrivateGate } from "@/components/together-access";
 import { COLORS, TAB_CARD_PALETTES } from "@/lib/together";
 import { PARTNERS, type PartnerId, type PurchaseCategory, useLocalJournal } from "@/lib/local-journal";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
+import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const CATEGORIES: { key: PurchaseCategory; title: string; kicker: string; emoji: string; color: string; placeholder: string }[] = [
   { key: "groceries", title: "Groceries", kicker: "KITCHEN & FOOD", emoji: "🛒", color: "#8CBF8C", placeholder: "Add a grocery item" },

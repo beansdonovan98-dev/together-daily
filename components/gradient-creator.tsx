@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { VisualText as Text, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { useLocalJournal } from "@/lib/local-journal";

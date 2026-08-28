@@ -3,7 +3,8 @@ import { COLORS } from "@/lib/together";
 import { ScreenContainer } from "@/components/screen-container";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 type PrivateGateProps={children:(access:{userId:PartnerId;memberName:string;coupleName:string;inviteCode:string;memberCount:number})=>ReactNode};
 

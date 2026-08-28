@@ -6,7 +6,8 @@ import { PageThemeEditor } from "@/components/page-theme-editor";
 import { TabManager } from "@/components/tab-manager";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
+import { VisualText as Text, VisualView as View } from "@/components/visual-primitives";
 
 export default function ThemesScreen() {
   return <PrivateGate>{() => <ThemesContent />}</PrivateGate>;

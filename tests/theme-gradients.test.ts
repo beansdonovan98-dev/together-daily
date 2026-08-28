@@ -133,4 +133,39 @@ describe("theme gradients", () => {
     expect(appFrame).toContain('invitePanelKicker: {\n    color: "#FFFFFF"');
     expect(today).toContain('dailySparkCard: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 15, gap: 8, borderWidth: 2, borderColor: "#000000" }');
   });
+
+  it("routes all primary pages and shared card sections through the global visual primitives", () => {
+    const primitives = readFileSync(resolve(process.cwd(), "components/visual-primitives.tsx"), "utf8");
+    const files = [
+      "app/(tabs)/index.tsx",
+      "app/(tabs)/log.tsx",
+      "app/(tabs)/habits.tsx",
+      "app/(tabs)/health.tsx",
+      "app/(tabs)/cleaning.tsx",
+      "app/(tabs)/days.tsx",
+      "app/(tabs)/memories.tsx",
+      "app/(tabs)/purchases.tsx",
+      "app/(tabs)/steamy.tsx",
+      "app/(tabs)/themes.tsx",
+      "components/page-theme-editor.tsx",
+      "components/gradient-creator.tsx",
+      "components/partner-profiles-editor.tsx",
+      "components/page-descriptions-editor.tsx",
+      "components/tab-manager.tsx",
+      "components/together-access.tsx",
+      "components/weight-tracker-sections.tsx",
+      "components/weight-history-graph.tsx",
+    ];
+
+    expect(primitives).toContain("normalizeGlobalTextColor(theme.fontColor)");
+    expect(primitives).toContain("normalizeGlobalBorderColor(theme.borderColor)");
+    expect(primitives).toContain("borderLeftColor: borderColor");
+    expect(primitives).toContain("export function VisualText");
+    expect(primitives).toContain("export function VisualView");
+
+    for (const file of files) {
+      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+      expect(source, file).toContain("@/components/visual-primitives");
+    }
+  });
 });

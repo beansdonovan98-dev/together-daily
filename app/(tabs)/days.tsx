@@ -5,7 +5,8 @@ import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { tabCardColorFromStyles } from "@/lib/tab-card-colors";
 import { useEffect, useMemo, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet } from "react-native";
+import { VisualText as Text, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const AFFECTION = [
   { key: "hugs", icon: "🤗", label: "Hugs" },
