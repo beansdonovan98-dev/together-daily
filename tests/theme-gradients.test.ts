@@ -70,6 +70,8 @@ describe("theme gradients", () => {
 
     expect(appFrame).toContain("function revealGradientCardSurfaces");
     expect(appFrame).toContain("const isNativeView = element.type === View");
+    expect(appFrame).toContain("const isTextElement = element.type === Text || element.type === TextInput");
+    expect(appFrame).toContain('{ color: "#FFFFFF", fontFamily }');
     expect(appFrame).toContain('containerClassName="bg-transparent"');
     expect(appFrame).toContain('backgroundColor: backgroundGradient ? "transparent" : backgroundColor');
     expect(appFrame).not.toContain("componentName");
@@ -77,5 +79,13 @@ describe("theme gradients", () => {
     expect(appFrame).not.toContain("borderColor: accentColor");
     expect(rootLayout).not.toContain("StyleSheet.create =");
     expect(rootLayout).not.toContain("cardLike");
+  });
+
+  it("uses transparent shared tab-card surfaces with true-white shared text tokens", async () => {
+    const palette = await import("../lib/together");
+
+    expect(Object.values(palette.TAB_CARD_PALETTES).every((card) => card.surface === "transparent")).toBe(true);
+    expect(palette.COLORS.slate).toBe("#FFFFFF");
+    expect(palette.COLORS.white).toBe("#FFFFFF");
   });
 });

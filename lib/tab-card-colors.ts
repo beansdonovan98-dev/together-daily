@@ -7,9 +7,9 @@ export const TAB_CARD_IDS = Object.keys(TAB_CARD_PALETTES) as TabCardId[];
 export const TAB_CARD_HEX = /^#[0-9A-Fa-f]{6}$/;
 
 export function resolveTabCardColor(tabId: TabCardId, color?: string) {
-  return color && TAB_CARD_HEX.test(color)
-    ? color.toUpperCase()
-    : TAB_CARD_PALETTES[tabId].surface;
+  void tabId;
+  void color;
+  return "transparent";
 }
 
 export function tabCardColorFromStyles(pageStyles: TabCardStyleMap, tabId: TabCardId) {

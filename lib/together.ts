@@ -6,23 +6,23 @@ export const COLORS = {
   lavender: "#21142B",
   sage: "#53C58D",
   gold: "#D9B45F",
-  slate: "#ADA3B1",
-  white: "#151217",
+  slate: "#FFFFFF",
+  white: "#FFFFFF",
   border: "#302833",
   surface: "#1A161D",
   ink: "#0E0C10",
 };
 
 export const TAB_CARD_PALETTES = {
-  today: { surface: "#1C1425", border: "#553D63" },
-  log: { surface: "#211529", border: "#62426F" },
-  habits: { surface: "#17251D", border: "#3F6A50" },
-  health: { surface: "#101F2D", border: "#365F82" },
-  steamy: { surface: "#210E18", border: "#6E2D48" },
-  purchase: { surface: "#241B10", border: "#6B5530" },
-  cleaning: { surface: "#14231D", border: "#426555" },
-  themes: { surface: "#1B152B", border: "#5B4780" },
-  pastDays: { surface: "#21172A", border: "#62456D" },
+  today: { surface: "transparent", border: "#000000" },
+  log: { surface: "transparent", border: "#000000" },
+  habits: { surface: "transparent", border: "#000000" },
+  health: { surface: "transparent", border: "#000000" },
+  steamy: { surface: "transparent", border: "#000000" },
+  purchase: { surface: "transparent", border: "#000000" },
+  cleaning: { surface: "transparent", border: "#000000" },
+  themes: { surface: "transparent", border: "#000000" },
+  pastDays: { surface: "transparent", border: "#000000" },
 } as const;
 
 export function localDateKey(date = new Date()) {

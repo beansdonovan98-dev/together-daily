@@ -10,16 +10,16 @@ import {
   tabCardColorStylePatches,
 } from "../lib/tab-card-colors";
 
-describe("per-tab card colors", () => {
-  it("provides one valid default color for every navigation tab", () => {
+describe("gradient-revealing tab card surfaces", () => {
+  it("keeps every navigation tab's primary cards transparent", () => {
     expect(TAB_CARD_IDS).toHaveLength(9);
     for (const tabId of TAB_CARD_IDS) {
       expect(resolveTabCardColor(tabId)).toBe(TAB_CARD_PALETTES[tabId].surface);
-      expect(resolveTabCardColor(tabId)).toMatch(/^#[0-9A-F]{6}$/);
+      expect(resolveTabCardColor(tabId)).toBe("transparent");
     }
   });
 
-  it("keeps each custom tab color independent", () => {
+  it("ignores old saved card-fill colors so they cannot cover the active gradient", () => {
     const pageStyles = {
       today: { cardBackgroundColor: "#123456" },
       health: { cardBackgroundColor: "#234567" },
@@ -27,22 +27,22 @@ describe("per-tab card colors", () => {
     };
     const colors = tabCardColorDrafts(pageStyles);
 
-    expect(colors.today).toBe("#123456");
-    expect(colors.health).toBe("#234567");
-    expect(colors.themes).toBe("#345678");
-    expect(colors.cleaning).toBe(TAB_CARD_PALETTES.cleaning.surface);
+    expect(colors.today).toBe("transparent");
+    expect(colors.health).toBe("transparent");
+    expect(colors.themes).toBe("transparent");
+    expect(colors.cleaning).toBe("transparent");
   });
 
-  it("falls back to the tab default when a saved value is malformed", () => {
+  it("does not reveal an opaque fill when a saved value is malformed", () => {
     expect(
       tabCardColorFromStyles(
         { steamy: { cardBackgroundColor: "not-a-color" } },
         "steamy",
       ),
-    ).toBe(TAB_CARD_PALETTES.steamy.surface);
+    ).toBe("transparent");
   });
 
-  it("builds one valid save patch for every tab without dropping earlier choices", () => {
+  it("builds transparent save patches for every tab", () => {
     const patches = tabCardColorStylePatches({
       today: "#102030",
       health: "#204060",
@@ -50,10 +50,10 @@ describe("per-tab card colors", () => {
     });
 
     expect(Object.keys(patches)).toEqual(TAB_CARD_IDS);
-    expect(patches.today.cardBackgroundColor).toBe("#102030");
-    expect(patches.health.cardBackgroundColor).toBe("#204060");
-    expect(patches.themes.cardBackgroundColor).toBe("#603080");
-    expect(patches.habits.cardBackgroundColor).toBe(TAB_CARD_PALETTES.habits.surface);
+    expect(patches.today.cardBackgroundColor).toBe("transparent");
+    expect(patches.health.cardBackgroundColor).toBe("transparent");
+    expect(patches.themes.cardBackgroundColor).toBe("transparent");
+    expect(patches.habits.cardBackgroundColor).toBe("transparent");
   });
 
   it("targets card surfaces without recoloring compact controls", () => {

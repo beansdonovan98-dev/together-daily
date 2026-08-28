@@ -223,3 +223,6 @@
 - [x] Remove the screenshot-confirmed black block layout and purple outline boxes from the iPhone/TestFlight theme rendering.
 - [x] Embed distinct native font files so every Themes font choice visibly works in iPhone/TestFlight builds.
 - [x] Embed distinct native font files so every Themes font choice visibly works in iPhone/TestFlight builds.
+- [x] Restore gradient-inheriting card surfaces and pure-white typography across Today, Cleaning, Habits, Health, Steamy, Past Days, and Themes in iPhone/TestFlight builds.
+- [x] Restore gradient-inheriting card surfaces and pure-white typography across Today, Cleaning, Habits, Health, Steamy, Past Days, and Themes in iPhone/TestFlight builds.
+- [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

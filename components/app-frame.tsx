@@ -22,6 +22,7 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -43,7 +44,7 @@ const NAVIGATION = [
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
 
-function revealGradientCardSurfaces(node: ReactNode): ReactNode {
+function revealGradientCardSurfaces(node: ReactNode, fontFamily: string): ReactNode {
   return Children.map(node, (entry) => {
     if (!isValidElement(entry)) return entry;
     const element = entry as ReactElement<{
@@ -52,12 +53,13 @@ function revealGradientCardSurfaces(node: ReactNode): ReactNode {
       testID?: string;
     }>;
     const nextChildren = element.props.children
-      ? revealGradientCardSurfaces(element.props.children)
+      ? revealGradientCardSurfaces(element.props.children, fontFamily)
       : element.props.children;
     const flatStyle = StyleSheet.flatten(element.props.style as never) as
       | Record<string, unknown>
       | undefined;
     const isNativeView = element.type === View;
+    const isTextElement = element.type === Text || element.type === TextInput;
     const isCardSurface =
       isNativeView &&
       element.props.testID !== "preserve-card-color" &&
@@ -67,9 +69,17 @@ function revealGradientCardSurfaces(node: ReactNode): ReactNode {
       Number(flatStyle.borderRadius ?? 0) >= 8 &&
       (Number(flatStyle.padding ?? flatStyle.paddingHorizontal ?? flatStyle.paddingVertical ?? 0) > 0 || flatStyle.overflow === "hidden");
 
-    if (!isCardSurface && nextChildren === element.props.children) return element;
+    if (!isCardSurface && !isTextElement && nextChildren === element.props.children) return element;
     return cloneElement(element, {
       children: nextChildren,
+      ...(isTextElement
+        ? {
+            style: [
+              element.props.style,
+              { color: "#FFFFFF", fontFamily },
+            ],
+          }
+        : {}),
       ...(isCardSurface
         ? {
             style: [
@@ -190,7 +200,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: revealGradientCardSurfaces(child.props.children),
+          children: revealGradientCardSurfaces(child.props.children, fontFamily),
       })
     : children;
 
