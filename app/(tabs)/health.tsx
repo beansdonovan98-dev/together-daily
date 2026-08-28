@@ -52,7 +52,7 @@ export default function HealthScreen() {
 }
 function HealthContent({ userId }: { userId: PartnerId }) {
   const today = localDateKey();
-  const { ready, ensureDay, getDay, updateDay, allDays } =
+  const { ready, ensureDay, getDay, updateDay, allDays, healthPeriodVisible, setHealthPeriodVisible } =
     useLocalJournal();
   const [taskDraft, setTaskDraft] = useState("");
   const [medicineDraft, setMedicineDraft] = useState("");
@@ -556,7 +556,15 @@ function HealthContent({ userId }: { userId: PartnerId }) {
           </View>
         </View>
         <WeightTrackerSections userId={userId} today={today} day={day} allDays={allDays} updateDay={updateDay} />
-        {periodTracker}
+        <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
+          <Text style={styles.kicker}>OPTIONAL SECTION</Text>
+          <Text style={styles.title}>Period tracker</Text>
+          <Text style={styles.copy}>Keep this private section visible only when it is useful.</Text>
+          <TouchableOpacity accessibilityRole="button" onPress={() => setHealthPeriodVisible(!healthPeriodVisible)} style={styles.add}>
+            <Text style={styles.addText}>{healthPeriodVisible ? "Hide period tracker" : "Show period tracker"}</Text>
+          </TouchableOpacity>
+        </View>
+        {healthPeriodVisible ? periodTracker : null}
       </ScrollView>
     </AppFrame>
   );

@@ -139,6 +139,7 @@ describe("theme gradients", () => {
     const files = [
       "app/(tabs)/index.tsx",
       "app/(tabs)/log.tsx",
+      "app/(tabs)/puzzles.tsx",
       "app/(tabs)/habits.tsx",
       "app/(tabs)/health.tsx",
       "app/(tabs)/cleaning.tsx",
@@ -167,5 +168,20 @@ describe("theme gradients", () => {
       const source = readFileSync(resolve(process.cwd(), file), "utf8");
       expect(source, file).toContain("@/components/visual-primitives");
     }
+  });
+
+  it("keeps Puzzles after Daily Log and preserves an optional shared Health Period section", () => {
+    const frame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
+    const tabManager = readFileSync(resolve(process.cwd(), "components/tab-manager.tsx"), "utf8");
+    const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+
+    expect(frame.indexOf('id: "log"')).toBeLessThan(frame.indexOf('id: "puzzles"'));
+    expect(frame.indexOf('id: "puzzles"')).toBeLessThan(frame.indexOf('id: "habits"'));
+    expect(tabManager.indexOf('id: "log"')).toBeLessThan(tabManager.indexOf('id: "puzzles"'));
+    expect(tabManager.indexOf('id: "puzzles"')).toBeLessThan(tabManager.indexOf('id: "habits"'));
+    expect(health).toContain("setHealthPeriodVisible(!healthPeriodVisible)");
+    expect(health).toContain("healthPeriodVisible ? periodTracker : null");
+    expect(journal).toContain("healthPeriodVisible:state.healthPeriodVisible!==false");
   });
 });

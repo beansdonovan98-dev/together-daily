@@ -240,4 +240,7 @@
 - [x] Make Font Color update visible Themes labels and replace residual purple Rename & Sort option outlines with the selected Border Color.
 - [x] Repair Font Color and Border Color as genuine global settings that visibly apply to every label and bordered item on iPhone.
 - [x] Replace the partial Font Color and Border Color wiring with a shared visual settings layer consumed by every page and nested component.
+- [x] Repair the global Font Color setting so it visibly updates native app text everywhere.
+- [x] Add a daily Puzzle tab between Daily Log and Habits with Sudoku plus two rotating smaller puzzles in the shared app layout.
+- [x] Make the Health Period section optional with an in-app show/hide setting.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

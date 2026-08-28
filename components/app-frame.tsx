@@ -35,6 +35,7 @@ import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalize
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
   { id: "log", href: "/log", label: "Daily Log", glyph: "☰" },
+  { id: "puzzles", href: "/puzzles", label: "Puzzles", glyph: "▦" },
   { id: "habits", href: "/habits", label: "Habits", glyph: "✓" },
   { id: "health", href: "/health", label: "Health", glyph: "✚" },
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
@@ -149,9 +150,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const roomInviteLink = roomCode
     ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}`
     : "";
+  const normalizedTabOrder = tabOrder.includes("puzzles")
+    ? tabOrder
+    : (() => {
+        const next = [...tabOrder];
+        const logIndex = next.indexOf("log");
+        next.splice(logIndex >= 0 ? logIndex + 1 : 0, 0, "puzzles");
+        return next;
+      })();
   const orderedNavigation = [
-    ...tabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)),
-    ...NAVIGATION.map((item) => item.id).filter((id) => !tabOrder.includes(id)),
+    ...normalizedTabOrder.filter((id) => NAVIGATION.some((item) => item.id === id)),
+    ...NAVIGATION.map((item) => item.id).filter((id) => !normalizedTabOrder.includes(id)),
   ]
     .map((id) => NAVIGATION.find((item) => item.id === id)!)
     .filter(Boolean);
