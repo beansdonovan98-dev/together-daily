@@ -227,4 +227,6 @@
 - [x] Restore gradient-inheriting card surfaces and pure-white typography across Today, Cleaning, Habits, Health, Steamy, Past Days, and Themes in iPhone/TestFlight builds.
 - [x] Make daily content and Daddy/Princess labels pure white, remove remaining Steamy dark card fills, and increase app-wide mobile text size.
 - [x] Make daily content and Daddy/Princess labels pure white, remove remaining Steamy dark card fills, and increase app-wide mobile text size.
+- [x] Fix iPhone status-bar contrast, make Invite Tools gradient-inheriting with white text, and black-outline the Quote, Joke, Riddle, Word, and Fact cards.
+- [x] Fix iPhone status-bar contrast, make Invite Tools gradient-inheriting with white text, and black-outline the Quote, Joke, Riddle, Word, and Fact cards.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

@@ -132,7 +132,7 @@ export default function RootLayout() {
               <Stack.Screen name="oauth/callback" />
             </Stack>
           </LocalJournalProvider>
-          <StatusBar style="auto" />
+          <StatusBar style="light" animated />
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>

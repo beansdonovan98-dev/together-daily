@@ -306,7 +306,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ScreenContainer containerClassName="bg-transparent" className="flex-1">
+    <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
         <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
@@ -491,12 +491,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
                       },
                     ]}
                   />
-                  <Text
-                    style={[
-                      styles.connectionText,
-                      partnerConnected && { color: partnerToInvite.color },
-                    ]}
-                  >
+                  <Text style={styles.connectionText}>
                     {partnerConnected
                       ? `${partnerToInvite.name.toUpperCase()} CONNECTED`
                       : `WAITING FOR ${partnerToInvite.name.toUpperCase()}`}
@@ -733,8 +728,8 @@ const styles = StyleSheet.create({
   invitePanelHeader: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#3D2E43",
-    backgroundColor: "#171218",
+    borderColor: "#000000",
+    backgroundColor: "transparent",
     minHeight: 48,
     paddingHorizontal: 12,
     flexDirection: "row",
@@ -743,18 +738,18 @@ const styles = StyleSheet.create({
   },
   invitePanelLead: { gap: 2 },
   invitePanelKicker: {
-    color: COLORS.gold,
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: "900",
     letterSpacing: 1.1,
   },
   invitePanelMeta: {
-    color: COLORS.slate,
+    color: "#FFFFFF",
     fontSize: 10,
     fontFamily: "monospace",
   },
   invitePanelChevron: {
-    color: COLORS.plum,
+    color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "900",
     paddingHorizontal: 4,
@@ -762,8 +757,8 @@ const styles = StyleSheet.create({
   invitePanelBody: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#2F2535",
-    backgroundColor: "#121014",
+    borderColor: "#000000",
+    backgroundColor: "transparent",
     padding: 10,
     gap: 9,
   },
@@ -772,18 +767,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderRadius: 9,
-    backgroundColor: "#1B171D",
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#000000",
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
   roomCodeLabel: {
-    color: COLORS.slate,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.9,
   },
   roomCodeValue: {
-    color: COLORS.gold,
+    color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "900",
     letterSpacing: 1.3,
@@ -802,7 +799,7 @@ const styles = StyleSheet.create({
   },
   connectionDot: { width: 7, height: 7, borderRadius: 4 },
   connectionText: {
-    color: COLORS.gold,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.8,
@@ -822,7 +819,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   inviteActionText: {
-    color: COLORS.gold,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.7,
@@ -832,7 +829,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(141,91,166,0.15)",
   },
   shareActionText: {
-    color: COLORS.plum,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.7,
@@ -842,7 +839,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(102,183,221,0.10)",
   },
   copyInviteText: {
-    color: "#9FD5F0",
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.7,
@@ -852,7 +849,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(213,107,136,0.12)",
   },
   qrActionText: {
-    color: PARTNERS.princess.color,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.7,
@@ -862,7 +859,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(144,185,157,0.10)",
   },
   alertActionText: {
-    color: COLORS.sage,
+    color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.7,
@@ -872,25 +869,25 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: 14,
     padding: 12,
-    backgroundColor: "#171218",
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#3D2E43",
+    borderColor: "#000000",
     flexDirection: "row",
     gap: 13,
     alignItems: "center",
   },
   qrCodeWrap: { borderRadius: 10, backgroundColor: "#FFF9F6", padding: 8 },
   qrCopy: { flex: 1 },
-  qrTitle: { color: COLORS.plum, fontSize: 14, fontWeight: "900" },
+  qrTitle: { color: "#FFFFFF", fontSize: 14, fontWeight: "900" },
   qrText: {
-    color: COLORS.slate,
+    color: "#FFFFFF",
     fontSize: 10,
     lineHeight: 15,
     marginTop: 4,
     fontFamily: "monospace",
   },
   inviteFeedback: {
-    color: COLORS.sage,
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: "800",
     marginTop: 7,

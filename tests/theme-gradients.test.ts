@@ -74,7 +74,7 @@ describe("theme gradients", () => {
     expect(appFrame).toContain('color: "#FFFFFF",');
     expect(appFrame).toContain("fontFamily,");
     expect(appFrame).toContain("fontSize: Math.round(baseFontSize * 1.16)");
-    expect(appFrame).toContain('containerClassName="bg-transparent"');
+    expect(appFrame).toContain('containerClassName="bg-black"');
     expect(appFrame).toContain('backgroundColor: backgroundGradient ? "transparent" : backgroundColor');
     expect(appFrame).not.toContain("componentName");
     expect(appFrame).not.toContain("applyTabCardColor");
@@ -98,5 +98,17 @@ describe("theme gradients", () => {
     expect(Object.values(palette.TAB_CARD_PALETTES).every((card) => card.surface === "transparent")).toBe(true);
     expect(palette.COLORS.slate).toBe("#FFFFFF");
     expect(palette.COLORS.white).toBe("#FFFFFF");
+  });
+
+  it("keeps the iPhone status area readable and Today’s five daily cards distinctly outlined", () => {
+    const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
+    const appFrame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
+    const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
+
+    expect(rootLayout).toContain('<StatusBar style="light" animated />');
+    expect(appFrame).toContain('invitePanelHeader: {');
+    expect(appFrame).toContain('backgroundColor: "transparent",');
+    expect(appFrame).toContain('invitePanelKicker: {\n    color: "#FFFFFF"');
+    expect(today).toContain('dailySparkCard: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 15, gap: 8, borderWidth: 2, borderColor: "#000000" }');
   });
 });
