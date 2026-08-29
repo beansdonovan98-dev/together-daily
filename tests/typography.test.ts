@@ -22,9 +22,15 @@ describe("global typography", () => {
 
   it("defaults the shared font color to white and accepts only the Themes color choices", () => {
     expect(FONT_COLOR_OPTIONS[0]).toEqual(["#FFFFFF", "White"]);
-    expect(normalizeGlobalTextColor("#FFEAF4")).toBe("#FFEAF4");
+    expect(normalizeGlobalTextColor("#FF8FC6")).toBe("#FF8FC6");
     expect(normalizeGlobalTextColor("#000000")).toBe("#FFFFFF");
     expect(normalizeGlobalTextColor(undefined)).toBe("#FFFFFF");
+  });
+
+  it("offers visibly distinct readable font-color selections", () => {
+    expect(FONT_COLOR_OPTIONS.map(([color]) => color)).toEqual([
+      "#FFFFFF", "#FF8FC6", "#8FE8FF", "#FFE16B", "#D7A7FF",
+    ]);
   });
 
   it("defaults the shared border color to black and accepts only the Themes border choices", () => {
@@ -62,6 +68,7 @@ describe("global typography", () => {
     expect(today).toContain('style={[styles.loveName, { color: textColor }]}');
     expect(editor).toContain("FONT COLOR");
     expect(editor).toContain("all app text, including Daddy and Princess labels");
+    expect(editor).toContain("setActiveGlobalTextColor(color)");
     expect(editor).toContain("BORDER COLOR");
     expect(editor).toContain("every card, subsection, and nested habit item");
   });

@@ -246,4 +246,5 @@
 - [ ] Identify why the latest saved checkpoint is not appearing in the installed TestFlight app and provide the required update path.
 - [ ] Verify and restore the current preview’s visibility of the Puzzle tab and latest saved app changes.
 - [x] Remove the dark fill from Daily Log’s “Make this event yours” section so it inherits the active gradient.
+- [x] Trace and repair the Font Color control so it visibly changes native text throughout the app.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

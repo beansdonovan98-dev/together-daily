@@ -14,9 +14,10 @@ export type FontPlatform = "ios" | "android" | "web";
 
 export const FONT_COLOR_OPTIONS = [
   ["#FFFFFF", "White"],
-  ["#FFEAF4", "Soft blush"],
-  ["#E7F0FF", "Ice blue"],
-  ["#F3E8FF", "Soft lilac"],
+  ["#FF8FC6", "Candy pink"],
+  ["#8FE8FF", "Aqua blue"],
+  ["#FFE16B", "Sunshine gold"],
+  ["#D7A7FF", "Violet"],
 ] as const;
 
 export const BORDER_COLOR_OPTIONS = [
