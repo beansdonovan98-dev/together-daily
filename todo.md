@@ -247,4 +247,5 @@
 - [ ] Verify and restore the current preview’s visibility of the Puzzle tab and latest saved app changes.
 - [x] Remove the dark fill from Daily Log’s “Make this event yours” section so it inherits the active gradient.
 - [x] Trace and repair the Font Color control so it visibly changes native text throughout the app.
+- [x] Add more light, readable pastel gradient presets to the Themes collection.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

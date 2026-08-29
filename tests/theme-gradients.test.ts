@@ -39,6 +39,12 @@ describe("theme gradients", () => {
     expect(allThemes.every((theme) => isThemeGradient(theme.gradient))).toBe(true);
   });
 
+  it("includes an expanded pastel collection of readable gradient presets", () => {
+    expect(PASTEL_THEMES.length).toBeGreaterThanOrEqual(20);
+    expect(PASTEL_THEMES.map((theme) => theme.name)).toContain("Strawberry Cream");
+    expect(PASTEL_THEMES.map((theme) => theme.name)).toContain("Robin Egg");
+  });
+
   it("keeps every Themes utility card transparent for both vivid and pastel gradients", () => {
     const cardFiles = [
       "components/page-theme-editor.tsx",
