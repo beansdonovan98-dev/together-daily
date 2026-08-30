@@ -191,10 +191,18 @@ describe("theme gradients", () => {
     expect(journal).toContain("healthPeriodVisible:state.healthPeriodVisible!==false");
   });
 
-  it("keeps the Daily Log event creator transparent above the active gradient", () => {
+  it("keeps Daily Log event-creator surfaces transparent above the active gradient", () => {
     const dailyLog = readFileSync(resolve(process.cwd(), "app/(tabs)/log.tsx"), "utf8");
 
     expect(dailyLog).toContain('composer: { backgroundColor: "transparent"');
     expect(dailyLog).toContain('customPanel: { borderRadius: 12, backgroundColor: "transparent"');
+  });
+
+  it("renders a dedicated event-color rail without bypassing the shared border color", () => {
+    const log = readFileSync(resolve(process.cwd(), "app/(tabs)/log.tsx"), "utf8");
+    expect(log).toContain("eventColorRail");
+    expect(log).toContain("backgroundColor: style.color");
+    expect(log).toContain("backgroundColor: `${style.color}55`");
+    expect(log).not.toContain("borderLeftColor: author.color");
   });
 });

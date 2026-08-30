@@ -248,4 +248,5 @@
 - [x] Remove the dark fill from Daily Log’s “Make this event yours” section so it inherits the active gradient.
 - [x] Trace and repair the Font Color control so it visibly changes native text throughout the app.
 - [x] Add more light, readable pastel gradient presets to the Themes collection.
+- [x] Make selected Daily Log event colors visibly render on newly added and edited events after reload.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.
