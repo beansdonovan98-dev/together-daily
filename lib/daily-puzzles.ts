@@ -19,6 +19,37 @@ const SUDOKU_SETS: DailyPuzzleSet["sudoku"][] = [
   },
 ];
 
+export function hasUniqueSudokuSolution(grid: readonly number[]): boolean {
+  if (grid.length !== 16 || grid.some((value) => !Number.isInteger(value) || value < 0 || value > 4)) return false;
+  const board = [...grid];
+  let solutions = 0;
+  const candidatesFor = (index: number) => {
+    const row = Math.floor(index / 4);
+    const column = index % 4;
+    const boxRow = Math.floor(row / 2) * 2;
+    const boxColumn = Math.floor(column / 2) * 2;
+    const used = new Set<number>();
+    for (let i = 0; i < 4; i += 1) { used.add(board[row * 4 + i]); used.add(board[i * 4 + column]); }
+    for (let y = boxRow; y < boxRow + 2; y += 1) for (let x = boxColumn; x < boxColumn + 2; x += 1) used.add(board[y * 4 + x]);
+    return [1, 2, 3, 4].filter((value) => !used.has(value));
+  };
+  const solve = () => {
+    if (solutions > 1) return;
+    let target = -1;
+    let candidates: number[] = [];
+    for (let index = 0; index < board.length; index += 1) {
+      if (board[index] !== 0) continue;
+      const nextCandidates = candidatesFor(index);
+      if (!nextCandidates.length) return;
+      if (target === -1 || nextCandidates.length < candidates.length) { target = index; candidates = nextCandidates; }
+    }
+    if (target === -1) { solutions += 1; return; }
+    for (const value of candidates) { board[target] = value; solve(); board[target] = 0; }
+  };
+  solve();
+  return solutions === 1;
+}
+
 const WORD_PUZZLES: DailyPuzzleSet["word"][] = [
   { scramble: "GTEEHROT", answer: "TOGETHER", clue: "A word for the two of you as a pair." },
   { scramble: "SDSIEKN", answer: "KINDNESS", clue: "A small choice that strengthens love." },

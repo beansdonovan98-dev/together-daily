@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dailyPuzzlesFor } from "../lib/daily-puzzles";
+import { dailyPuzzlesFor, hasUniqueSudokuSolution } from "../lib/daily-puzzles";
 
 describe("daily puzzles", () => {
   it("is deterministic for a date and changes across the daily rotation", () => {
@@ -16,5 +16,10 @@ describe("daily puzzles", () => {
     expect(puzzles.sudoku.grid.some((value) => value === 0)).toBe(true);
     expect(puzzles.word.answer).not.toBe("");
     expect(puzzles.sequence.answer).not.toBe("");
+  });
+
+  it("only presents daily Sudoku boards with exactly one valid solution", () => {
+    const puzzles = ["2026-08-01", "2026-08-02", "2026-08-03"].map((date) => dailyPuzzlesFor(date).sudoku);
+    expect(puzzles.every((puzzle) => hasUniqueSudokuSolution(puzzle.grid))).toBe(true);
   });
 });

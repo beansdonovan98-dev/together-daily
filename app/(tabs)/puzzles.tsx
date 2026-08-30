@@ -4,7 +4,7 @@ import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacit
 import { dailyPuzzlesFor } from "@/lib/daily-puzzles";
 import { asObject, localDateKey, prettyDate } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
 type PuzzleState = {
@@ -32,10 +32,13 @@ function PuzzleContent() {
   const day = asObject(getDay(today));
   const saved = asObject(day.puzzles) as PuzzleState;
   const sudokuValues = Array.from({ length: 16 }, (_, index) => String(saved.sudoku?.[index] ?? ""));
+  const sudokuValuesRef = useRef(sudokuValues);
+  useEffect(() => { sudokuValuesRef.current = sudokuValues; });
   const updatePuzzles = (patch: Partial<PuzzleState>) => updateDay(today, { puzzles: { ...saved, ...patch } });
   const setSudokuValue = (index: number, value: string) => {
-    const next = [...sudokuValues];
+    const next = [...sudokuValuesRef.current];
     next[index] = value.replace(/[^1-4]/g, "").slice(0, 1);
+    sudokuValuesRef.current = next;
     updatePuzzles({ sudoku: next, sudokuSolved: false });
   };
   const checkSudoku = () => {
