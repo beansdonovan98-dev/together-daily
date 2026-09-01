@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
+import { CompletionCelebration } from "@/components/completion-celebration";
 import { PrivateGate } from "@/components/together-access";
 import { WeightTrackerSections } from "@/components/weight-tracker-sections";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
@@ -384,14 +385,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
             </Text>
           </View>
         }
-        {healthComplete ? (
-          <View style={styles.celebrate}>
-            <Text style={styles.celebrateTitle}>✦ Health complete! ✦</Text>
-            <Text style={styles.celebrateCopy}>
-              You both finished every daily health task.
-            </Text>
-          </View>
-        ) : null}
+        {healthComplete ? <CompletionCelebration title="Daily Health complete!" detail="You both finished every care task for today." /> : null}
         {list("Daily health list", "tasks", tasks, taskDraft, setTaskDraft)}
         <View style={styles.week}>
           <Text style={styles.weekLabel}>SEVEN-DAY HEALTH</Text>
