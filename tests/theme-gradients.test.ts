@@ -205,4 +205,25 @@ describe("theme gradients", () => {
     expect(log).toContain("backgroundColor: `${style.color}55`");
     expect(log).not.toContain("borderLeftColor: author.color");
   });
+
+  it("keeps Medicine as a checkbox-free time log and places Snack Tracker between Meals and Water", () => {
+    const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
+
+    expect(health).toContain('kind === "tasks" ? <TouchableOpacity');
+    expect(health).not.toContain('REMINDER ON');
+    expect(health).toContain("SNACK LOG");
+    expect(health.indexOf("MEAL PLANNER")).toBeLessThan(health.indexOf("SNACK LOG"));
+    expect(health.indexOf("SNACK LOG")).toBeLessThan(health.indexOf("DAILY WATER"));
+  });
+
+  it("persists tab emoji and label changes as one shared update and shows Love Notes before covers", () => {
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+    const tabs = readFileSync(resolve(process.cwd(), "components/tab-manager.tsx"), "utf8");
+    const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
+
+    expect(journal).toContain("setTabCustomizations:");
+    expect(journal).toContain("tabLabels:nextLabels,tabGlyphs:nextGlyphs,tabOrder:order");
+    expect(tabs).toContain("setTabCustomizations({ labels, glyphs, order })");
+    expect(today.indexOf("{loveNotesSection}")).toBeLessThan(today.indexOf("<View style={styles.coverGrid}"));
+  });
 });

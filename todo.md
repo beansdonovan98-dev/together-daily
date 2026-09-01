@@ -250,4 +250,8 @@
 - [x] Add more light, readable pastel gradient presets to the Themes collection.
 - [x] Make selected Daily Log event colors visibly render on newly added and edited events after reload.
 - [x] Replace daily Sudoku boards with verified solvable puzzles and add a solver regression test.
+- [x] Convert Medicine Log to a simple time-based log without completion checkboxes.
+- [x] Add a Snack Tracker time log between Meals and Water in Health.
+- [x] Repair the Font Color application and saved tab-emoji changes in Rename & Sort Tabs.
+- [x] Move Love Notes above captioned photos on Today.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.

@@ -20,7 +20,7 @@ const TABS = [
 ];
 
 export function TabManager() {
-  const { tabLabels, setTabLabel, tabGlyphs, setTabGlyph, tabOrder, setTabOrder, theme } = useLocalJournal();
+  const { tabLabels, tabGlyphs, setTabCustomizations, tabOrder, theme } = useLocalJournal();
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const textColor = normalizeGlobalTextColor(theme.fontColor);
   const borderColor = normalizeGlobalBorderColor(theme.borderColor);
@@ -33,7 +33,7 @@ export function TabManager() {
 
   useEffect(() => { if (!open) { const stored = tabOrder.includes("puzzles") ? tabOrder : (() => { const next = [...tabOrder]; const logIndex = next.indexOf("log"); next.splice(logIndex >= 0 ? logIndex + 1 : 0, 0, "puzzles"); return next; })(); setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels(tabLabels); setGlyphs(tabGlyphs); } }, [open, tabLabels, tabGlyphs, tabOrder]);
   const move = (id: string, direction: -1 | 1) => { const index = order.indexOf(id); const target = index + direction; if (target < 0 || target >= order.length) return; const next = [...order]; [next[index], next[target]] = [next[target], next[index]]; setOrder(next); };
-  const save = () => { TABS.forEach((tab) => { setTabLabel(tab.id, labels[tab.id] ?? ""); setTabGlyph(tab.id, glyphs[tab.id] ?? ""); }); setTabOrder(order); setOpen(false); };
+  const save = () => { setTabCustomizations({ labels, glyphs, order }); setOpen(false); };
 
   return <View style={[styles.card, { backgroundColor: "transparent", borderColor }]}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle tab manager" accessibilityState={{ expanded: open }} style={styles.toggle} onPress={() => setOpen((value) => !value)}><View><Text style={[styles.kicker, { color: textColor }]}>SHARED NAVIGATION</Text><Text style={[styles.title, { color: textColor }]}>Rename & sort tabs</Text></View><Text style={[styles.chevron, { color: textColor }]}>{open ? "⌃" : "⌄"}</Text></TouchableOpacity>

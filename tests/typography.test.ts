@@ -72,4 +72,14 @@ describe("global typography", () => {
     expect(editor).toContain("BORDER COLOR");
     expect(editor).toContain("every card, subsection, and nested habit item");
   });
+
+  it("updates the native root typography bridge from the current shared journal state", () => {
+    const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
+
+    expect(rootLayout).toContain("function JournalRoutes()");
+    expect(rootLayout).toContain("const { theme, customSubheadings } = useLocalJournal();");
+    expect(rootLayout).toContain("setActiveGlobalTextColor(normalizeGlobalTextColor(theme.fontColor));");
+    expect(rootLayout).toContain("setActiveGlobalFont(selectedFont, fontFamilyFor(selectedFont, Platform.OS as FontPlatform));");
+    expect(rootLayout).toContain("<JournalRoutes />");
+  });
 });

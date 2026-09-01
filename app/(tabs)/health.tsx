@@ -3,9 +3,7 @@ import { PrivateGate } from "@/components/together-access";
 import { WeightTrackerSections } from "@/components/weight-tracker-sections";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
-import * as Notifications from "expo-notifications";
 import {
-  Platform,
   ScrollView,
   StyleSheet,
 } from "react-native";
@@ -61,6 +59,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
   const [editingMedicine, setEditingMedicine] = useState<string | null>(null);
   const [medicineEditDraft, setMedicineEditDraft] = useState("");
   const [medicineEditTime, setMedicineEditTime] = useState("");
+  const [snackDraft, setSnackDraft] = useState("");
+  const [snackTimeDraft, setSnackTimeDraft] = useState(currentTimeLabel());
   const [editingMealKey, setEditingMealKey] = useState<string | null>(null);
   const [mealEmojiDraft, setMealEmojiDraft] = useState("");
   const [mealLabelDraft, setMealLabelDraft] = useState("");
@@ -74,6 +74,9 @@ function HealthContent({ userId }: { userId: PartnerId }) {
   ) as HealthItem[];
   const medicines = (
     Array.isArray(health.medicines) ? health.medicines : []
+  ) as HealthItem[];
+  const snacks = (
+    Array.isArray(health.snacks) ? health.snacks : []
   ) as HealthItem[];
   const meals = asObject(day.meals);
   const mealMeta = asObject(day.mealMeta);
@@ -145,14 +148,16 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     save({
       [kind]: [
         ...items,
-        { id: `${kind}-${Date.now()}`, text: value, time, done: {} },
+        kind === "tasks"
+          ? { id: `${kind}-${Date.now()}`, text: value, done: {} }
+          : { id: `${kind}-${Date.now()}`, text: value, time },
       ],
     });
     clear();
     if (kind === "medicines") setMedicineTimeDraft(currentTimeLabel());
   };
-  const toggle = (kind: "tasks" | "medicines", id: string) => {
-    const items = kind === "tasks" ? tasks : medicines;
+  const toggle = (kind: "tasks", id: string) => {
+    const items = tasks;
     save({
       [kind]: items.map((item) =>
         item.id === id
@@ -161,9 +166,17 @@ function HealthContent({ userId }: { userId: PartnerId }) {
       ),
     });
   };
-  const remove = (kind: "tasks" | "medicines", id: string) => {
-    const items = kind === "tasks" ? tasks : medicines;
+  const remove = (kind: "tasks" | "medicines" | "snacks", id: string) => {
+    const items = kind === "tasks" ? tasks : kind === "medicines" ? medicines : snacks;
     save({ [kind]: items.filter((item) => item.id !== id) });
+  };
+  const addSnack = () => {
+    const value = snackDraft.trim();
+    const time = snackTimeDraft.trim();
+    if (!value || timeOrder(time) === Number.MAX_SAFE_INTEGER) return;
+    save({ snacks: [...snacks, { id: `snack-${Date.now()}`, text: value, time }] });
+    setSnackDraft("");
+    setSnackTimeDraft(currentTimeLabel());
   };
   const startMedicineEdit = (item: HealthItem) => {
     setEditingMedicine(item.id);
@@ -187,24 +200,6 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     setEditingMedicine(null);
     setMedicineEditDraft("");
     setMedicineEditTime("");
-  };
-  const reminder = async (medicine: HealthItem) => {
-    if (Platform.OS === "web") return;
-    const permission = await Notifications.requestPermissionsAsync();
-    if (permission.status !== "granted") return;
-    await Notifications.scheduleNotificationAsync({
-      content: { title: "Medicine reminder", body: medicine.text },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour: 9,
-        minute: 0,
-      },
-    });
-    save({
-      medicines: medicines.map((item) =>
-        item.id === medicine.id ? { ...item, reminder: true } : item,
-      ),
-    });
   };
   const adjustWater = (delta: number) => {
     const mine = waterFor(userId);
@@ -286,8 +281,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
           </View>
         ) : (
           <View key={item.id} style={styles.row}>
-            <TouchableOpacity
-              onPress={() => toggle(kind, item.id)}
+            {kind === "tasks" ? <TouchableOpacity
+              onPress={() => toggle("tasks", item.id)}
               style={[
                 styles.check,
                 item.done?.[userId] && {
@@ -298,7 +293,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
               <Text style={styles.checkText}>
                 {item.done?.[userId] ? "✓" : ""}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> : null}
             <View style={styles.item}>
               <Text
                 style={[styles.itemText, item.done?.[userId] && styles.done]}
@@ -309,21 +304,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
                 <Text style={styles.timeText}>{item.time || "No time"}</Text>
               ) : null}
             </View>
-            {kind === "medicines" ? (
-              <>
-                <TouchableOpacity
-                  onPress={() => reminder(item)}
-                  style={styles.reminder}
-                >
-                  <Text style={styles.reminderText}>
-                    {item.reminder ? "REMINDER ON" : "REMIND"}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => startMedicineEdit(item)}>
-                  <Text style={styles.edit}>Edit</Text>
-                </TouchableOpacity>
-              </>
-            ) : null}
+            {kind === "medicines" ? <TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit</Text></TouchableOpacity> : null}
             <TouchableOpacity onPress={() => remove(kind, item.id)}>
               <Text style={styles.delete}>×</Text>
             </TouchableOpacity>
@@ -508,6 +489,27 @@ function HealthContent({ userId }: { userId: PartnerId }) {
               </View>
             );
           })}
+        </View>
+        <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
+          <Text style={styles.kicker}>SNACK LOG</Text>
+          <Text style={styles.title}>Snack tracker</Text>
+          <Text style={styles.copy}>Log what you ate and the time you had it.</Text>
+          {[...snacks].sort((a, b) => timeOrder(a.time) - timeOrder(b.time)).map((snack) => (
+            <View key={snack.id} style={styles.row}>
+              <View style={styles.item}>
+                <Text style={styles.itemText}>{snack.text}</Text>
+                <Text style={styles.timeText}>{snack.time || "No time"}</Text>
+              </View>
+              <TouchableOpacity onPress={() => remove("snacks", snack.id)}>
+                <Text style={styles.delete}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <View style={styles.addRow}>
+            <TextInput value={snackDraft} onChangeText={setSnackDraft} onSubmitEditing={addSnack} placeholder="What did you have?" placeholderTextColor="#7F7582" style={styles.input}/>
+            <TextInput value={snackTimeDraft} onChangeText={setSnackTimeDraft} placeholder="8:30 AM" placeholderTextColor="#7F7582" style={styles.timeInput}/>
+            <TouchableOpacity onPress={addSnack} style={[styles.add, { backgroundColor: PARTNERS[userId].color }]}><Text style={styles.addText}>Add</Text></TouchableOpacity>
+          </View>
         </View>
         <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
           <Text style={styles.kicker}>DAILY WATER</Text>
