@@ -60,8 +60,8 @@ function PuzzleContent() {
 
     <View style={styles.card}>
       <Text style={styles.kicker}>PUZZLE ONE</Text>
-      <Text style={styles.title}>Mini Sudoku</Text>
-      <Text style={styles.copy}>Fill each row, column, and 2×2 box with 1 through 4.</Text>
+      <Text style={styles.title}>Challenge Sudoku</Text>
+      <Text style={styles.copy}>Only four clues are given. Fill each row, column, and 2×2 box with 1 through 4.</Text>
       <View style={styles.sudokuGrid}>
         {Array.from({ length: 4 }, (_, row) => <View key={row} style={styles.sudokuRow}>
           {Array.from({ length: 4 }, (_, column) => {
@@ -80,7 +80,7 @@ function PuzzleContent() {
       <Text style={styles.title}>Word scramble</Text>
       <View style={styles.miniPrompt}><Text style={styles.scramble}>{puzzle.word.scramble}</Text><Text style={styles.copy}>{puzzle.word.clue}</Text></View>
       <View style={styles.answerRow}><TextInput accessibilityLabel="Word scramble answer" value={saved.wordAnswer ?? ""} onChangeText={(wordAnswer) => updatePuzzles({ wordAnswer, wordSolved: false })} autoCapitalize="characters" placeholder="Your answer" style={styles.answerInput} /><TouchableOpacity accessibilityRole="button" onPress={checkWord} style={styles.smallAction}><Text style={styles.actionText}>Check</Text></TouchableOpacity></View>
-      {saved.wordSolved ? <Text style={styles.success}>✓ Exactly right!</Text> : <Text style={styles.helper}>Unscramble all eight letters.</Text>}
+      {saved.wordSolved ? <Text style={styles.success}>✓ Exactly right!</Text> : <Text style={styles.helper}>Unscramble all {puzzle.word.answer.length} letters.</Text>}
     </View>
 
     <View style={styles.card}>

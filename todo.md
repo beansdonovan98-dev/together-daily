@@ -256,3 +256,5 @@
 - [x] Move Love Notes above captioned photos on Today.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.
 - [x] Carry the Daily Health task list forward into each new day instead of starting a new list.
+- [x] Preserve Daily Health as a recurring daily checklist while resetting both partners’ checkmarks each day.
+- [x] Increase the daily puzzle difficulty while keeping Sudoku uniquely solvable.

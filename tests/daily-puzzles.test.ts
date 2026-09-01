@@ -22,4 +22,12 @@ describe("daily puzzles", () => {
     const puzzles = ["2026-08-01", "2026-08-02", "2026-08-03"].map((date) => dailyPuzzlesFor(date).sudoku);
     expect(puzzles.every((puzzle) => hasUniqueSudokuSolution(puzzle.grid))).toBe(true);
   });
+
+  it("uses a harder daily set with four Sudoku clues, longer words, and multi-step sequences", () => {
+    const puzzles = ["2026-08-01", "2026-08-02", "2026-08-03"].map(dailyPuzzlesFor);
+
+    expect(puzzles.every((puzzle) => puzzle.sudoku.grid.filter(Boolean).length === 4)).toBe(true);
+    expect(puzzles.every((puzzle) => puzzle.word.answer.length >= 9)).toBe(true);
+    expect(puzzles.every((puzzle) => puzzle.sequence.prompt.split(",").length >= 6)).toBe(true);
+  });
 });

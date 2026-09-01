@@ -6,15 +6,15 @@ export type DailyPuzzleSet = {
 
 const SUDOKU_SETS: DailyPuzzleSet["sudoku"][] = [
   {
-    grid: [1, 0, 3, 0, 0, 4, 0, 2, 2, 0, 4, 0, 0, 3, 0, 1],
+    grid: [1, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 0],
     solution: [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1],
   },
   {
-    grid: [2, 0, 4, 0, 0, 3, 0, 1, 1, 0, 3, 0, 0, 4, 0, 2],
+    grid: [2, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 1, 0],
     solution: [2, 1, 4, 3, 4, 3, 2, 1, 1, 2, 3, 4, 3, 4, 1, 2],
   },
   {
-    grid: [4, 0, 2, 0, 0, 1, 0, 3, 3, 0, 1, 0, 0, 2, 0, 4],
+    grid: [4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0],
     solution: [4, 3, 2, 1, 2, 1, 4, 3, 3, 4, 1, 2, 1, 2, 3, 4],
   },
 ];
@@ -51,17 +51,17 @@ export function hasUniqueSudokuSolution(grid: readonly number[]): boolean {
 }
 
 const WORD_PUZZLES: DailyPuzzleSet["word"][] = [
-  { scramble: "GTEEHROT", answer: "TOGETHER", clue: "A word for the two of you as a pair." },
-  { scramble: "SDSIEKN", answer: "KINDNESS", clue: "A small choice that strengthens love." },
-  { scramble: "CENPATI", answer: "PATIENCE", clue: "A useful quality on a hard day." },
-  { scramble: "NITSEUL", answer: "LISTEN", clue: "The first step in a good conversation." },
+  { scramble: "COTNENONIC", answer: "CONNECTION", clue: "What grows through attention, honesty, and time." },
+  { scramble: "MOCSIPASON", answer: "COMPASSION", clue: "Kindness that makes room for another person’s feelings." },
+  { scramble: "STANDERDUN", answer: "UNDERSTAND", clue: "What listening closely can help you do." },
+  { scramble: "NITFOEACF", answer: "AFFECTION", clue: "Warm care you can show in words or touch." },
 ];
 
 const SEQUENCE_PUZZLES: DailyPuzzleSet["sequence"][] = [
-  { prompt: "2, 4, 8, 16, ?", answer: "32", hint: "Each number doubles." },
-  { prompt: "1, 1, 2, 3, 5, ?", answer: "8", hint: "Add the two numbers before it." },
-  { prompt: "3, 6, 9, 12, ?", answer: "15", hint: "Add the same number each time." },
-  { prompt: "20, 17, 14, 11, ?", answer: "8", hint: "Count backward by three." },
+  { prompt: "2, 6, 12, 20, 30, ?", answer: "42", hint: "Look at how the gaps change." },
+  { prompt: "1, 2, 6, 24, 120, ?", answer: "720", hint: "The multiplier increases by one each time." },
+  { prompt: "3, 7, 15, 31, 63, ?", answer: "127", hint: "Double it, then make one small adjustment." },
+  { prompt: "5, 11, 23, 47, 95, ?", answer: "191", hint: "Each term is almost twice the last." },
 ];
 
 function dateSeed(dateKey: string) {
