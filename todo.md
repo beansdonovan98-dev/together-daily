@@ -255,3 +255,4 @@
 - [x] Repair the Font Color application and saved tab-emoji changes in Rename & Sort Tabs.
 - [x] Move Love Notes above captioned photos on Today.
 - [ ] Identify the disabled TestFlight submission control and provide the required publishing step.
+- [x] Carry the Daily Health task list forward into each new day instead of starting a new list.

@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
 import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
+import { carryDailyHealthTasks } from "@/lib/daily-health-rollover";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -42,6 +43,11 @@ function normalizedRoomMembers(value: unknown): PartnerId[] {
   return Array.isArray(value) ? value.filter((member): member is PartnerId => member === "beans" || member === "princess") : [];
 }
 
+function createDayWithCarriedHealthTasks(days: Record<string, Record<string, any>>, date: string): Record<string, any> {
+  const carriedTasks = carryDailyHealthTasks(days, date);
+  return carriedTasks.length ? { ...blankDay(date), health: { tasks: carriedTasks } } : blankDay(date);
+}
+
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null);
   const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation();
@@ -53,7 +59,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};
   useEffect(()=>{const timer=setInterval(()=>setToday(localDateKey()),60_000);return()=>clearInterval(timer);},[]);
   useEffect(()=>{if(!ready)return;const items=state.purchaseItems??[];const datedItems=items.map((item)=>item.category==="groceries"&&item.purchased&&!item.purchasedOn?{...item,purchasedOn:today}:item);const remaining=clearPurchasedGroceriesFromPreviousDays(datedItems,today);if(JSON.stringify(remaining)===JSON.stringify(items))return;persist({...state,purchaseItems:remaining});},[ready,state,today]);
-  const ensureDay=(date:string)=>{if(!state.days[date])persist({...state,days:{...state.days,[date]:blankDay(date)}});};
+  const ensureDay=(date:string)=>{if(!state.days[date])persist({...state,days:{...state.days,[date]:createDayWithCarriedHealthTasks(state.days,date)}});};
   const partnerNames: Record<PartnerId, string> = { beans: state.partnerNames?.beans?.trim() || DEFAULT_PARTNER_NAMES.beans, princess: state.partnerNames?.princess?.trim() || DEFAULT_PARTNER_NAMES.princess };
   const partnerColors: Record<PartnerId, string> = { beans: HEX_COLOR.test(state.partnerColors?.beans ?? "") ? state.partnerColors!.beans! : DEFAULT_PARTNER_COLORS.beans, princess: HEX_COLOR.test(state.partnerColors?.princess ?? "") ? state.partnerColors!.princess! : DEFAULT_PARTNER_COLORS.princess };
   const partnerAvatars: Record<PartnerId, string> = { beans: state.partnerAvatars?.beans?.trim() || DEFAULT_PARTNER_AVATARS.beans, princess: state.partnerAvatars?.princess?.trim() || DEFAULT_PARTNER_AVATARS.princess };

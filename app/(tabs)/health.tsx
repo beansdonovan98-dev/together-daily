@@ -379,8 +379,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
             <Text style={styles.eyebrow}>SHARED DAILY CARE</Text>
             <Text style={styles.hero}>Health</Text>
             <Text style={styles.copy}>
-              Daily check-ins reset with each new page. Each partner marks their
-              own care items.
+              Your health list carries forward each day. Each partner marks their
+              own care items fresh for the new day.
             </Text>
           </View>
         }
