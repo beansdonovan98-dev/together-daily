@@ -8,7 +8,8 @@
     "dev:server": "cross-env NODE_ENV=development tsx watch server/_core/index.ts",
     "dev:metro": "node scripts/run-metro-persistent.mjs",
     "build": "esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "expo start",
+    "reset-project": "node ./scripts/reset-project.js",
     "check": "tsc --noEmit",
     "lint": "expo lint",
     "format": "prettier --write .",
@@ -16,6 +17,7 @@
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "android": "expo start --android",
     "ios": "expo start --ios",
+    "web": "expo start --web",
     "qr": "node scripts/generate_qr.mjs"
   },
   "dependencies": {
