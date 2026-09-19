@@ -1,11 +1,16 @@
-{{
+{
   "cli": {
     "version": ">= 12.0.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
     "production": {
-      "node": "24.x",
-      "autoSubmit": true,
       "env": {
         "EAS_BUILD_PACKAGE_MANAGER": "npm"
       }
