@@ -21,8 +21,8 @@ const bundleId =
       return /^[a-zA-Z]/.test(segment) ? segment : "x" + segment;
     })
     .join(".") || "space.manus.app";
+
 // Extract timestamp from bundle ID and prefix with "manus" for deep link scheme
-// e.g., "space.manus.my.app.t20240115103045" -> "manus20240115103045"
 const timestamp = bundleId.split(".").pop()?.replace(/^t/, "") ?? "";
 const schemeFromBundleId = `manus${timestamp}`;
 
@@ -30,8 +30,7 @@ const env = {
   // App branding - update these values directly (do not use env vars)
   appName: "Together Daily",
   appSlug: "together-daily",
-  // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
-  // Leave empty to use the default icon from assets/images/icon.png
+  // S3 URL of the app logo
   logoUrl: "/manus-storage/together-daily-icon_4d2e6d4a.png",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
@@ -47,13 +46,19 @@ const config: ExpoConfig = {
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
+  extra: {
+    eas: {
+      projectId: "193e4767-6636-4cc4-abd7-1c6d75e06f4b",
+    },
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
-    "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSPhotoLibraryUsageDescription": "Together Daily uses your photo library so you can privately share cover photos and memories with your partner."
-      }
+    buildNumber: "2",
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+      NSPhotoLibraryUsageDescription: "Together Daily uses your photo library so you can privately share cover photos and memories with your partner.",
+    },
   },
   android: {
     adaptiveIcon: {
@@ -62,7 +67,6 @@ const config: ExpoConfig = {
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
     permissions: ["POST_NOTIFICATIONS"],
@@ -102,8 +106,8 @@ const config: ExpoConfig = {
     [
       "expo-image-picker",
       {
-        "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can share private memories and daily cover photos."
-      }
+        photosPermission: "Allow $(PRODUCT_NAME) to access your photos so you can share private memories and daily cover photos.",
+      },
     ],
     [
       "expo-audio",
