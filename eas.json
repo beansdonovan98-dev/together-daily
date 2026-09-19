@@ -4,14 +4,8 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
-    },
     "production": {
+      "node": "24.21.0",
       "env": {
         "EAS_BUILD_PACKAGE_MANAGER": "npm"
       }
