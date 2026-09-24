@@ -597,3 +597,35 @@ export async function updateGuestRoomPrivateMediaCaption(input: { roomCode: stri
   await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
 }
+
+export async function addGuestRoomPrivateMediaComment(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string; text: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before commenting on private media.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const media = Array.isArray(journalState.media) ? journalState.media : [];
+  const comment = {
+    id: `media-comment-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    authorId: input.partnerId,
+    text: input.text.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  let found = false;
+  const nextMedia = media.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const current = item as Record<string, unknown>;
+    if (current.id !== input.mediaId || current.kind !== "private") return item;
+    found = true;
+    const comments = Array.isArray(current.comments) ? current.comments : [];
+    return { ...current, comments: [...comments, comment] };
+  });
+  if (!found) throw new Error("That private photo or GIF is no longer available.");
+  const nextState = { ...journalState, media: nextMedia };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), comment };
+}

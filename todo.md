@@ -265,3 +265,7 @@
 - [x] Make Theme preferences personal to each partner instead of shared.
 - [x] Show today’s date in the Together Daily header.
 - [x] Verify and repair GIF support in Steamy and daily cover photos.
+- [x] Replace Steamy media captions with shared comments and show Cum Log entries as a chronological conversation.
+- [x] Repair the reset control at the bottom of every page.
+- [x] Add an editable, checkable bullet to-do list to Daily Log.
+- [ ] Make the daily Little Things list editable and carry Good Habits forward each day with fresh completion states.

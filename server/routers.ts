@@ -163,6 +163,9 @@ export const appRouter = router({
     updatePrivateMediaCaption: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120), caption: z.string().trim().max(500) }))
       .mutation(({ input }) => db.updateGuestRoomPrivateMediaCaption(input)),
+    addPrivateMediaComment: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120), text: z.string().trim().min(1).max(500) }))
+      .mutation(({ input }) => db.addGuestRoomPrivateMediaComment(input)),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),

@@ -28,7 +28,7 @@ export function privateMediaDateKey(item: PrivateMedia) {
 export function intimateEntriesForDate<T extends SteamyRecord>(records: T[], date: string) {
   return records
     .filter((record) => record.recordType === "cumLog" && steamyRecordDateKey(record) === date)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export function privateMediaForDate<T extends PrivateMedia>(media: T[], date: string) {

@@ -3,6 +3,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
+import { appendDailyLogTodo, dailyLogTodos, renameDailyLogTodo, toggleDailyLogTodo, type DailyLogTodo } from "@/lib/daily-log-todos";
 import { sortTimelineEntriesOldestFirst } from "@/lib/timeline-utils";
 import { timestampForEditedTime } from "@/lib/timeline-time";
 import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
@@ -83,11 +84,18 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [editingSavedStyleId, setEditingSavedStyleId] = useState<string | null>(null);
 
   const content = asObject(getDay(date));
-  const legacyDebrief = String(content.sharedNotes ?? "").trim();
-  const debriefNotes = Array.isArray(content.notesList) ? content.notesList.map(asObject).filter((note) => String(note.text ?? "").trim()) : [];
-  const [debriefDraft, setDebriefDraft] = useState("");
+  const logTodos = dailyLogTodos(content.logTodos);
+  const [todoDraft, setTodoDraft] = useState("");
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [todoEditDraft, setTodoEditDraft] = useState("");
   useEffect(() => { ensureDay(date); }, [date, ensureDay]);
-  useEffect(() => { setDebriefDraft(""); }, [date]);
+  useEffect(() => { setTodoDraft(""); setEditingTodoId(null); setTodoEditDraft(""); }, [date]);
+  useEffect(() => {
+    if (Array.isArray(content.logTodos)) return;
+    const legacyNotes = [String(content.sharedNotes ?? "").trim(), ...(Array.isArray(content.notesList) ? content.notesList.map(asObject).map((note) => String(note.text ?? "").trim()) : [])].filter(Boolean);
+    if (!legacyNotes.length) return;
+    updateDay(date, { logTodos: legacyNotes.map((text, index) => ({ id: `log-todo-migrated-${date}-${index}`, text, completed: false, createdBy: "beans" })) }, "daily-log");
+  }, [content.logTodos, content.notesList, content.sharedNotes, date, updateDay]);
 
   const entries = useMemo(
     () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
@@ -103,13 +111,12 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     setDraft("");
   };
 
-  const addDebrief = () => {
-    const text = debriefDraft.trim();
-    if (!text) return;
-    updateDay(date, { notesList: [...debriefNotes, { id: `debrief-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }], sharedNotes: "" }, "daily-log");
-    setDebriefDraft("");
-  };
-  const deleteDebrief = (noteId: string) => updateDay(date, { notesList: debriefNotes.filter((note) => String(note.id) !== noteId) }, "daily-log");
+  const saveLogTodos = (nextTodos: DailyLogTodo[]) => updateDay(date, { logTodos: nextTodos }, "daily-log");
+  const addLogTodo = () => { const text = todoDraft.trim(); if (!text) return; saveLogTodos(appendDailyLogTodo(logTodos, { id: `log-todo-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, completed: false, createdBy: userId })); setTodoDraft(""); };
+  const toggleLogTodo = (id: string) => saveLogTodos(toggleDailyLogTodo(logTodos, id, userId));
+  const beginTodoEdit = (todo: DailyLogTodo) => { setEditingTodoId(todo.id); setTodoEditDraft(todo.text); };
+  const saveTodoEdit = (id: string) => { const text = todoEditDraft.trim(); if (!text) return; saveLogTodos(renameDailyLogTodo(logTodos, id, text)); setEditingTodoId(null); setTodoEditDraft(""); };
+  const deleteLogTodo = (id: string) => saveLogTodos(logTodos.filter((todo) => todo.id !== id));
 
   const beginEdit = (entry: TimelineEntry) => {
     const style = getEventStyle(entry);
@@ -173,10 +180,11 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
       </TouchableOpacity>
     </View>
 
-    <View style={styles.debrief}>
-      <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✎</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Notes & Debrief</Text><Text style={styles.sectionSub}>Keep adding the small things as your day unfolds.</Text></View></View>
-      <View style={[styles.quickLine, { backgroundColor: TAB_CARD_PALETTES.log.surface, borderColor: TAB_CARD_PALETTES.log.border, borderWidth: 1 }]}><Text style={styles.quickDot}>●</Text><Text style={styles.quickText}>Create your own emoji and color type once, then reuse it whenever it fits.</Text></View>
-      {legacyDebrief ? <View style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:COLORS.gold}]}>•</Text><Text style={styles.debriefBulletText}>{legacyDebrief}</Text></View> : null}{debriefNotes.length ? <View style={styles.debriefNotes}>{debriefNotes.map((note) => { const authorId = note.authorId === "princess" ? "princess" : "beans"; const author = PARTNERS[authorId]; return <View key={String(note.id)} style={styles.debriefBulletRow}><Text style={[styles.debriefBullet,{color:author.color}]}>•</Text><View style={styles.debriefBulletBody}><Text style={[styles.debriefAuthor,{color:author.color}]}>{author.avatar} {author.name}</Text><Text style={styles.debriefBulletText}>{String(note.text)}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete note by ${author.name}`} onPress={() => deleteDebrief(String(note.id))} style={styles.debriefDelete}><Text style={styles.debriefDeleteText}>Delete</Text></TouchableOpacity></View>; })}</View> : null}<View style={styles.debriefComposer}><TextInput value={debriefDraft} onChangeText={setDebriefDraft} onSubmitEditing={addDebrief} returnKeyType="done" multiline placeholder="Add another note or reflection…" placeholderTextColor="#7F7582" textAlignVertical="top" style={styles.debriefInput}/><TouchableOpacity accessibilityRole="button" onPress={addDebrief} style={[styles.debriefSaveButton,{backgroundColor:me.color}]}><Text style={styles.debriefSaveText}>+ Add bullet</Text></TouchableOpacity></View>
+    <View style={styles.dailyTodoCard}>
+      <View style={styles.sectionLead}><View style={[styles.sectionIcon, { backgroundColor: COLORS.lavender }]}><Text style={[styles.sectionIconText, { color: COLORS.orchid }]}>✓</Text></View><View style={styles.sectionLeadText}><Text style={styles.sectionTitle}>Daily to-do list</Text><Text style={styles.sectionSub}>Shared bullet points for this day’s log.</Text></View></View>
+      <Text style={styles.todoHelp}>Tasks stay in the order added—top to bottom. Tap a circle to cross one off.</Text>
+      {logTodos.length ? <View style={styles.dailyTodoList}>{logTodos.map((todo) => { const editing = editingTodoId === todo.id; const completedBy = todo.completedBy ? PARTNERS[todo.completedBy] : null; return <View key={todo.id} style={[styles.dailyTodoRow, todo.completed && styles.dailyTodoRowDone]}>{editing ? <View style={styles.dailyTodoEditBody}><TextInput value={todoEditDraft} onChangeText={setTodoEditDraft} placeholder="Task" placeholderTextColor="#7F7582" style={styles.dailyTodoEditInput}/><View style={styles.dailyTodoEditActions}><TouchableOpacity accessibilityRole="button" onPress={() => saveTodoEdit(todo.id)} style={[styles.dailyTodoSave,{backgroundColor:me.color}]}><Text style={styles.dailyTodoSaveText}>Save</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => { setEditingTodoId(null); setTodoEditDraft(""); }} style={styles.dailyTodoTextButton}><Text style={styles.dailyTodoTextButtonLabel}>Cancel</Text></TouchableOpacity></View></View> : <><TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: todo.completed }} accessibilityLabel={`Mark ${todo.text} ${todo.completed ? "incomplete" : "complete"}`} onPress={() => toggleLogTodo(todo.id)} style={[styles.dailyTodoCheck, todo.completed && { backgroundColor: completedBy?.color ?? COLORS.sage, borderColor: completedBy?.color ?? COLORS.sage }]}><Text style={styles.dailyTodoCheckText}>{todo.completed ? "✓" : "•"}</Text></TouchableOpacity><View style={styles.dailyTodoBody}><Text style={[styles.dailyTodoText, todo.completed && styles.dailyTodoTextDone]}>{todo.text}</Text><Text style={[styles.dailyTodoMeta,{color:todo.completed ? completedBy?.color : PARTNERS[todo.createdBy].color}]}>{todo.completed ? `${completedBy?.avatar} ${completedBy?.name} checked this off` : `${PARTNERS[todo.createdBy].avatar} ${PARTNERS[todo.createdBy].name} added this`}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${todo.text}`} onPress={() => beginTodoEdit(todo)} style={styles.dailyTodoTextButton}><Text style={styles.dailyTodoTextButtonLabel}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${todo.text}`} onPress={() => deleteLogTodo(todo.id)} style={styles.dailyTodoDelete}><Text style={styles.dailyTodoDeleteText}>×</Text></TouchableOpacity></>}</View>; })}</View> : <View style={styles.dailyTodoEmpty}><Text style={styles.dailyTodoEmptyTitle}>Your daily list is clear.</Text><Text style={styles.dailyTodoEmptyCopy}>Add the first thing you want to get done together.</Text></View>}
+      <View style={styles.dailyTodoAddRow}><TextInput value={todoDraft} onChangeText={setTodoDraft} onSubmitEditing={addLogTodo} returnKeyType="done" placeholder="Add a task" placeholderTextColor="#7F7582" style={styles.dailyTodoAddInput}/><TouchableOpacity accessibilityRole="button" onPress={addLogTodo} style={[styles.dailyTodoAddButton,{backgroundColor:me.color}]}><Text style={styles.dailyTodoAddButtonText}>+ Add</Text></TouchableOpacity></View>
     </View>
 
     <View style={styles.stream}>
@@ -237,6 +245,33 @@ const styles = StyleSheet.create({
   debriefInput: { minHeight: 78, borderWidth: 1, borderColor: "#3A313E", borderRadius: 12, backgroundColor: "#120F14", color: COLORS.plum, padding: 12, fontSize: 14, lineHeight: 20 },
   debriefSaveButton: { minHeight: 42, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, alignSelf: "flex-start" },
   debriefSaveText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
+  dailyTodoCard: { backgroundColor: COLORS.ink, borderWidth: 1, borderColor: "#432759", borderRadius: 20, padding: 17, gap: 11 },
+  todoHelp: { color: COLORS.slate, fontSize: 11, fontFamily: "monospace", lineHeight: 17 },
+  dailyTodoList: { gap: 8 },
+  dailyTodoRow: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "transparent", padding: 10 },
+  dailyTodoRowDone: { borderColor: COLORS.sage, backgroundColor: "rgba(99,200,163,.10)" },
+  dailyTodoCheck: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#796B83", alignItems: "center", justifyContent: "center", backgroundColor: "#151217" },
+  dailyTodoCheckText: { color: COLORS.plum, fontSize: 16, fontWeight: "900", lineHeight: 18 },
+  dailyTodoBody: { flex: 1, gap: 2 },
+  dailyTodoText: { color: COLORS.plum, fontSize: 14, fontWeight: "800", lineHeight: 19 },
+  dailyTodoTextDone: { color: COLORS.slate, textDecorationLine: "line-through" },
+  dailyTodoMeta: { fontSize: 9, fontWeight: "800" },
+  dailyTodoTextButton: { minHeight: 28, justifyContent: "center", paddingHorizontal: 4 },
+  dailyTodoTextButtonLabel: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
+  dailyTodoDelete: { width: 25, height: 25, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  dailyTodoDeleteText: { color: "#E98393", fontSize: 19, lineHeight: 20 },
+  dailyTodoEditBody: { flex: 1, gap: 7 },
+  dailyTodoEditInput: { minHeight: 37, borderRadius: 8, borderWidth: 1, borderColor: "#4A3B50", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 9, fontSize: 13 },
+  dailyTodoEditActions: { flexDirection: "row", gap: 8, alignItems: "center" },
+  dailyTodoSave: { minHeight: 30, borderRadius: 8, justifyContent: "center", paddingHorizontal: 9 },
+  dailyTodoSaveText: { color: COLORS.white, fontSize: 9, fontWeight: "900" },
+  dailyTodoEmpty: { paddingVertical: 8, gap: 3 },
+  dailyTodoEmptyTitle: { color: COLORS.plum, fontSize: 14, fontWeight: "900" },
+  dailyTodoEmptyCopy: { color: COLORS.slate, fontSize: 11, lineHeight: 16 },
+  dailyTodoAddRow: { flexDirection: "row", gap: 8, marginTop: 2 },
+  dailyTodoAddInput: { flex: 1, minHeight: 42, paddingHorizontal: 12, borderWidth: 1, borderColor: "#3A313E", backgroundColor: "#121014", borderRadius: 12, color: COLORS.plum },
+  dailyTodoAddButton: { borderRadius: 12, paddingHorizontal: 14, justifyContent: "center" },
+  dailyTodoAddButtonText: { color: COLORS.white, fontSize: 13, fontWeight: "900" },
   sectionLead: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   sectionIcon: { height: 38, width: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   sectionIconText: { fontSize: 20, fontWeight: "900" },

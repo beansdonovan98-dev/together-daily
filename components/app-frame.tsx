@@ -144,6 +144,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     customSubheadings,
   } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
+  const [pageResetFeedback, setPageResetFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<
@@ -174,6 +175,15 @@ export function AppFrame({ children }: { children: ReactNode }) {
       (item) =>
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
+  const restoreCurrentPageDefault = () => {
+    resetPageStyle(currentPage.id);
+    setPageResetFeedback(`${currentPage.label} page colors restored to your theme defaults.`);
+  };
+  useEffect(() => {
+    if (!pageResetFeedback) return;
+    const timer = setTimeout(() => setPageResetFeedback(null), 3500);
+    return () => clearTimeout(timer);
+  }, [pageResetFeedback]);
   const pageStyle = pageStyles[currentPage.id] ?? {};
   const accentColor =
     pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
@@ -558,13 +568,15 @@ export function AppFrame({ children }: { children: ReactNode }) {
           {styledChildren}
           <TouchableOpacity
             accessibilityRole="button"
-            onPress={() => resetPageStyle(currentPage.id)}
+            accessibilityLabel={`Restore ${currentPage.label} page colors to theme defaults`}
+            onPress={restoreCurrentPageDefault}
             style={styles.pageResetFooter}
           >
             <Text style={styles.pageResetText}>
               Reset {currentPage.label} to default
             </Text>
           </TouchableOpacity>
+          {pageResetFeedback ? <Text accessibilityLiveRegion="polite" style={styles.pageResetFeedback}>{pageResetFeedback}</Text> : null}
         </View>
       </View>
     </ScreenContainer>
@@ -939,5 +951,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "900",
     fontFamily: "cursive",
+  },
+  pageResetFeedback: {
+    color: COLORS.slate,
+    fontSize: 10,
+    fontFamily: "monospace",
+    textAlign: "center",
+    marginTop: -10,
+    marginBottom: 8,
   },
 });

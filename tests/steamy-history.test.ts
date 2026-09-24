@@ -16,8 +16,8 @@ describe("Steamy daily history", () => {
     ];
 
     expect(intimateEntriesForDate(records, "2026-09-24").map((record) => record.id)).toEqual([
-      "today-later",
       "today-earlier",
+      "today-later",
     ]);
     expect(intimateEntriesForDate(records, "2026-09-23").map((record) => record.id)).toEqual(["old"]);
     expect(records).toHaveLength(4);
