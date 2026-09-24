@@ -67,7 +67,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, updateDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
+  const { getDay, updateDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, updateLogStyleColor, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -80,6 +80,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [editTime, setEditTime] = useState("");
   const [editTimeValue, setEditTimeValue] = useState(new Date());
   const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
+  const [editingSavedStyleId, setEditingSavedStyleId] = useState<string | null>(null);
 
   const content = asObject(getDay(date));
   const legacyDebrief = String(content.sharedNotes ?? "").trim();
@@ -196,7 +197,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
             <View style={styles.colorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`${option.name} color`} onPress={() => setCustomColor(option.value)} style={[styles.colorSwatch, { backgroundColor: option.value }, customColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{customColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View>
           </View>
           <Text style={styles.stylePrompt}>SAVED TYPES</Text>
-          {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} onDelete={() => confirmDeleteSavedType(style)} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
+          {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} isEditingColor={editingSavedStyleId === style.id} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} onToggleColor={() => setEditingSavedStyleId((current) => current === style.id ? null : style.id)} onColor={(color) => { updateLogStyleColor(style.id, color); setCustomColor(color); setEditingSavedStyleId(null); }} onDelete={() => confirmDeleteSavedType(style)} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
           <TouchableOpacity onPress={addEvent} style={[styles.addButton, { backgroundColor: me.color }]}><Text style={styles.addButtonText}>+ Add {activeStyle.emoji} Event</Text></TouchableOpacity>
         </View>
       </View>
@@ -215,8 +216,8 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   </ScrollView></AppFrame>;
 }
 
-function SavedStyleButton({ styleOption, onPress, onDelete }: { styleOption: SavedLogStyle; onPress: () => void; onDelete: () => void }) {
-  return <View style={[styles.savedType, { borderColor: styleOption.color, backgroundColor: `${styleOption.color}18` }]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${styleOption.label} style`} onPress={onPress} style={styles.savedTypeUse}><Text style={[styles.typeText, { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete saved ${styleOption.label} type`} onPress={onDelete} style={styles.savedTypeDelete}><Text style={[styles.savedTypeDeleteText, { color: styleOption.color }]}>×</Text></TouchableOpacity></View>;
+function SavedStyleButton({ styleOption, isEditingColor, onPress, onToggleColor, onColor, onDelete }: { styleOption: SavedLogStyle; isEditingColor: boolean; onPress: () => void; onToggleColor: () => void; onColor: (color: string) => void; onDelete: () => void }) {
+  return <View style={styles.savedTypeEditor}><View style={[styles.savedType, { borderColor: styleOption.color, backgroundColor: `${styleOption.color}18` }]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${styleOption.label} style`} onPress={onPress} style={styles.savedTypeUse}><Text style={[styles.typeText, { color: styleOption.color }]}>{styleOption.emoji} {styleOption.label}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit saved ${styleOption.label} color`} onPress={onToggleColor} style={styles.savedTypeColorButton}><Text style={[styles.savedTypeColorButtonText, { color: styleOption.color }]}>COLOR</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete saved ${styleOption.label} type`} onPress={onDelete} style={styles.savedTypeDelete}><Text style={[styles.savedTypeDeleteText, { color: styleOption.color }]}>×</Text></TouchableOpacity></View>{isEditingColor ? <View style={styles.savedTypeColorEditor}><Text style={styles.savedTypeColorPrompt}>CHOOSE A NEW SAVED COLOR</Text><View style={styles.editColorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`Set saved ${styleOption.label} color to ${option.name}`} onPress={() => onColor(option.value)} style={[styles.editColorSwatch, { backgroundColor: option.value }, styleOption.color === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{styleOption.color === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View><Text style={styles.savedTypeColorHelp}>Matching saved events update too; events you recolored individually stay unchanged.</Text></View> : null}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -258,12 +259,18 @@ const styles = StyleSheet.create({
   input: { minHeight: 64, borderRadius: 12, borderWidth: 1, borderColor: "#342C38", backgroundColor: "#121014", padding: 12, color: COLORS.plum, textAlignVertical: "top", fontSize: 15 },
   composerFooter: { marginTop: 10, gap: 10 },
   stylePrompt: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: .9 },
-  typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  typeRow: { gap: 8 },
   typePill: { borderWidth: 1, borderColor: "#3A313E", borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, backgroundColor: "#151217" },
-  savedType: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 9, overflow: "hidden" },
+  savedTypeEditor: { alignSelf: "stretch", gap: 7 },
+  savedType: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", borderWidth: 1, borderRadius: 9, overflow: "hidden" },
   savedTypeUse: { paddingLeft: 8, paddingRight: 5, paddingVertical: 6 },
+  savedTypeColorButton: { paddingHorizontal: 8, alignItems: "center", justifyContent: "center", alignSelf: "stretch", borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.16)" },
+  savedTypeColorButtonText: { fontSize: 8, fontWeight: "900", letterSpacing: .7 },
   savedTypeDelete: { width: 25, alignItems: "center", justifyContent: "center", alignSelf: "stretch", borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.16)" },
   savedTypeDeleteText: { fontSize: 17, fontWeight: "700", lineHeight: 18 },
+  savedTypeColorEditor: { borderRadius: 11, borderWidth: 1, borderColor: "#000000", backgroundColor: "transparent", padding: 10, gap: 8 },
+  savedTypeColorPrompt: { color: COLORS.slate, fontSize: 9, fontWeight: "900", letterSpacing: .8 },
+  savedTypeColorHelp: { color: COLORS.slate, fontSize: 10, lineHeight: 15, fontStyle: "italic" },
   typeText: { color: COLORS.slate, fontSize: 11, fontWeight: "800" },
   noSavedTypes: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, fontStyle: "italic" },
   customPanel: { borderRadius: 12, backgroundColor: "transparent", borderWidth: 1, borderColor: "#000000", padding: 11, gap: 9 },

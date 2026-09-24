@@ -259,3 +259,5 @@
 - [x] Preserve Daily Health as a recurring daily checklist while resetting both partners’ checkmarks each day.
 - [x] Increase the daily puzzle difficulty while keeping Sudoku uniquely solvable.
 - [x] Add visual celebrations for completed shared daily and weekly task lists.
+- [x] Allow saved Daily Log Moment Types to have their color edited.
+- [x] Simplify Steamy, reset its current view daily, and retain dated intimate-log history.

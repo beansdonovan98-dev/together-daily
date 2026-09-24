@@ -111,13 +111,16 @@ describe("theme gradients", () => {
     expect(rootLayout).not.toContain("cardLike");
   });
 
-  it("keeps Steamy’s primary safe, chat, gallery, and log cards on the active gradient", () => {
+  it("keeps Steamy’s primary safe, gallery, and log cards on the active gradient", () => {
     const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
 
     expect(steamy).toContain('const gradientCard = { backgroundColor: "transparent", borderColor: "#000000" }');
     expect(steamy).toContain('style={[styles.safeCard, gradientCard]}');
-    expect((steamy.match(/style=\{\[styles\.card, gradientCard\]\}/g) ?? [])).toHaveLength(2);
+    expect((steamy.match(/style=\{\[styles\.card, gradientCard\]\}/g) ?? [])).toHaveLength(1);
     expect(steamy).toContain('style={[styles.cumCard, gradientCard]}');
+    expect(steamy).not.toContain("Just the two of you");
+    expect(steamy).toContain("intimateEntryDateTimeLabel(record.createdAt, date)");
+    expect(steamy).toContain('pathname: "/steamy", params: { date:');
   });
 
   it("uses transparent shared tab-card surfaces with true-white shared text tokens", async () => {
@@ -204,6 +207,17 @@ describe("theme gradients", () => {
     expect(log).toContain("backgroundColor: style.color");
     expect(log).toContain("backgroundColor: `${style.color}55`");
     expect(log).not.toContain("borderLeftColor: author.color");
+  });
+
+  it("offers a persisted color editor for every saved Daily Log Moment Type", () => {
+    const log = readFileSync(resolve(process.cwd(), "app/(tabs)/log.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+
+    expect(log).toContain("Edit saved ${styleOption.label} color");
+    expect(log).toContain("CHOOSE A NEW SAVED COLOR");
+    expect(log).toContain("updateLogStyleColor(style.id, color)");
+    expect(journal).toContain("updateLogStyleColor:(id,color)");
+    expect(journal).toContain("recolorSavedLogStyle");
   });
 
   it("keeps Medicine as a checkbox-free time log and places Snack Tracker between Meals and Water", () => {
