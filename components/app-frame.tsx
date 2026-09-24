@@ -342,17 +342,17 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
-        <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
-          <View style={styles.brandRow}>
-            <Text style={styles.brandMark}>♥</Text>
+          <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
+            <View style={styles.brandRow}>
+            <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
             <View>
-              <Text style={[styles.brand, { fontFamily }]}>Together Daily</Text>
-              <Text style={[styles.brandSub, { fontFamily }]}>
+              <Text style={[styles.brand, { fontFamily, color: textColor }]}>Together Daily</Text>
+              <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>
                 {PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} +{" "}
                 {PARTNERS.princess.avatar}{" "}
                 {PARTNERS.princess.name.toUpperCase()}
               </Text>
-              <Text style={[styles.brandDate, { fontFamily }]}>{headerDate}</Text>
+              <Text style={[styles.brandDate, { fontFamily, color: textColor }]}>{headerDate}</Text>
             </View>
           </View>
           <View style={styles.liveStatus}>
@@ -362,7 +362,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 { backgroundColor: isSyncing ? COLORS.gold : COLORS.sage },
               ]}
             />
-            <Text style={styles.liveText}>
+            <Text style={[styles.liveText, { color: textColor }]}>
               {isSyncing ? "SYNCING" : "LIVE"}
             </Text>
           </View>
@@ -389,21 +389,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 ]}
                 onPress={() => router.replace(item.href as never)}
               >
-                <Text style={[styles.tabGlyph, active && styles.tabActiveText]}>
+                <Text style={[styles.tabGlyph, { color: textColor }]}>
                   {tabGlyphs[item.id]?.trim() || item.glyph}
                 </Text>
                 <Text
                   style={[
                     styles.tabLabel,
-                    { fontFamily },
-                    active && styles.tabActiveText,
+                    { fontFamily, color: textColor },
                   ]}
                 >
                   {tabLabels[item.id]?.trim() || item.label}
                 </Text>
                 {item.href === "/log" ? (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>LIVE</Text>
+                    <Text style={[styles.badgeText, { color: textColor }]}>LIVE</Text>
                   </View>
                 ) : null}
               </Pressable>

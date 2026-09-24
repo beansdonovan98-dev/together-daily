@@ -243,6 +243,19 @@ describe("theme gradients", () => {
     expect(journal).toContain("recolorSavedLogStyle");
   });
 
+  it("offers expanded event colors and a three-stop custom gradient", () => {
+    const log = readFileSync(resolve(process.cwd(), "app/(tabs)/log.tsx"), "utf8");
+    const creator = readFileSync(resolve(process.cwd(), "components/gradient-creator.tsx"), "utf8");
+
+    expect(log).toContain('name: "Amethyst", value: "#7C3AED"');
+    expect(log).toContain('name: "Turquoise", value: "#16C7B7"');
+    expect(creator).toContain("const [third, setThird]");
+    expect(creator).toContain("backgroundGradient: [first, second, third]");
+    expect(creator).toContain("THIRD COLOR");
+    expect(creator).toContain('"#FF2D95"');
+    expect(creator).toContain('"#B7ED4B"');
+  });
+
   it("keeps Medicine as a checkbox-free time log and places Snack Tracker between Meals and Water", () => {
     const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
 

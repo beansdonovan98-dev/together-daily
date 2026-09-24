@@ -62,15 +62,22 @@ describe("global typography", () => {
   it("routes Today’s daily content and partner labels through the shared font color", () => {
     const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
     const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
+    const profiles = readFileSync(resolve(process.cwd(), "components/partner-profiles-editor.tsx"), "utf8");
+    const frame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
 
     expect(today).toContain('const textColor = theme.fontColor ?? "#FFFFFF"');
     expect(today).toContain('style={[styles.dailySparkText, { color: textColor }]}');
     expect(today).toContain('style={[styles.loveName, { color: textColor }]}');
+    expect(editor).toContain("PARTNER EMOJI");
     expect(editor).toContain("FONT COLOR");
-    expect(editor).toContain("all app text, including Daddy and Princess labels");
+    expect(editor).toContain("Together Daily header and page navigation above");
     expect(editor).toContain("setActiveGlobalTextColor(color)");
-    expect(editor).toContain("BORDER COLOR");
-    expect(editor).toContain("every card, subsection, and nested habit item");
+    expect(editor).toContain("setPartnerEmoji");
+    expect(profiles).not.toContain("FONT_COLOR_OPTIONS");
+    expect(profiles).not.toContain("TextInput value={partnerAvatars[id]}");
+    expect(frame).toContain('styles.brand, { fontFamily, color: textColor }');
+    expect(frame).toContain('styles.tabLabel,\n                    { fontFamily, color: textColor }');
+    expect(frame).toContain('styles.tabGlyph, { color: textColor }');
   });
 
   it("updates the native root typography bridge from the current shared journal state", () => {
