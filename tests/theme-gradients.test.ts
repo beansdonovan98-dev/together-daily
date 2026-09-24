@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PASTEL_THEMES, SAVED_THEMES } from "../lib/ready-made-themes";
-import { isThemeGradient, resolveThemeBackdrop, themeGradientColors } from "../lib/theme-gradients";
+import { isThemeGradient, resolveEffectiveTheme, resolveThemeBackdrop, themeGradientColors } from "../lib/theme-gradients";
 
 describe("theme gradients", () => {
   it("accepts vivid two-to-four stop hex gradients", () => {
@@ -31,6 +31,17 @@ describe("theme gradients", () => {
       expect(backdrop.gradient).toEqual(theme.gradient);
       expect(backdrop.backgroundColor).toBe(theme.gradient[0]);
     }
+  });
+
+  it("prefers the active partner theme over the shared fallback", () => {
+    const theme = resolveEffectiveTheme(
+      { accentColor: "#A421FF", backgroundColor: "#22002E", fontColor: "#FFFFFF" },
+      { accentColor: "#FF2D95", backgroundColor: "#4D082A", fontColor: "#FF8FC6" },
+    );
+
+    expect(theme.accentColor).toBe("#FF2D95");
+    expect(theme.backgroundColor).toBe("#4D082A");
+    expect(theme.fontColor).toBe("#FF8FC6");
   });
 
   it("gives every ready-made Theme a valid vibrant gradient", () => {

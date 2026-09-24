@@ -46,4 +46,5 @@ describe("daily template", () => {
     await expect(caller.couple.mine()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(caller.daily.get({ date: "2026-08-21" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
+
 });
