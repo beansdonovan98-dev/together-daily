@@ -2,8 +2,8 @@ export type DailyLogTodo = {
   id: string;
   text: string;
   completed: boolean;
-  createdBy: "beans" | "princess";
-  completedBy?: "beans" | "princess";
+  createdBy: "beans" | "princess" | "rara";
+  completedBy?: "beans" | "princess" | "rara";
 };
 
 export function dailyLogTodos(value: unknown): DailyLogTodo[] {
@@ -12,14 +12,14 @@ export function dailyLogTodos(value: unknown): DailyLogTodo[] {
     if (!item || typeof item !== "object") return [];
     const candidate = item as Record<string, unknown>;
     const text = typeof candidate.text === "string" ? candidate.text.trim() : "";
-    const createdBy = candidate.createdBy === "princess" ? "princess" : "beans";
+    const createdBy = candidate.createdBy === "princess" || candidate.createdBy === "rara" ? candidate.createdBy : "beans";
     if (!text || typeof candidate.id !== "string") return [];
     return [{
       id: candidate.id,
       text,
       completed: Boolean(candidate.completed),
       createdBy,
-      ...(candidate.completedBy === "beans" || candidate.completedBy === "princess" ? { completedBy: candidate.completedBy } : {}),
+      ...(candidate.completedBy === "beans" || candidate.completedBy === "princess" || candidate.completedBy === "rara" ? { completedBy: candidate.completedBy } : {}),
     }];
   });
 }
@@ -35,7 +35,7 @@ export function renameDailyLogTodo(todos: DailyLogTodo[], id: string, text: stri
   return todos.map((todo) => todo.id === id ? { ...todo, text: nextText } : todo);
 }
 
-export function toggleDailyLogTodo(todos: DailyLogTodo[], id: string, partnerId: "beans" | "princess") {
+export function toggleDailyLogTodo(todos: DailyLogTodo[], id: string, partnerId: "beans" | "princess" | "rara") {
   return todos.map((todo) => todo.id === id
     ? { ...todo, completed: !todo.completed, ...(todo.completed ? { completedBy: undefined } : { completedBy: partnerId }) }
     : todo);

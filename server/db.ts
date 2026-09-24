@@ -362,13 +362,13 @@ function createGuestRoomCode() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
 }
 
-type GuestRoomMemberId = "beans" | "princess";
+type GuestRoomMemberId = "beans" | "princess" | "rara";
 
 function parseGuestRoomMembers(value: string): GuestRoomMemberId[] {
   try {
     const parsed = JSON.parse(value);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((member): member is GuestRoomMemberId => member === "beans" || member === "princess");
+    return parsed.filter((member): member is GuestRoomMemberId => member === "beans" || member === "princess" || member === "rara");
   } catch {
     return [];
   }
@@ -431,8 +431,8 @@ export async function joinGuestRoom(roomCode: string, memberId: GuestRoomMemberI
   if (!found[0]) throw new Error("That shared room code was not found.");
 
   const currentMembers = parseGuestRoomMembers(found[0].memberIds);
-  if (!currentMembers.includes(memberId) && currentMembers.length >= 2) {
-    throw new Error("That private room already has two connected partners.");
+  if (!currentMembers.includes(memberId) && currentMembers.length >= 3) {
+    throw new Error("That shared room already has three connected members.");
   }
 
   const memberIds = currentMembers.includes(memberId) ? currentMembers : [...currentMembers, memberId];

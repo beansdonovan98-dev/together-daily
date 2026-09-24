@@ -70,6 +70,8 @@ function CalendarContent() {
         fileName: asset.fileName ?? `calendar-background.${prepared.mimeType === "image/gif" ? "gif" : "jpg"}`,
         mimeType: prepared.mimeType,
         base64: prepared.base64,
+        width: asset.width,
+        height: asset.height,
       });
     } catch (error) {
       setBackgroundError(error instanceof Error ? error.message : "The Calendar background could not be saved.");
@@ -87,7 +89,7 @@ function CalendarContent() {
   );
 
   return <AppFrame><View style={styles.pageShell}>
-    {calendarBackground?.url ? <ExpoImage source={mediaUrl(calendarBackground.url)} contentFit="cover" transition={180} style={styles.backgroundImage} /> : null}
+    {calendarBackground?.url ? <ExpoImage source={mediaUrl(calendarBackground.url)} contentFit="contain" transition={180} style={styles.backgroundImage} /> : null}
     {calendarBackground?.url ? <View pointerEvents="none" style={styles.backgroundShade} /> : null}
     <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <Text style={styles.eyebrow}>SHARED LONG-TERM PLANNER</Text>

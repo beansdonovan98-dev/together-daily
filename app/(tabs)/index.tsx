@@ -3,6 +3,7 @@ import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { getApiBaseUrl } from "@/constants/oauth";
 import { dailySparkFor } from "@/lib/daily-spark";
+import { shouldShowDailyRelationshipSection } from "@/lib/room-settings";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -43,7 +44,7 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme } = useLocalJournal();
+  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme, roomSettings } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -158,8 +159,8 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
     <View style={styles.topRow}><View><Text style={[styles.eyebrow, { color: partner.color }]}>{prettyDate(date).toUpperCase()}</Text><Text style={styles.title}>{coupleName}</Text></View><View style={[styles.avatar, { backgroundColor: partner.color }]}><Text style={styles.avatarText}>{memberName.slice(0, 1).toUpperCase()}</Text></View></View>
-    <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
-    {loveNotesSection}
+    {shouldShowDailyRelationshipSection(roomSettings, "relationshipTracker") ? <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View> : null}
+    {shouldShowDailyRelationshipSection(roomSettings, "loveNotes") ? loveNotesSection : null}
     <View style={styles.coverGrid}>{covers.map(({ key, cover: coverSlot, label }) => {
       const captions = asObject(coverSlot.captions);
       const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);

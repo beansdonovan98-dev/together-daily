@@ -15,6 +15,7 @@ import {
   useState,
 } from "react";
 import {
+  Alert,
   Linking,
   Platform,
   Pressable,
@@ -29,8 +30,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
+import { shouldShowRoomPage } from "@/lib/room-settings";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
 import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
+import { PageContentReset } from "@/components/page-content-reset";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
@@ -141,6 +144,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
     tabGlyphs,
     tabOrder,
     customSubheadings,
+    roomSettings,
+    createNewRoom,
   } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
@@ -167,12 +172,13 @@ export function AppFrame({ children }: { children: ReactNode }) {
     ...NAVIGATION.map((item) => item.id).filter((id) => !normalizedTabOrder.includes(id)),
   ]
     .map((id) => NAVIGATION.find((item) => item.id === id)!)
-    .filter(Boolean);
+    .filter((item) => Boolean(item) && shouldShowRoomPage(roomSettings, item.id));
   const currentPage =
     NAVIGATION.find(
       (item) =>
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
+  const currentPageIsVisible = shouldShowRoomPage(roomSettings, currentPage.id);
   const accentColor = theme.accentColor ?? COLORS.orchid;
   const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(theme, undefined, COLORS.blush);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
@@ -186,6 +192,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
+  useEffect(() => {
+    if (!currentPageIsVisible) router.replace("/" as never);
+  }, [currentPageIsVisible]);
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -212,7 +221,10 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
+          children: <>
+            {revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor)}
+            <PageContentReset pageId={currentPage.id} />
+          </>,
       })
     : children;
 
@@ -302,6 +314,24 @@ export function AppFrame({ children }: { children: ReactNode }) {
       if (open) setShowQr(false);
       return !open;
     });
+  };
+  const startNewRoom = () => {
+    if (!memberId) return;
+    Alert.alert(
+      "Create a different room?",
+      "This creates a brand-new, empty room and switches this device to it. Your current room is not deleted; keep its code if you want to rejoin it later.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Create new room",
+          onPress: () => {
+            void createNewRoom(memberId)
+              .then(() => showInviteFeedback("New room created — share its new code when ready"))
+              .catch(() => showInviteFeedback("Could not create a new room — try again"));
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -436,6 +466,14 @@ export function AppFrame({ children }: { children: ReactNode }) {
                         style={styles.inviteAction}
                       >
                         <Text style={styles.inviteActionText}>OTHER APPS</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="Create a different room"
+                        onPress={startNewRoom}
+                        style={[styles.inviteAction, styles.newRoomAction]}
+                      >
+                        <Text style={styles.newRoomActionText}>NEW ROOM</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         accessibilityRole="button"
@@ -836,6 +874,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(102,183,221,0.10)",
   },
   copyInviteText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+  },
+  newRoomAction: {
+    borderColor: COLORS.orchid,
+    backgroundColor: "rgba(141,91,166,0.14)",
+  },
+  newRoomActionText: {
     color: "#FFFFFF",
     fontSize: 9,
     fontWeight: "900",

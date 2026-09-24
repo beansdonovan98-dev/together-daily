@@ -1,10 +1,10 @@
 export type PartnerNotificationEvent = "connection" | "daily-log" | "love-note" | "todo" | "private-update";
-export type PartnerNotificationId = "beans" | "princess";
+export type PartnerNotificationId = "beans" | "princess" | "rara";
 
 type PartnerNotification = { title: string; body: string; path: string };
 
 function partnerName(partnerId: PartnerNotificationId) {
-  return partnerId === "beans" ? "Daddy" : "Princess";
+  return partnerId === "beans" ? "Daddy" : partnerId === "princess" ? "Princess" : "RaRa";
 }
 
 /** Notification copy intentionally excludes journal, chat, photo, and intimate content. */

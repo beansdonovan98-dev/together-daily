@@ -282,4 +282,8 @@
 - [x] Add a long-term shared Calendar page with a heart on every monthly ninth.
 - [x] Remove per-page Theme behavior and apply the shared Theme across every page.
 - [x] Add a shared phone-photo background for the Calendar page.
+- [x] Replace the obsolete Theme reset with confirmed page-content clear controls that preserve shared Theme settings.
+- [x] Repair automatic fit sizing for Steamy GIFs and Calendar background photos.
+- [x] Add room modes, room creation, page visibility controls, and Daily relationship-section toggles.
+- [x] Support switching between saved rooms and a three-person room with RaRa.
 - [ ] Make the daily Little Things list editable.

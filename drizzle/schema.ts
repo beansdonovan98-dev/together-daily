@@ -105,7 +105,7 @@ export const guestRoomPushTokens = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     roomCode: varchar("roomCode", { length: 16 }).notNull(),
-    partnerId: mysqlEnum("partnerId", ["beans", "princess"]).notNull(),
+    partnerId: mysqlEnum("partnerId", ["beans", "princess", "rara"]).notNull(),
     token: varchar("token", { length: 255 }).notNull(),
     platform: varchar("platform", { length: 16 }).notNull(),
     enabled: boolean("enabled").default(true).notNull(),
