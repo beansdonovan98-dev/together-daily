@@ -20,7 +20,7 @@ export const PARTNERS: Record<PartnerId, { id: PartnerId; name: string; color: s
 };
 export function partnerLabel(partnerId: PartnerId) { return `${PARTNERS[partnerId].avatar} ${PARTNERS[partnerId].name}`; }
 
-type RecordType = "chat" | "loveNote" | "intimacy" | "steamyChat" | "habit" | "dateIdea";
+type RecordType = "chat" | "loveNote" | "intimacy" | "steamyChat" | "cumLog" | "habit" | "dateIdea";
 type PartnerNotificationType = "daily-log" | "love-note" | "todo" | "private-update";
 export type LocalRecord = { id: string; authorId: PartnerId; recordType: RecordType; content: Record<string, unknown>; createdAt: string; dailyDate?: string };
 export type LocalMedia = { id: string; kind: "cover" | "photo" | "private"; url: string; fileName: string; mimeType: string; caption: string; createdAt: string; dailyDate: string; uploadedBy?: PartnerId };
