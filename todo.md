@@ -289,3 +289,4 @@
 - [ ] Make the daily Little Things list editable.
 - [x] Use a motivational quote rotation instead of relationship quotes in Friend mode.
 - [x] Share new room switch links with both Daddy and Princess automatically.
+- [x] Restrict the relationship room to Daddy and Princess only.
