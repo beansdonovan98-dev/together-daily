@@ -264,3 +264,4 @@
 - [x] Add a direct edit control for personal Weight Tracker check-ins.
 - [x] Make Theme preferences personal to each partner instead of shared.
 - [x] Show today’s date in the Together Daily header.
+- [x] Verify and repair GIF support in Steamy and daily cover photos.

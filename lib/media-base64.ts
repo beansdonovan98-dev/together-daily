@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
+import type { SupportedImageMimeType } from "./media-upload-policy";
 
 function base64FromDataUrl(value: string) {
   const separator = value.indexOf(",");
@@ -39,7 +40,7 @@ export async function readPickedImageAsBase64(uri: string, providedBase64?: stri
 export async function preparePickedImageForUpload(input: {
   uri: string;
   base64?: string | null;
-  mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  mimeType: SupportedImageMimeType;
 }) {
   const base64 = await readPickedImageAsBase64(input.uri, input.base64);
   if (Platform.OS !== "web" || input.mimeType === "image/gif") return { base64, mimeType: input.mimeType };

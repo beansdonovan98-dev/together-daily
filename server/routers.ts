@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
+import { maxStoredBytesForMedia } from "../lib/media-upload-policy";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD calendar date.");
 const jsonObjectSchema = z.record(z.string(), z.unknown());
@@ -133,10 +134,10 @@ export const appRouter = router({
         return db.addGuestRoomPrivateMedia({ roomCode: input.roomCode, partnerId: input.partnerId, media });
       }),
     uploadDailyCover: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(3_500_000), caption: z.string().max(500).optional() }))
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(6_700_000), caption: z.string().max(500).optional() }))
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > 2.5 * 1024 * 1024) throw new Error("Please choose a smaller cover photo.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 5 MB." : "Please choose a smaller cover photo.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/covers/${input.dailyDate}/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const media = {
