@@ -31,8 +31,10 @@ function SteamyContent({ userId }: { userId: PartnerId }) {
   const [savingCaptionId, setSavingCaptionId] = useState<string | null>(null);
   const partner = PARTNERS[userId];
   const gradientCard = { backgroundColor: "transparent", borderColor: "#000000" };
-  const privateMedia = media.filter((item) => item.kind === "private" && item.dailyDate === date);
-  const cumEntries = filterSteamyEntriesForDate(records.filter((record) => record.recordType === "cumLog"), date).slice(-12).reverse();
+  const safeRecords = Array.isArray(records) ? records : [];
+  const safeMedia = Array.isArray(media) ? media : [];
+  const privateMedia = safeMedia.filter((item) => item.kind === "private" && item.dailyDate === date);
+  const cumEntries = filterSteamyEntriesForDate(safeRecords.filter((record) => record.recordType === "cumLog"), date).slice(-12).reverse();
   const addCumEntry = () => { if (!cumNote.trim()) return; addRecord("cumLog", { text: cumNote.trim(), date, matureOnly: true }); setCumNote(""); };
   const dateAndTimeLabel = (value: string | Date) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
   const savePrivateAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => { const selectedMimeType = mime(asset.mimeType, asset.fileName); const prepared = await preparePickedImageForUpload({ uri: asset.uri, base64: asset.base64, mimeType: selectedMimeType }); const fileName = asset.fileName ?? `private-${Date.now()}.${prepared.mimeType === "image/gif" ? "gif" : "jpg"}`; if (!prepared.base64) throw new Error("The selected image could not be read."); const maxBase64Length = prepared.mimeType === "image/gif" ? 6_700_000 : 2_400_000; if (prepared.base64.length > maxBase64Length) throw new Error(prepared.mimeType === "image/gif" ? "This GIF is too large. Choose a GIF under about 5 MB." : "This photo is still too large for the preview. Please choose a smaller item."); const saved = await uploadPrivateMedia({ dailyDate: date, fileName, mimeType: prepared.mimeType, base64: prepared.base64, caption }); if (!saved?.id) throw new Error("The shared room did not confirm this private upload. Please try again."); setCaption(""); setUploadSuccess(prepared.mimeType === "image/gif" ? "GIF saved privately for both of you." : "Saved privately for both of you."); }, [caption, date, uploadPrivateMedia]);
