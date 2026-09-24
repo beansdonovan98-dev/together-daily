@@ -275,4 +275,9 @@
 - [x] Expand the daily quote, dark joke, word, fact, and riddle rotation.
 - [x] Carry Good Habits forward each day with fresh completion states.
 - [x] Resize Steamy GIFs to fit fully in the private gallery.
+- [x] Repair Steamy GIF auto-fit after device testing.
+- [x] Repair reset buttons on every page.
+- [x] Add a confirmation prompt before resetting a page.
+- [x] Add optional notification reminders to the Medicine Tracker.
+- [x] Add a long-term shared Calendar page with a heart on every monthly ninth.
 - [ ] Make the daily Little Things list editable.

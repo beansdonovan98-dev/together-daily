@@ -7,6 +7,23 @@ export type SharedThemeValues = {
   fontId?: string;
 };
 
+const PAGE_STYLE_ALIASES: Record<string, string> = {
+  index: "today",
+  purchases: "purchase",
+  days: "pastDays",
+};
+
+export function canonicalPageStyleId(pageId: string) {
+  return PAGE_STYLE_ALIASES[pageId] ?? pageId;
+}
+
+function normalizePageStyleKeys<T extends Record<string, unknown>>(pageStyles: Record<string, T>) {
+  return Object.entries(pageStyles).reduce<Record<string, T>>((next, [pageId, style]) => {
+    next[canonicalPageStyleId(pageId)] = style;
+    return next;
+  }, {});
+}
+
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
@@ -30,12 +47,14 @@ export function selectSharedTheme(theme: unknown, themesByPartner: unknown): Sha
 export function selectSharedPageStyles<T extends Record<string, unknown>>(pageStyles: unknown): Record<string, T> {
   const candidate = record(pageStyles);
   if (!candidate) return {};
-  if (looksLikePartnerMap(candidate)) return (record(candidate.beans) ?? record(candidate.princess) ?? {}) as Record<string, T>;
-  return candidate as Record<string, T>;
+  const selected = looksLikePartnerMap(candidate)
+    ? (record(candidate.beans) ?? record(candidate.princess) ?? {}) as Record<string, T>
+    : candidate as Record<string, T>;
+  return normalizePageStyleKeys(selected);
 }
 
 export function removeSharedPageStyle<T extends Record<string, unknown>>(pageStyles: Record<string, T>, pageId: string) {
-  const next = { ...pageStyles };
-  delete next[pageId];
+  const next = normalizePageStyleKeys(pageStyles);
+  delete next[canonicalPageStyleId(pageId)];
   return next;
 }

@@ -3,9 +3,11 @@ import { CompletionCelebration } from "@/components/completion-celebration";
 import { PrivateGate } from "@/components/together-access";
 import { WeightTrackerSections } from "@/components/weight-tracker-sections";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
+import { cancelMedicineReminder, scheduleMedicineReminder } from "@/lib/medicine-reminders";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import {
   ScrollView,
+  Alert,
   StyleSheet,
 } from "react-native";
 import { useEffect, useMemo, useState } from "react";
@@ -60,6 +62,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
   const [editingMedicine, setEditingMedicine] = useState<string | null>(null);
   const [medicineEditDraft, setMedicineEditDraft] = useState("");
   const [medicineEditTime, setMedicineEditTime] = useState("");
+  const [medicineReminderFeedback, setMedicineReminderFeedback] = useState("");
   const [snackDraft, setSnackDraft] = useState("");
   const [snackTimeDraft, setSnackTimeDraft] = useState(currentTimeLabel());
   const [editingMealKey, setEditingMealKey] = useState<string | null>(null);
@@ -151,7 +154,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
         ...items,
         kind === "tasks"
           ? { id: `${kind}-${Date.now()}`, text: value, done: {} }
-          : { id: `${kind}-${Date.now()}`, text: value, time },
+          : { id: `${kind}-${Date.now()}`, text: value, time, reminder: false },
       ],
     });
     clear();
@@ -169,6 +172,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
   };
   const remove = (kind: "tasks" | "medicines" | "snacks", id: string) => {
     const items = kind === "tasks" ? tasks : kind === "medicines" ? medicines : snacks;
+    if (kind === "medicines") void cancelMedicineReminder(id);
     save({ [kind]: items.filter((item) => item.id !== id) });
   };
   const addSnack = () => {
@@ -184,7 +188,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     setMedicineEditDraft(item.text);
     setMedicineEditTime(item.time || currentTimeLabel());
   };
-  const saveMedicineEdit = () => {
+  const saveMedicineEdit = async () => {
     const value = medicineEditDraft.trim();
     const time = medicineEditTime.trim();
     if (
@@ -193,14 +197,30 @@ function HealthContent({ userId }: { userId: PartnerId }) {
       timeOrder(time) === Number.MAX_SAFE_INTEGER
     )
       return;
-    save({
-      medicines: medicines.map((item) =>
-        item.id === editingMedicine ? { ...item, text: value, time } : item,
-      ),
-    });
+    const updated = medicines.map((item) =>
+      item.id === editingMedicine ? { ...item, text: value, time } : item,
+    );
+    const edited = updated.find((item) => item.id === editingMedicine);
+    if (edited?.reminder) await scheduleMedicineReminder(edited, false);
+    save({ medicines: updated });
     setEditingMedicine(null);
     setMedicineEditDraft("");
     setMedicineEditTime("");
+  };
+  const toggleMedicineReminder = async (item: HealthItem) => {
+    if (item.reminder) {
+      await cancelMedicineReminder(item.id);
+      save({ medicines: medicines.map((medicine) => medicine.id === item.id ? { ...medicine, reminder: false } : medicine) });
+      setMedicineReminderFeedback(`Reminder off for ${item.text}.`);
+      return;
+    }
+    const scheduled = await scheduleMedicineReminder({ id: item.id, text: item.text, time: item.time, reminder: true });
+    if (!scheduled) {
+      Alert.alert("Reminder not set", "Allow Together Daily notifications in your phone settings, then try again.");
+      return;
+    }
+    save({ medicines: medicines.map((medicine) => medicine.id === item.id ? { ...medicine, reminder: true } : medicine) });
+    setMedicineReminderFeedback(`Daily reminder set for ${item.time}.`);
   };
   const adjustWater = (delta: number) => {
     const mine = waterFor(userId);
@@ -271,7 +291,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
               style={styles.timeInput}
             />
             <TouchableOpacity
-              onPress={saveMedicineEdit}
+              onPress={() => { void saveMedicineEdit(); }}
               style={[styles.add, { backgroundColor: PARTNERS[userId].color }]}
             >
               <Text style={styles.addText}>Save</Text>
@@ -305,7 +325,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
                 <Text style={styles.timeText}>{item.time || "No time"}</Text>
               ) : null}
             </View>
-            {kind === "medicines" ? <TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit</Text></TouchableOpacity> : null}
+            {kind === "medicines" ? <><TouchableOpacity onPress={() => { void toggleMedicineReminder(item); }}><Text style={styles.reminderLink}>{item.reminder ? "Reminder on" : "Set reminder"}</Text></TouchableOpacity><TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit</Text></TouchableOpacity></> : null}
             <TouchableOpacity onPress={() => remove(kind, item.id)}>
               <Text style={styles.delete}>×</Text>
             </TouchableOpacity>
@@ -348,7 +368,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     medicineDraft,
     setMedicineDraft,
   );
-  const medicineNotifications = null;
+  const medicineNotifications = <Text style={styles.reminderFeedback}>{medicineReminderFeedback || "Tap Set reminder beside a medicine to receive a private daily notification on this phone."}</Text>;
   const periodTracker = <View style={[styles.card, { backgroundColor: "transparent", borderColor: "#000000" }]}>
     <Text style={styles.kicker}>PERIOD TRACKER</Text>
     <Text style={styles.title}>Cycle check-in</Text>
@@ -655,7 +675,8 @@ const styles = StyleSheet.create({
   delete: { color: "#E98393", fontSize: 20 },
   edit: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },
   cancel: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
-  reminder: { display: "none" },
+  reminderLink: { color: COLORS.gold, fontSize: 9, fontWeight: "900", textAlign: "right" },
+  reminderFeedback: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginTop: -9 },
   notificationButton: {
     paddingHorizontal: 8,
     paddingVertical: 6,

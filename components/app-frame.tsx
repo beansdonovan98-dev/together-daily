@@ -15,6 +15,7 @@ import {
   useState,
 } from "react";
 import {
+  Alert,
   Linking,
   Platform,
   Pressable,
@@ -41,6 +42,7 @@ const NAVIGATION = [
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },
+  { id: "calendar", href: "/calendar", label: "Calendar", glyph: "♥" },
   { id: "themes", href: "/themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", href: "/days", label: "Past Days", glyph: "▤" },
 ];
@@ -176,8 +178,21 @@ export function AppFrame({ children }: { children: ReactNode }) {
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const restoreCurrentPageDefault = () => {
-    resetPageStyle(currentPage.id);
-    setPageResetFeedback(`${currentPage.label} page colors restored to your theme defaults.`);
+    Alert.alert(
+      `Reset ${currentPage.label}?`,
+      "This restores this page’s colors and card settings to the shared Theme. Your journal entries are not changed.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset page",
+          style: "destructive",
+          onPress: () => {
+            resetPageStyle(currentPage.id);
+            setPageResetFeedback(`${currentPage.label} now uses the shared Theme.`);
+          },
+        },
+      ],
+    );
   };
   useEffect(() => {
     if (!pageResetFeedback) return;

@@ -13,6 +13,7 @@ export default function TabLayout() {
     <Tabs.Screen name="memories" options={{href:null}} />
     <Tabs.Screen name="purchases" options={{title:"Purchase",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
     <Tabs.Screen name="cleaning" options={{title:"Cleaning",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
+    <Tabs.Screen name="calendar" options={{title:"Calendar",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="themes" options={{title:"Themes",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="days" options={{title:"Past Days",tabBarIcon:({color})=><IconSymbol size={24} name="list.bullet.clipboard" color={color}/>}} />
   </Tabs>;

@@ -12,7 +12,7 @@ import {
 
 describe("gradient-revealing tab card surfaces", () => {
   it("keeps every navigation tab's primary cards transparent", () => {
-    expect(TAB_CARD_IDS).toHaveLength(9);
+    expect(TAB_CARD_IDS).toHaveLength(10);
     for (const tabId of TAB_CARD_IDS) {
       expect(resolveTabCardColor(tabId)).toBe(TAB_CARD_PALETTES[tabId].surface);
       expect(resolveTabCardColor(tabId)).toBe("transparent");
@@ -31,6 +31,7 @@ describe("gradient-revealing tab card surfaces", () => {
     expect(colors.health).toBe("transparent");
     expect(colors.themes).toBe("transparent");
     expect(colors.cleaning).toBe("transparent");
+    expect(colors.calendar).toBe("transparent");
   });
 
   it("does not reveal an opaque fill when a saved value is malformed", () => {

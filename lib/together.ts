@@ -21,6 +21,7 @@ export const TAB_CARD_PALETTES = {
   steamy: { surface: "transparent", border: "#000000" },
   purchase: { surface: "transparent", border: "#000000" },
   cleaning: { surface: "transparent", border: "#000000" },
+  calendar: { surface: "transparent", border: "#000000" },
   themes: { surface: "transparent", border: "#000000" },
   pastDays: { surface: "transparent", border: "#000000" },
 } as const;

@@ -15,6 +15,7 @@ const TABS = [
   { id: "steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", label: "Purchase", glyph: "▤" },
   { id: "cleaning", label: "Cleaning", glyph: "✦" },
+  { id: "calendar", label: "Calendar", glyph: "♥" },
   { id: "themes", label: "Themes", glyph: "◐" },
   { id: "pastDays", label: "Past Days", glyph: "▤" },
 ];

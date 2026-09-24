@@ -23,4 +23,16 @@ describe("shared Theme preferences", () => {
     expect(styles).toEqual({ health: { accentColor: "#123456" } });
     expect(removeSharedPageStyle(styles, "health")).toEqual({});
   });
+
+  it("resets legacy route-key overrides through the page footer", () => {
+    const styles = selectSharedPageStyles({
+      purchases: { accentColor: "#123456" },
+      days: { accentColor: "#FEDCBA" },
+    });
+    expect(styles).toEqual({
+      purchase: { accentColor: "#123456" },
+      pastDays: { accentColor: "#FEDCBA" },
+    });
+    expect(removeSharedPageStyle(styles, "purchase")).toEqual({ pastDays: { accentColor: "#FEDCBA" } });
+  });
 });
