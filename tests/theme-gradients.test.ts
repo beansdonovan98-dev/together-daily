@@ -93,7 +93,7 @@ describe("theme gradients", () => {
     }
   });
 
-  it("previews selected gradients across Themes and clears older page overrides by default", () => {
+  it("previews selected gradients as the one shared Theme without retaining page-specific overrides", () => {
     const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
     const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
 
@@ -101,8 +101,8 @@ describe("theme gradients", () => {
     expect(editor).toContain("setTheme({ accentColor: preset.accent, backgroundColor: preset.background, backgroundGradient: [...preset.gradient] })");
     expect(editor).toContain("Your Theme is shared");
     expect(editor).toContain("Apply shared Theme");
-    expect(journal).toContain("pageStyles=patch.backgroundGradient?Object.fromEntries");
-    expect(journal).toContain("backgroundGradient:undefined");
+    expect(journal).toContain("pageStyles: undefined");
+    expect(journal).not.toContain("setPageStyle:");
   });
 
   it("does not rely on production-minified component names or global stylesheet rewrites", () => {
@@ -175,6 +175,7 @@ describe("theme gradients", () => {
       "app/(tabs)/habits.tsx",
       "app/(tabs)/health.tsx",
       "app/(tabs)/cleaning.tsx",
+      "app/(tabs)/calendar.tsx",
       "app/(tabs)/days.tsx",
       "app/(tabs)/memories.tsx",
       "app/(tabs)/purchases.tsx",

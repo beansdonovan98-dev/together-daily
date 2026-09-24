@@ -4,15 +4,14 @@ import { describe, expect, it } from "vitest";
 
 const file = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
-describe("page reset confirmation", () => {
-  it("asks before restoring a page and clears normalized route-key overrides", () => {
+describe("global Theme application", () => {
+  it("uses the shared Theme for every page without a page-by-page reset control", () => {
     const frame = file("components/app-frame.tsx");
-    const theme = file("lib/shared-theme-preferences.ts");
-    expect(frame).toContain("Alert.alert(");
-    expect(frame).toContain("Reset page");
-    expect(frame).toContain("Your journal entries are not changed.");
-    expect(theme).toContain('purchases: "purchase"');
-    expect(theme).toContain('days: "pastDays"');
+    const journal = file("lib/local-journal.tsx");
+    expect(frame).toContain("resolveThemeBackdrop(theme, undefined, COLORS.blush)");
+    expect(frame).not.toContain("resetPageStyle");
+    expect(frame).not.toContain("Reset {currentPage.label} to default");
+    expect(journal).toContain("pageStyles: undefined");
   });
 });
 

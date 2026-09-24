@@ -112,6 +112,19 @@ export const appRouter = router({
     get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
+    uploadCalendarBackground: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(6_700_000) }))
+      .mutation(async ({ input }) => {
+        const bytes = Buffer.from(input.base64, "base64");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a Calendar GIF smaller than 5 MB." : "Please choose a Calendar background smaller than 2.5 MB.");
+        const fileName = safeFileName(input.fileName);
+        const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/calendar/${Date.now()}-${fileName}`, bytes, input.mimeType);
+        const background = { id: `calendar-background-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, kind: "calendar", url: stored.url, storageKey: stored.key, fileName, mimeType: input.mimeType, caption: "", createdAt: new Date().toISOString(), dailyDate: "calendar", uploadedBy: input.partnerId };
+        return db.setGuestRoomCalendarBackground({ roomCode: input.roomCode, partnerId: input.partnerId, background });
+      }),
+    deleteCalendarBackground: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema }))
+      .mutation(({ input }) => db.setGuestRoomCalendarBackground({ roomCode: input.roomCode, partnerId: input.partnerId })),
     uploadPrivateMedia: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(7_000_000), caption: z.string().max(500).optional() }))
       .mutation(async ({ input }) => {

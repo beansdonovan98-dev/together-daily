@@ -280,4 +280,6 @@
 - [x] Add a confirmation prompt before resetting a page.
 - [x] Add optional notification reminders to the Medicine Tracker.
 - [x] Add a long-term shared Calendar page with a heart on every monthly ninth.
+- [x] Remove per-page Theme behavior and apply the shared Theme across every page.
+- [x] Add a shared phone-photo background for the Calendar page.
 - [ ] Make the daily Little Things list editable.

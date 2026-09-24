@@ -3,7 +3,6 @@ import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
-import { tabCardColorFromStyles } from "@/lib/tab-card-colors";
 import { useEffect, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
@@ -54,8 +53,7 @@ function PastDaysContent() {
 }
 
 function PastDayCard({ day, onPress }: { day: ArchiveDay; onPress: () => void }) {
-  const { pageStyles } = useLocalJournal();
-  const cardColor = tabCardColorFromStyles(pageStyles, "pastDays");
+  const cardColor = "transparent";
   const timeline = Array.isArray(day.timelineEvents) ? day.timelineEvents : [];
   const loveNotes = Object.values(asObject(day.loveNotes)).filter(Boolean).length;
   const todos = Array.isArray(day.todos) ? day.todos : [];
@@ -125,9 +123,7 @@ function ArchivedDayDetail({ day, media, onBack }: { day: ArchiveDay; media: Ret
 }
 
 function ArchiveCard({ title, meta, accent, children }: { title: string; meta?: string; accent?: string; children: React.ReactNode }) {
-  const { pageStyles } = useLocalJournal();
-  const cardColor = tabCardColorFromStyles(pageStyles, "pastDays");
-  return <View style={[styles.archiveCard, { backgroundColor: cardColor }, accent && { borderColor: accent }]}><View style={styles.cardHeader}><Text style={styles.cardTitle}>{title}</Text>{meta ? <Text style={styles.cardMeta}>{meta}</Text> : null}</View>{children}</View>;
+  return <View style={[styles.archiveCard, accent && { borderColor: accent }]}><View style={styles.cardHeader}><Text style={styles.cardTitle}>{title}</Text>{meta ? <Text style={styles.cardMeta}>{meta}</Text> : null}</View>{children}</View>;
 }
 
 function EmptyArchiveText({ text }: { text: string }) {

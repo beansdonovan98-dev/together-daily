@@ -15,7 +15,6 @@ import {
   useState,
 } from "react";
 import {
-  Alert,
   Linking,
   Platform,
   Pressable,
@@ -138,15 +137,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
     isSyncing,
     registerPushToken,
     theme,
-    pageStyles,
-    resetPageStyle,
     tabLabels,
     tabGlyphs,
     tabOrder,
     customSubheadings,
   } = useLocalJournal();
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
-  const [pageResetFeedback, setPageResetFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pushStatus, setPushStatus] = useState<
@@ -177,38 +173,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
       (item) =>
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
-  const restoreCurrentPageDefault = () => {
-    Alert.alert(
-      `Reset ${currentPage.label}?`,
-      "This restores this page’s colors and card settings to the shared Theme. Your journal entries are not changed.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset page",
-          style: "destructive",
-          onPress: () => {
-            resetPageStyle(currentPage.id);
-            setPageResetFeedback(`${currentPage.label} now uses the shared Theme.`);
-          },
-        },
-      ],
-    );
-  };
-  useEffect(() => {
-    if (!pageResetFeedback) return;
-    const timer = setTimeout(() => setPageResetFeedback(null), 3500);
-    return () => clearTimeout(timer);
-  }, [pageResetFeedback]);
-  const pageStyle = pageStyles[currentPage.id] ?? {};
-  const accentColor =
-    pageStyle.accentColor ?? theme.accentColor ?? COLORS.orchid;
-  const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(
-    theme,
-    currentPage.id === "log" ? undefined : pageStyle,
-    COLORS.blush,
-  );
+  const accentColor = theme.accentColor ?? COLORS.orchid;
+  const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(theme, undefined, COLORS.blush);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
-  const cardStyle = pageStyle.cardStyle ?? "soft";
   const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
   const textColor = normalizeGlobalTextColor(theme.fontColor);
@@ -219,34 +186,18 @@ export function AppFrame({ children }: { children: ReactNode }) {
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
-  const pageSurfaceStyle =
-    cardStyle === "outlined"
-      ? {
-          marginHorizontal: 8,
-          marginTop: 8,
-          borderWidth: 0,
-          backgroundColor: "transparent",
-          borderRadius: 16,
-          overflow: "hidden" as const,
-        }
-      : cardStyle === "minimal"
-        ? {
-            marginTop: 0,
-            borderRadius: 0,
-            backgroundColor: "transparent",
-          }
-        : {
-            marginHorizontal: 8,
-            marginTop: 8,
-            borderWidth: 0,
-            backgroundColor: "transparent",
-            borderRadius: 20,
-            overflow: "hidden" as const,
-            shadowOpacity: 0,
-            shadowRadius: 0,
-            shadowOffset: { width: 0, height: 0 },
-            elevation: 0,
-          };
+  const pageSurfaceStyle = {
+    marginHorizontal: 8,
+    marginTop: 8,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    borderRadius: 20,
+    overflow: "hidden" as const,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
+  };
   const child = isValidElement(children)
       ? (children as ReactElement<{
         children?: ReactNode;
@@ -580,17 +531,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
         ) : null}
         <View style={[styles.content, pageSurfaceStyle, { paddingBottom: Math.max(insets.bottom, 12) }, isLaptopLayout && styles.contentLaptop]}>
           {styledChildren}
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={`Restore ${currentPage.label} page colors to theme defaults`}
-            onPress={restoreCurrentPageDefault}
-            style={styles.pageResetFooter}
-          >
-            <Text style={styles.pageResetText}>
-              Reset {currentPage.label} to default
-            </Text>
-          </TouchableOpacity>
-          {pageResetFeedback ? <Text accessibilityLiveRegion="polite" style={styles.pageResetFeedback}>{pageResetFeedback}</Text> : null}
         </View>
       </View>
     </ScreenContainer>
