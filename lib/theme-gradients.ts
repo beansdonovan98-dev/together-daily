@@ -15,6 +15,19 @@ export function themeGradientColors(value: unknown): ThemeGradient | null {
  * precedence over older page-level solid-color preferences so that a saved
  * gradient cannot be hidden by legacy TestFlight state.
  */
+export function resolveEffectiveTheme<T extends { accentColor?: string; backgroundColor?: string; backgroundGradient?: unknown; fontColor?: string; borderColor?: string }>(
+  fallbackTheme?: Partial<T> | null,
+  activeTheme?: T | null,
+): T & Partial<{ accentColor: string; backgroundColor: string; backgroundGradient: unknown; fontColor: string; borderColor: string }> {
+  return {
+    accentColor: activeTheme?.accentColor ?? fallbackTheme?.accentColor,
+    backgroundColor: activeTheme?.backgroundColor ?? fallbackTheme?.backgroundColor,
+    backgroundGradient: activeTheme?.backgroundGradient ?? fallbackTheme?.backgroundGradient,
+    fontColor: activeTheme?.fontColor ?? fallbackTheme?.fontColor,
+    borderColor: activeTheme?.borderColor ?? fallbackTheme?.borderColor,
+  } as T & Partial<{ accentColor: string; backgroundColor: string; backgroundGradient: unknown; fontColor: string; borderColor: string }>;
+}
+
 export function resolveThemeBackdrop(
   theme: { backgroundGradient?: unknown; backgroundColor?: string },
   pageStyle: { backgroundColor?: string } | undefined,

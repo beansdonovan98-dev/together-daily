@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
 import { carryDailyHealthTasks } from "@/lib/daily-health-rollover";
+import { resolveEffectiveTheme } from "@/lib/theme-gradients";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -21,7 +22,7 @@ export function partnerLabel(partnerId: PartnerId) { return `${PARTNERS[partnerI
 
 type RecordType = "chat" | "loveNote" | "intimacy" | "steamyChat" | "habit" | "dateIdea";
 type PartnerNotificationType = "daily-log" | "love-note" | "todo" | "private-update";
-export type LocalRecord = { id: string; authorId: PartnerId; recordType: RecordType; content: Record<string, unknown>; createdAt: string };
+export type LocalRecord = { id: string; authorId: PartnerId; recordType: RecordType; content: Record<string, unknown>; createdAt: string; dailyDate?: string };
 export type LocalMedia = { id: string; kind: "cover" | "photo" | "private"; url: string; fileName: string; mimeType: string; caption: string; createdAt: string; dailyDate: string; uploadedBy?: PartnerId };
 export type SavedLogStyle = { id: string; label: string; emoji: string; color: string; createdBy: PartnerId };
 export type SharedThemePreferences = { accentColor?: string; backgroundColor?: string; backgroundGradient?: string[]; fontColor?: string; borderColor?: string };
@@ -30,7 +31,7 @@ export type NamedColorTheme = { id: string; name: string; accentColor: string; b
 export type CleaningTemplate = { id: string; name: string; tasks: string[]; createdBy: PartnerId };
 export type PurchaseCategory = "groceries" | "house" | "misc";
 export type PurchaseItem = { id: string; text: string; category: PurchaseCategory; addedBy: PartnerId; purchased: boolean; purchasedBy?: PartnerId; purchasedOn?: string };
-type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[]; savedLogStyles?: SavedLogStyle[]; customSubheadings?: Record<string, string>; theme?: Partial<Record<PartnerId, SharedThemePreferences>> | SharedThemePreferences; pageStyles?: Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | Record<string, PageStylePreferences>; partnerNames?: Partial<Record<PartnerId, string>>; partnerColors?: Partial<Record<PartnerId, string>>; partnerAvatars?: Partial<Record<PartnerId, string>>; namedColorThemes?: NamedColorTheme[]; cleaningTemplates?: CleaningTemplate[]; purchaseItems?: PurchaseItem[]; tabLabels?: Record<string, string>; tabGlyphs?: Record<string, string>; tabOrder?: string[]; customHeaders?: Record<string, string>; healthPeriodVisible?: boolean };
+type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[]; savedLogStyles?: SavedLogStyle[]; customSubheadings?: Record<string, string>; theme?: Partial<Record<PartnerId, SharedThemePreferences>> | SharedThemePreferences; themesByPartner?: Partial<Record<PartnerId, SharedThemePreferences>>; pageStyles?: Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | Record<string, PageStylePreferences>; partnerNames?: Partial<Record<PartnerId, string>>; partnerColors?: Partial<Record<PartnerId, string>>; partnerAvatars?: Partial<Record<PartnerId, string>>; namedColorThemes?: NamedColorTheme[]; cleaningTemplates?: CleaningTemplate[]; purchaseItems?: PurchaseItem[]; tabLabels?: Record<string, string>; tabGlyphs?: Record<string, string>; tabOrder?: string[]; customHeaders?: Record<string, string>; healthPeriodVisible?: boolean };
 type RoomPrefs = { roomCode: string | null; memberId: PartnerId | null };
 
 const QUESTIONS = ["What was a small moment today where you felt deeply loved or appreciated?", "What habit or quality in me has positively influenced your own life recently?", "How can I support you or lighten your mental load over the next 48 hours?", "What is your favorite quiet, unscripted memory of us from this past year?", "Describe our dream Sunday morning five years from now in three vivid sentences.", "What new experience would you love for us to try together before the year ends?", "What did you honestly think in the first ten minutes after we first met?"];
