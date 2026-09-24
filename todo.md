@@ -274,4 +274,5 @@
 - [x] Add a three-color Gradient Creator and expand Gradient Creator and Daily Log color palettes.
 - [x] Expand the daily quote, dark joke, word, fact, and riddle rotation.
 - [x] Carry Good Habits forward each day with fresh completion states.
+- [x] Resize Steamy GIFs to fit fully in the private gallery.
 - [ ] Make the daily Little Things list editable.

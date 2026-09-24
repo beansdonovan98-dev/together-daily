@@ -23,7 +23,7 @@ describe("GIF media upload policy", () => {
     expect(maxStoredBytesForMedia("image/jpeg", "cover")).toBe(2.5 * 1024 * 1024);
   });
 
-  it("uses the animation-safe picker and renderer for GIF cover photos and private media", () => {
+  it("uses the animation-safe picker and full-fit renderer for GIF cover photos and private media", () => {
     const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
     const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
     const server = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
@@ -32,6 +32,9 @@ describe("GIF media upload policy", () => {
     expect(today).toContain("<ExpoImage source={mediaUrl(String(coverSlot.url))}");
     expect(today).toContain("maxBase64LengthForMedia(prepared.mimeType, \"cover\")");
     expect(steamy).toContain("isAnimatedGif(asset.mimeType, asset.fileName, asset.uri)");
+    expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
+    expect(steamy).toContain('contentFit={pendingPreview.isGif ? "contain" : "cover"}');
+    expect(steamy).toContain('gifPhoto:{height:300,aspectRatio:undefined');
     expect(server).toContain("maxStoredBytesForMedia(input.mimeType, \"cover\")");
   });
 });
