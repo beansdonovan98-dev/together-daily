@@ -123,6 +123,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const headerDate = new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
   const isLaptopLayout = width >= 900;
   const {
     roomCode,
@@ -337,6 +342,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
                 {PARTNERS.princess.avatar}{" "}
                 {PARTNERS.princess.name.toUpperCase()}
               </Text>
+              <Text style={[styles.brandDate, { fontFamily }]}>{headerDate}</Text>
             </View>
           </View>
           <View style={styles.liveStatus}>
@@ -594,6 +600,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1.3,
     marginTop: 1,
+  },
+  brandDate: {
+    color: COLORS.slate,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    marginTop: 2,
   },
   liveStatus: {
     borderRadius: 11,
