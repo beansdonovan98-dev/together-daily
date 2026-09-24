@@ -1,4 +1,4 @@
-import { DAILY_FACTS, DAILY_MATURE_JOKES, DAILY_QUOTES, DAILY_RIDDLES, DAILY_WORDS, dailySparkFor } from "../lib/daily-spark";
+import { DAILY_FACTS, DAILY_MATURE_JOKES, DAILY_QUOTES, DAILY_RIDDLES, DAILY_WORDS, FRIEND_MOTIVATIONAL_QUOTES, dailySparkFor, friendMotivationFor } from "../lib/daily-spark";
 import { describe, expect, it } from "vitest";
 
 describe("dailySparkFor", () => {
@@ -19,5 +19,10 @@ describe("dailySparkFor", () => {
     for (const collection of [DAILY_QUOTES, DAILY_MATURE_JOKES, DAILY_RIDDLES, DAILY_WORDS, DAILY_FACTS]) {
       expect(collection.length).toBeGreaterThanOrEqual(32);
     }
+  });
+
+  it("uses a dedicated non-romantic motivation rotation for Friend mode", () => {
+    expect(FRIEND_MOTIVATIONAL_QUOTES.length).toBeGreaterThanOrEqual(15);
+    expect(friendMotivationFor("2026-09-24")).toBe(friendMotivationFor("2026-09-24"));
   });
 });

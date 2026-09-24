@@ -287,3 +287,5 @@
 - [x] Add room modes, room creation, page visibility controls, and Daily relationship-section toggles.
 - [x] Support switching between saved rooms and a three-person room with RaRa.
 - [ ] Make the daily Little Things list editable.
+- [x] Use a motivational quote rotation instead of relationship quotes in Friend mode.
+- [x] Share new room switch links with both Daddy and Princess automatically.

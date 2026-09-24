@@ -2,7 +2,7 @@ import { AppFrame } from "@/components/app-frame";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { dailySparkFor } from "@/lib/daily-spark";
+import { dailySparkFor, friendMotivationFor } from "@/lib/daily-spark";
 import { shouldShowDailyRelationshipSection } from "@/lib/room-settings";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
@@ -64,7 +64,8 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const textColor = theme.fontColor ?? "#FFFFFF";
   const together = useTogetherTime();
   const dailySpark = dailySparkFor(date);
-  const displayedQuote = dailySparkFor(date, quoteOffset).quote;
+  const isFriendMode = roomSettings.mode === "friends";
+  const displayedQuote = isFriendMode ? friendMotivationFor(date, quoteOffset) : dailySparkFor(date, quoteOffset).quote;
   const loveDraftKey = `${date}:${userId}`;
 
   useEffect(() => {
@@ -174,7 +175,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     })}</View>
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
     <View style={styles.dailySparkGrid}>
-      <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>QUOTE OF THE DAY</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch to another daily quote" onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
+      <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>{isFriendMode ? "MOTIVATION OF THE DAY" : "QUOTE OF THE DAY"}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel={isFriendMode ? "Switch to another daily motivation" : "Switch to another daily quote"} onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>TODAY’S DARKER JOKE</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.joke}</Text></View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>RIDDLE OF THE DAY</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.riddle.prompt}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel={riddleAnswerVisible ? "Hide riddle answer" : "Show riddle answer"} onPress={toggleRiddleAnswer} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>{riddleAnswerVisible ? "Hide answer" : "Show answer"}</Text></TouchableOpacity>{riddleAnswerVisible ? <Animated.View style={[styles.riddleAnswer, { opacity: riddleFlip, transform: [{ rotateX: riddleFlip.interpolate({ inputRange: [0, 1], outputRange: ["-90deg", "0deg"] }) }] }]}><Text style={[styles.riddleAnswerText, { color: textColor }]}>{dailySpark.riddle.answer}</Text></Animated.View> : null}</View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>WORD OF THE DAY</Text><Text style={[styles.dailySparkWord, { color: textColor }]}>{dailySpark.word.term}</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.word.definition}</Text></View>
