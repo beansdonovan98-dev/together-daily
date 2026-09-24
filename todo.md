@@ -261,3 +261,4 @@
 - [x] Add visual celebrations for completed shared daily and weekly task lists.
 - [x] Allow saved Daily Log Moment Types to have their color edited.
 - [x] Simplify Steamy, reset its current view daily, and retain dated intimate-log history.
+- [x] Add a direct edit control for personal Weight Tracker check-ins.
