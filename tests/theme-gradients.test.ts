@@ -44,15 +44,15 @@ describe("theme gradients", () => {
     expect(theme.fontColor).toBe("#FF8FC6");
   });
 
-  it("keeps the full Theme choice personal, including gradient, font, and color", () => {
+  it("keeps the full Theme choice shared, including gradient, font, and color", () => {
     const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
     const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
     const rootLayout = readFileSync(resolve(process.cwd(), "app/_layout.tsx"), "utf8");
 
-    expect(editor).toContain("Your choices change the look on your own app only.");
+    expect(editor).toContain("Your Theme is shared");
     expect(editor).toContain("setTheme({ fontId: id })");
-    expect(journal).toContain("themesByPartner: updatePersonalTheme(");
-    expect(journal).toContain("selectPersonalTheme(state.theme, state.themesByPartner, memberId)");
+    expect(journal).toContain("selectSharedTheme(state.theme, state.themesByPartner)");
+    expect(journal).toContain("themesByPartner: undefined");
     expect(rootLayout).toContain("theme.fontId ?? customSubheadings.globalFont");
   });
 
@@ -99,8 +99,8 @@ describe("theme gradients", () => {
 
     expect(editor).toContain("const previewAcrossPages = (preset: ReadyMadeTheme)");
     expect(editor).toContain("setTheme({ accentColor: preset.accent, backgroundColor: preset.background, backgroundGradient: [...preset.gradient] })");
-    expect(editor).toContain("Your choices change the look on your own app only.");
-    expect(editor).toContain("Keep this Theme on my pages");
+    expect(editor).toContain("Your Theme is shared");
+    expect(editor).toContain("Apply shared Theme");
     expect(journal).toContain("pageStyles=patch.backgroundGradient?Object.fromEntries");
     expect(journal).toContain("backgroundGradient:undefined");
   });

@@ -4,8 +4,7 @@ import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
 import { carryDailyHealthTasks } from "@/lib/daily-health-rollover";
 import { recolorSavedLogStyle } from "@/lib/log-style-utils";
-import { selectPersonalTheme, updatePersonalTheme } from "@/lib/personal-theme-preferences";
-import { removePersonalPageStyle } from "@/lib/page-style-reset";
+import { removeSharedPageStyle, selectSharedPageStyles, selectSharedTheme } from "@/lib/shared-theme-preferences";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -71,40 +70,16 @@ function createDayWithCarriedHealthTasks(days: Record<string, Record<string, any
   return carriedTasks.length ? { ...blankDay(date), health: { tasks: carriedTasks } } : blankDay(date);
 }
 
-function currentUserTheme(state: JournalState, memberId: PartnerId | null): SharedThemePreferences {
-  return selectPersonalTheme(state.theme, state.themesByPartner, memberId);
+function currentSharedTheme(state: JournalState): SharedThemePreferences {
+  return selectSharedTheme(state.theme, state.themesByPartner);
 }
 
-function currentUserPageStyles(state: JournalState, memberId: PartnerId | null): Record<string, PageStylePreferences> {
-  if (!memberId) return (state.pageStyles as Record<string, PageStylePreferences> | undefined) ?? {};
-  const pageMap = state.pageStyles as Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | undefined;
-  if (pageMap && ("beans" in pageMap || "princess" in pageMap)) return pageMap[memberId] ?? {};
-  return (state.pageStyles as Record<string, PageStylePreferences> | undefined) ?? {};
+function currentSharedPageStyles(state: JournalState): Record<string, PageStylePreferences> {
+  return selectSharedPageStyles<PageStylePreferences>(state.pageStyles);
 }
 
-function withMemberTheme(state: JournalState, memberId: PartnerId | null, patch: SharedThemePreferences): JournalState {
-  const currentMemberId = memberId ?? "beans";
-  return {
-    ...state,
-    themesByPartner: updatePersonalTheme(
-      state.theme,
-      state.themesByPartner,
-      currentMemberId,
-      patch,
-    ),
-  };
-}
-
-function withMemberPageStyles(state: JournalState, memberId: PartnerId | null, patch: Record<string, PageStylePreferences>): JournalState {
-  const currentMemberId = memberId ?? "beans";
-  const existing = state.pageStyles && typeof state.pageStyles === "object" && !("beans" in state.pageStyles) && !("princess" in state.pageStyles)
-    ? ({ beans: state.pageStyles as Record<string, PageStylePreferences>, princess: state.pageStyles as Record<string, PageStylePreferences> } as Partial<Record<PartnerId, Record<string, PageStylePreferences>>>)
-    : ((state.pageStyles as Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | undefined) ?? {});
-  return { ...state, pageStyles: { ...existing, [currentMemberId]: { ...(existing[currentMemberId] ?? {}), ...patch } } };
-}
-
-function withMemberThemeAndPageStyles(state: JournalState, memberId: PartnerId | null, themePatch: SharedThemePreferences, pageStylesPatch: Record<string, PageStylePreferences>): JournalState {
-  return withMemberPageStyles(withMemberTheme(state, memberId, themePatch), memberId, pageStylesPatch);
+function withSharedThemeAndPageStyles(state: JournalState, theme: SharedThemePreferences, pageStyles: Record<string, PageStylePreferences>): JournalState {
+  return { ...state, theme, themesByPartner: undefined, pageStyles };
 }
 
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
@@ -123,8 +98,8 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const partnerColors: Record<PartnerId, string> = { beans: HEX_COLOR.test(state.partnerColors?.beans ?? "") ? state.partnerColors!.beans! : DEFAULT_PARTNER_COLORS.beans, princess: HEX_COLOR.test(state.partnerColors?.princess ?? "") ? state.partnerColors!.princess! : DEFAULT_PARTNER_COLORS.princess };
   const partnerAvatars: Record<PartnerId, string> = { beans: state.partnerAvatars?.beans?.trim() || DEFAULT_PARTNER_AVATARS.beans, princess: state.partnerAvatars?.princess?.trim() || DEFAULT_PARTNER_AVATARS.princess };
   PARTNERS.beans.name = partnerNames.beans; PARTNERS.princess.name = partnerNames.princess; PARTNERS.beans.color = partnerColors.beans; PARTNERS.princess.color = partnerColors.princess; PARTNERS.beans.avatar = partnerAvatars.beans; PARTNERS.princess.avatar = partnerAvatars.princess; PARTNERS.beans.soft = partnerColors.beans === DEFAULT_PARTNER_COLORS.beans ? DEFAULT_PARTNER_SOFT_COLORS.beans : `${partnerColors.beans}26`; PARTNERS.princess.soft = partnerColors.princess === DEFAULT_PARTNER_COLORS.princess ? DEFAULT_PARTNER_SOFT_COLORS.princess : `${partnerColors.princess}26`;
-  const activeTheme = currentUserTheme(state, prefs.memberId);
-  const activePageStyles = currentUserPageStyles(state, prefs.memberId);
+  const activeTheme = currentSharedTheme(state);
+  const activePageStyles = currentSharedPageStyles(state);
   const value=useMemo<JournalContextValue>(()=>({
     ready, roomCode:prefs.roomCode, memberId:prefs.memberId, roomMembers, partner:prefs.memberId?PARTNERS[prefs.memberId]:null, partnerNames, setPartnerName:(partnerId,name)=>{const trimmed=name.trim();if(!trimmed||trimmed.length>24)return;persist({...state,partnerNames:{...(state.partnerNames??{}),[partnerId]:trimmed}});}, partnerColors, setPartnerColor:(partnerId,color)=>{const normalized=color.trim().toUpperCase();if(!HEX_COLOR.test(normalized))return;persist({...state,partnerColors:{...(state.partnerColors??{}),[partnerId]:normalized}});}, partnerAvatars, setPartnerProfiles:({names,colors,avatars})=>{const nextNames: Partial<Record<PartnerId,string>>={};const nextColors: Partial<Record<PartnerId,string>>={};const nextAvatars: Partial<Record<PartnerId,string>>={};(["beans","princess"] as PartnerId[]).forEach((partnerId)=>{const name=names[partnerId].trim();const color=colors[partnerId].trim().toUpperCase();const avatar=avatars[partnerId].trim();if(name&&name.length<=24)nextNames[partnerId]=name;if(HEX_COLOR.test(color))nextColors[partnerId]=color;if(avatar&&avatar.length<=12)nextAvatars[partnerId]=avatar;});persist({...state,partnerNames:{...(state.partnerNames??{}),...nextNames},partnerColors:{...(state.partnerColors??{}),...nextColors},partnerAvatars:{...(state.partnerAvatars??{}),...nextAvatars}});}, isSyncing:sync.isPending||remote.isFetching, syncError,
     getDay:(date)=>state.days[date]??blankDay(date), ensureDay, updateDay:(date,patch,notificationType)=>{const current=state.days[date]??blankDay(date);persist({...state,days:{...state.days,[date]:{...current,...patch,date}}},notificationType);}, allDays:Object.values(state.days).sort((a,b)=>String(b.date).localeCompare(String(a.date))), records:state.records,
@@ -140,13 +115,13 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     customSubheadings:state.customSubheadings??{},
     setCustomSubheading:(key,value)=>{const current=state.customSubheadings??{};const next={...current};const trimmed=value.trim();if(trimmed)next[key]=trimmed;else delete next[key];persist({...state,customSubheadings:next});},
     theme:activeTheme,
-    setTheme:(patch)=>{const currentPageStyles=activePageStyles ?? {};const pageStyles=patch.backgroundGradient?Object.fromEntries(Object.entries(currentPageStyles).map(([pageId,pageStyle])=>[pageId,{...pageStyle,backgroundColor:undefined,backgroundGradient:undefined}])):currentPageStyles;persist(withMemberThemeAndPageStyles(state,prefs.memberId,{...(activeTheme ?? {}),...patch},pageStyles),"private-update");},
+    setTheme:(patch)=>{const currentPageStyles=activePageStyles ?? {};const pageStyles=patch.backgroundGradient?Object.fromEntries(Object.entries(currentPageStyles).map(([pageId,pageStyle])=>[pageId,{...pageStyle,backgroundColor:undefined,backgroundGradient:undefined}])):currentPageStyles;persist(withSharedThemeAndPageStyles(state,{...(activeTheme ?? {}),...patch},pageStyles),"private-update");},
     pageStyles:activePageStyles,
-    setPageStyle:(pageId,patch)=>{const current=activePageStyles ?? {};persist(withMemberPageStyles(state,prefs.memberId,{...current,[pageId]:{...(current[pageId]??{}),...patch}}),"private-update");},
-    setPageStyles:(patches)=>{const current=activePageStyles ?? {};const next={...current};Object.entries(patches).forEach(([pageId,patch])=>{next[pageId]={...(current[pageId]??{}),...patch};});persist(withMemberPageStyles(state,prefs.memberId,next),"private-update");},
-    resetPageStyle:(pageId)=>{const currentMemberId=prefs.memberId??"beans";const stored=state.pageStyles&&typeof state.pageStyles==="object"&&("beans" in state.pageStyles||"princess" in state.pageStyles)?state.pageStyles as Partial<Record<PartnerId,Record<string,PageStylePreferences>>>:{beans:(state.pageStyles as Record<string,PageStylePreferences>??{}),princess:(state.pageStyles as Record<string,PageStylePreferences>??{})};const next=removePersonalPageStyle(stored as Record<string,Record<string,unknown>>,currentMemberId,pageId);persist({...state,pageStyles:next as Partial<Record<PartnerId,Record<string,PageStylePreferences>>>},"private-update");},
+    setPageStyle:(pageId,patch)=>{const current=activePageStyles ?? {};persist({...state,pageStyles:{...current,[pageId]:{...(current[pageId]??{}),...patch}}},"private-update");},
+    setPageStyles:(patches)=>{const current=activePageStyles ?? {};const next={...current};Object.entries(patches).forEach(([pageId,patch])=>{next[pageId]={...(current[pageId]??{}),...patch};});persist({...state,pageStyles:next},"private-update");},
+    resetPageStyle:(pageId)=>{persist({...state,pageStyles:removeSharedPageStyle(activePageStyles,pageId)},"private-update");},
     namedColorThemes:state.namedColorThemes??[],
-    saveNamedColorTheme:(input)=>{const existing=state.namedColorThemes??[];const duplicate=existing.find((item)=>item.name.trim().toLowerCase()===input.name.trim().toLowerCase());const saved:NamedColorTheme=duplicate?{...duplicate,...input}:{...input,id:`named-theme-${Date.now()}-${Math.random().toString(16).slice(2)}`,createdBy:prefs.memberId??"beans"};const nextState=withMemberTheme({...state,namedColorThemes:duplicate?existing.map((item)=>item.id===duplicate.id?saved:item):[...existing,saved]},prefs.memberId,{...(activeTheme ?? {}),accentColor:saved.accentColor,backgroundColor:saved.backgroundColor});persist(nextState,"private-update");},
+    saveNamedColorTheme:(input)=>{const existing=state.namedColorThemes??[];const duplicate=existing.find((item)=>item.name.trim().toLowerCase()===input.name.trim().toLowerCase());const saved:NamedColorTheme=duplicate?{...duplicate,...input}:{...input,id:`named-theme-${Date.now()}-${Math.random().toString(16).slice(2)}`,createdBy:prefs.memberId??"beans"};const nextState=withSharedThemeAndPageStyles({...state,namedColorThemes:duplicate?existing.map((item)=>item.id===duplicate.id?saved:item):[...existing,saved]},{...(activeTheme ?? {}),accentColor:saved.accentColor,backgroundColor:saved.backgroundColor},activePageStyles);persist(nextState,"private-update");},
     renameNamedColorTheme:(id,name)=>{const trimmed=name.trim();if(!trimmed)return;const existing=state.namedColorThemes??[];persist({...state,namedColorThemes:existing.map((item)=>item.id===id?{...item,name:trimmed}:item)});},
     deleteNamedColorTheme:(id)=>{const existing=state.namedColorThemes??[];persist({...state,namedColorThemes:existing.filter((item)=>item.id!==id)});},
     cleaningTemplates:state.cleaningTemplates??[],
@@ -166,7 +141,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     setTabOrder:(order)=>persist({...state,tabOrder:order}),
     healthPeriodVisible:state.healthPeriodVisible!==false,
     setHealthPeriodVisible:(visible)=>persist({...state,healthPeriodVisible:visible}),
-    resetPersonalization:()=>{const resetState=withMemberThemeAndPageStyles({...state,customSubheadings:{}},prefs.memberId,{},{});persist(resetState);},
+    resetPersonalization:()=>{const resetState=withSharedThemeAndPageStyles({...state,customSubheadings:{}},{},{});persist(resetState);},
     createRoom:async(partnerId)=>{setSyncError(null);const result=await create.mutateAsync({journalState:state,memberId:partnerId});setRoomMembers(normalizedRoomMembers(result.memberIds));savePrefs({roomCode:result.roomCode,memberId:partnerId});},
     joinRoom:async(roomCode,partnerId)=>{setSyncError(null);const result=await join.mutateAsync({roomCode:roomCode.trim().toUpperCase(),memberId:partnerId});const next=result.journalState as JournalState;setState(next);setRoomMembers(normalizedRoomMembers(result.memberIds));AsyncStorage.setItem(STATE_KEY,JSON.stringify(next)).catch(()=>undefined);savePrefs({roomCode:result.roomCode,memberId:partnerId});},
     registerPushToken:async(token,platform)=>{if(!prefs.roomCode||!prefs.memberId)return;await registerPush.mutateAsync({roomCode:prefs.roomCode,partnerId:prefs.memberId,token,platform});},

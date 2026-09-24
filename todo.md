@@ -268,4 +268,5 @@
 - [x] Replace Steamy media captions with shared comments and show Cum Log entries as a chronological conversation.
 - [x] Repair the reset control at the bottom of every page.
 - [x] Add an editable, checkable bullet to-do list to Daily Log.
+- [x] Restore one shared Theme and page-style setting for both partners.
 - [ ] Make the daily Little Things list editable and carry Good Habits forward each day with fresh completion states.
