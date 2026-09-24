@@ -16,7 +16,7 @@ import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalize
 
 function useSharedVisualSettings() {
   const { theme, customSubheadings } = useLocalJournal();
-  const fontFamily = fontFamilyFor(normalizeGlobalFont(customSubheadings.globalFont), Platform.OS as FontPlatform);
+  const fontFamily = fontFamilyFor(normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont), Platform.OS as FontPlatform);
   return {
     textColor: normalizeGlobalTextColor(theme.fontColor),
     borderColor: normalizeGlobalBorderColor(theme.borderColor),

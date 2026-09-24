@@ -179,7 +179,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   );
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const cardStyle = pageStyle.cardStyle ?? "soft";
-  const selectedFont = normalizeGlobalFont(customSubheadings.globalFont);
+  const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
   const textColor = normalizeGlobalTextColor(theme.fontColor);
   const borderColor = normalizeGlobalBorderColor(theme.borderColor);

@@ -15,7 +15,7 @@ export default function ThemesScreen() {
 
 function ThemesContent() {
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} showsVerticalScrollIndicator={false}>
-    <View style={styles.hero}><Text style={styles.eyebrow}>SHARED PERSONALIZATION</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose gradients, update shared profiles, and organize the words across Together Daily.</Text></View>
+    <View style={styles.hero}><Text style={styles.eyebrow}>YOUR PERSONAL LOOK</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose your own gradients, font, font color, and borders. Daddy and Princess can each keep a different Theme.</Text></View>
     <PageThemeEditor />
     <GradientCreator />
     <PartnerProfilesEditor />

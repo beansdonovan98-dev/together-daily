@@ -65,10 +65,10 @@ function usePartnerNotificationNavigation() {
 
 function JournalRoutes() {
   const { theme, customSubheadings } = useLocalJournal();
-  const selectedFont = normalizeGlobalFont(customSubheadings.globalFont);
+  const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
   setActiveGlobalTextColor(normalizeGlobalTextColor(theme.fontColor));
   setActiveGlobalFont(selectedFont, fontFamilyFor(selectedFont, Platform.OS as FontPlatform));
-  return <Stack key={`${theme.fontColor ?? "white"}:${customSubheadings.globalFont ?? "classic"}`} screenOptions={{ headerShown: false }}><Stack.Screen name="(tabs)" /><Stack.Screen name="oauth/callback" /></Stack>;
+  return <Stack key={`${theme.fontColor ?? "white"}:${theme.fontId ?? customSubheadings.globalFont ?? "classic"}`} screenOptions={{ headerShown: false }}><Stack.Screen name="(tabs)" /><Stack.Screen name="oauth/callback" /></Stack>;
 }
 
 export default function RootLayout() {

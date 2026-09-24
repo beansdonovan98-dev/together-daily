@@ -4,7 +4,7 @@ import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
 import { carryDailyHealthTasks } from "@/lib/daily-health-rollover";
 import { recolorSavedLogStyle } from "@/lib/log-style-utils";
-import { resolveEffectiveTheme } from "@/lib/theme-gradients";
+import { selectPersonalTheme, updatePersonalTheme } from "@/lib/personal-theme-preferences";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -26,7 +26,7 @@ type PartnerNotificationType = "daily-log" | "love-note" | "todo" | "private-upd
 export type LocalRecord = { id: string; authorId: PartnerId; recordType: RecordType; content: Record<string, unknown>; createdAt: string; dailyDate?: string };
 export type LocalMedia = { id: string; kind: "cover" | "photo" | "private"; url: string; fileName: string; mimeType: string; caption: string; createdAt: string; dailyDate: string; uploadedBy?: PartnerId };
 export type SavedLogStyle = { id: string; label: string; emoji: string; color: string; createdBy: PartnerId };
-export type SharedThemePreferences = { accentColor?: string; backgroundColor?: string; backgroundGradient?: string[]; fontColor?: string; borderColor?: string };
+export type SharedThemePreferences = { accentColor?: string; backgroundColor?: string; backgroundGradient?: string[]; fontColor?: string; borderColor?: string; fontId?: string };
 export type PageStylePreferences = { accentColor?: string; backgroundColor?: string; sectionBackgroundColor?: string; sectionBorderColor?: string; cardBackgroundColor?: string; textColor?: string; fontStyle?: "classic" | "serif" | "mono"; cardStyle?: "soft" | "outlined" | "minimal" };
 export type NamedColorTheme = { id: string; name: string; accentColor: string; backgroundColor: string; createdBy: PartnerId };
 export type CleaningTemplate = { id: string; name: string; tasks: string[]; createdBy: PartnerId };
@@ -71,10 +71,7 @@ function createDayWithCarriedHealthTasks(days: Record<string, Record<string, any
 }
 
 function currentUserTheme(state: JournalState, memberId: PartnerId | null): SharedThemePreferences {
-  if (!memberId) return (state.theme as SharedThemePreferences | undefined) ?? {};
-  const themeMap = state.theme as Partial<Record<PartnerId, SharedThemePreferences>> | undefined;
-  if (themeMap && ("beans" in themeMap || "princess" in themeMap)) return themeMap[memberId] ?? {};
-  return (state.theme as SharedThemePreferences | undefined) ?? {};
+  return selectPersonalTheme(state.theme, state.themesByPartner, memberId);
 }
 
 function currentUserPageStyles(state: JournalState, memberId: PartnerId | null): Record<string, PageStylePreferences> {
@@ -86,10 +83,15 @@ function currentUserPageStyles(state: JournalState, memberId: PartnerId | null):
 
 function withMemberTheme(state: JournalState, memberId: PartnerId | null, patch: SharedThemePreferences): JournalState {
   const currentMemberId = memberId ?? "beans";
-  const existing = state.theme && typeof state.theme === "object" && !("beans" in state.theme) && !("princess" in state.theme)
-    ? ({ beans: state.theme as SharedThemePreferences, princess: state.theme as SharedThemePreferences } as Partial<Record<PartnerId, SharedThemePreferences>>)
-    : ((state.theme as Partial<Record<PartnerId, SharedThemePreferences>> | undefined) ?? {});
-  return { ...state, theme: { ...existing, [currentMemberId]: { ...(existing[currentMemberId] ?? {}), ...patch } } };
+  return {
+    ...state,
+    themesByPartner: updatePersonalTheme(
+      state.theme,
+      state.themesByPartner,
+      currentMemberId,
+      patch,
+    ),
+  };
 }
 
 function withMemberPageStyles(state: JournalState, memberId: PartnerId | null, patch: Record<string, PageStylePreferences>): JournalState {

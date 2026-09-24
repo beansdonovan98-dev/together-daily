@@ -10,10 +10,10 @@ import { BORDER_COLOR_OPTIONS, FONT_COLOR_OPTIONS, FONT_OPTIONS, fontFamilyFor, 
 const PRESETS: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_THEMES];
 
 export function PageThemeEditor() {
-  const { theme, setTheme, customSubheadings, setCustomSubheading } = useLocalJournal();
+  const { theme, setTheme } = useLocalJournal();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ReadyMadeTheme>(() => PRESETS.find((preset) => preset.background === theme.backgroundColor) ?? PRESETS[0]);
-  const activeFont = customSubheadings.globalFont ?? "handwritten";
+  const activeFont = theme.fontId ?? "handwritten";
   const activeFontColor = normalizeGlobalTextColor(theme.fontColor);
   const activeBorderColor = normalizeGlobalBorderColor(theme.borderColor);
   const preview = useMemo(() => draft.gradient, [draft]);
@@ -29,13 +29,13 @@ export function PageThemeEditor() {
   return <View style={styles.card}>
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle gradients and fonts" accessibilityState={{ expanded: open }} onPress={() => setOpen((value) => !value)} style={styles.toggle}><View><Text style={styles.kicker}>THEME COLLECTION</Text><Text style={styles.title}>Gradients & Fonts</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text></TouchableOpacity>
     {open ? <View style={styles.body}>
-      <Text style={styles.copy}>Tap a gradient to preview it across this entire Themes page. Each selection applies to every page by default.</Text>
-      <LinearGradient colors={preview} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.preview}><Text style={styles.previewKicker}>GRADIENT PREVIEW</Text><Text style={styles.previewTitle}>Together Daily</Text><Text style={styles.previewCopy}>This background will be used across your pages.</Text></LinearGradient>
+      <Text style={styles.copy}>Your choices change the look on your own app only. Your partner can keep a different Theme.</Text>
+      <LinearGradient colors={preview} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.preview}><Text style={styles.previewKicker}>YOUR THEME PREVIEW</Text><Text style={styles.previewTitle}>Together Daily</Text><Text style={styles.previewCopy}>This background will be used across your pages.</Text></LinearGradient>
       <Text style={styles.collectionLabel}>VIVID GRADIENTS</Text><View style={styles.grid}>{SAVED_THEMES.map((preset) => <TouchableOpacity key={preset.name} accessibilityRole="button" accessibilityLabel={`Preview ${preset.name} across all pages`} onPress={() => previewAcrossPages(preset)} style={[styles.preset, draft.name === preset.name && styles.selected]}><LinearGradient colors={preset.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.presetStrip}/><Text style={styles.presetName}>{preset.name}</Text></TouchableOpacity>)}</View>
       <Text style={styles.collectionLabel}>PASTEL GRADIENTS</Text><View style={styles.grid}>{PASTEL_THEMES.map((preset) => <TouchableOpacity key={preset.name} accessibilityRole="button" accessibilityLabel={`Preview ${preset.name} across all pages`} onPress={() => previewAcrossPages(preset)} style={[styles.preset, draft.name === preset.name && styles.selected]}><LinearGradient colors={preset.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.presetStrip}/><Text style={styles.presetName}>{preset.name}</Text></TouchableOpacity>)}</View>
-      <TouchableOpacity accessibilityRole="button" onPress={apply} style={styles.apply}><Text style={styles.applyText}>Keep this gradient on every page</Text></TouchableOpacity>
-      <Text style={styles.sectionLabel}>GLOBAL FONT</Text><Text style={styles.copy}>Your chosen font applies throughout the app.</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>{FONT_OPTIONS.map(([id, label]) => <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Use ${label} font`} onPress={() => setCustomSubheading("globalFont", id)} style={[styles.fontChip, activeFont === id && styles.fontChipSelected]}><Text style={[styles.fontChipText, { fontFamily: fontFamilyFor(id) }]}>{label}</Text></TouchableOpacity>)}</ScrollView>
+      <TouchableOpacity accessibilityRole="button" onPress={apply} style={styles.apply}><Text style={styles.applyText}>Keep this Theme on my pages</Text></TouchableOpacity>
+      <Text style={styles.sectionLabel}>MY FONT</Text><Text style={styles.copy}>Your chosen font applies throughout your app without changing your partner’s font.</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>{FONT_OPTIONS.map(([id, label]) => <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Use ${label} font`} onPress={() => setTheme({ fontId: id })} style={[styles.fontChip, activeFont === id && styles.fontChipSelected]}><Text style={[styles.fontChipText, { fontFamily: fontFamilyFor(id) }]}>{label}</Text></TouchableOpacity>)}</ScrollView>
       <Text style={styles.sectionLabel}>FONT COLOR</Text><Text style={styles.copy}>This color is used for all app text, including Daddy and Princess labels.</Text>
       <View style={styles.colorRow}>{FONT_COLOR_OPTIONS.map(([color, label]) => <TouchableOpacity key={color} accessibilityRole="button" accessibilityLabel={`Use ${label} font color`} onPress={() => applyFontColor(color)} style={[styles.colorChip, activeFontColor === color && styles.colorChipSelected]}><View style={[styles.colorSwatch, { backgroundColor: color }]} /><Text style={styles.colorChipLabel}>{label}</Text></TouchableOpacity>)}</View>
       <Text style={styles.sectionLabel}>BORDER COLOR</Text><Text style={styles.copy}>This color outlines every card, subsection, and nested habit item. Black is the default.</Text>

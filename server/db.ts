@@ -13,6 +13,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { buildPartnerNotification, sendPartnerPushNotifications, type PartnerNotificationEvent } from "./partner-notifications";
+import { mergePersonalThemeUpdate } from "../lib/personal-theme-preferences";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -460,9 +461,16 @@ export async function updateGuestRoom(roomCode: string, journalState: JsonObject
   const normalizedCode = roomCode.trim().toUpperCase();
   const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!existing[0]) throw new Error("That shared room code was not found.");
-  await db.update(guestRooms).set({ journalState: JSON.stringify(journalState) }).where(eq(guestRooms.roomCode, normalizedCode));
+  const existingState = parseObject(existing[0].journalState);
+  const themesByPartner = mergePersonalThemeUpdate(
+    existingState.themesByPartner as Record<string, unknown> | undefined,
+    journalState.themesByPartner as Record<string, unknown> | undefined,
+    actorId,
+  );
+  const nextState = themesByPartner ? { ...journalState, themesByPartner } : journalState;
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, normalizedCode));
   if (actorId && notificationType) await notifyGuestRoomPartner(normalizedCode, actorId, notificationType);
-  return { roomCode: normalizedCode, journalState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
+  return { roomCode: normalizedCode, journalState: nextState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }
 
 export async function addGuestRoomPrivateMedia(input: {
