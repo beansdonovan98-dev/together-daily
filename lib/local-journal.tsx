@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
 import { carryDailyHealthTasks } from "@/lib/daily-health-rollover";
+import { carryDailyHabitList } from "@/lib/daily-habits-rollover";
 import { recolorSavedLogStyle } from "@/lib/log-style-utils";
 import { removeSharedPageStyle, selectSharedPageStyles, selectSharedTheme } from "@/lib/shared-theme-preferences";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -67,7 +68,12 @@ function normalizedRoomMembers(value: unknown): PartnerId[] {
 
 function createDayWithCarriedHealthTasks(days: Record<string, Record<string, any>>, date: string): Record<string, any> {
   const carriedTasks = carryDailyHealthTasks(days, date);
-  return carriedTasks.length ? { ...blankDay(date), health: { tasks: carriedTasks } } : blankDay(date);
+  const carriedHabits = carryDailyHabitList(days, date);
+  return {
+    ...blankDay(date),
+    ...(carriedTasks.length ? { health: { tasks: carriedTasks } } : {}),
+    ...(carriedHabits.length ? { habits: { list: carriedHabits, checks: {} } } : {}),
+  };
 }
 
 function currentSharedTheme(state: JournalState): SharedThemePreferences {

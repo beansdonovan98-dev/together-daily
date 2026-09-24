@@ -271,4 +271,6 @@
 - [x] Restore one shared Theme and page-style setting for both partners.
 - [x] Apply Font Color to the header and page navigation, and place its control under Gradients & Fonts with partner emoji.
 - [x] Add a three-color Gradient Creator and expand Gradient Creator and Daily Log color palettes.
-- [ ] Make the daily Little Things list editable and carry Good Habits forward each day with fresh completion states.
+- [x] Expand the daily quote, dark joke, word, fact, and riddle rotation.
+- [x] Carry Good Habits forward each day with fresh completion states.
+- [ ] Make the daily Little Things list editable.
