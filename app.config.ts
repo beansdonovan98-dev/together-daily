@@ -55,6 +55,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     ["expo-router", { root: "./app" }],
+    "expo-web-browser",
     [
       "expo-font",
       {

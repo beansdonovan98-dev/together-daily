@@ -9,6 +9,6 @@ const packageManifest = JSON.parse(fs.readFileSync(path.join(root, "package.json
 packageManifest.name = "together-daily";
 template.files["package.json"] = `${JSON.stringify(packageManifest, null, 2)}\n`;
 template.files["app.config.ts"] = fs.readFileSync(path.join(root, "app.config.ts"), "utf8");
-template.files["app.json"] = fs.readFileSync(path.join(root, "app.json"), "utf8");
+delete template.files["app.json"];
 
 fs.writeFileSync(templatePath, `${JSON.stringify(template, null, 2)}\n`);

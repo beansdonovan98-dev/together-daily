@@ -48,7 +48,7 @@ describe("global typography", () => {
       "Bangers-Regular.ttf",
       "CourierPrime-Regular.ttf",
     ];
-    const config = readFileSync(resolve(process.cwd(), "app.json"), "utf8");
+    const config = readFileSync(resolve(process.cwd(), "app.config.ts"), "utf8");
 
     expect(FONT_OPTIONS.map(([id]) => id)).toEqual([
       "handwritten", "notebook", "casual", "classic", "serif", "mono", "comic", "typewriter",
