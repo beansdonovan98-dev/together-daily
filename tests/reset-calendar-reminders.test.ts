@@ -20,7 +20,8 @@ describe("medicine reminders and long-term calendar", () => {
     const health = file("app/(tabs)/health.tsx");
     const reminders = file("lib/medicine-reminders.ts");
     expect(health).toContain("Set reminder");
-    expect(health).toContain("Reminder on");
+    expect(health).toContain("Set reminder time");
+    expect(health).toContain("REMIND ME AT");
     expect(reminders).toContain("SchedulableTriggerInputTypes.DAILY");
     expect(reminders).toContain('kind: "medicine-reminder"');
   });

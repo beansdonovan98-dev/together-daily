@@ -8,3 +8,7 @@ export function medicineReminderTime(value: string | undefined) {
   if (match[3].toUpperCase() === "AM" && hour === 12) hour = 0;
   return { hour, minute };
 }
+
+export function reminderScheduleTime(value: { time?: string; reminderTime?: string }) {
+  return medicineReminderTime(value.reminderTime ?? value.time);
+}

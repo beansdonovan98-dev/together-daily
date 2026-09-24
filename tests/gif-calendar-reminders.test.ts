@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { gifFrameHeight } from "../lib/gif-frame";
 import { monthCells, shiftMonth } from "../lib/shared-calendar";
-import { medicineReminderTime } from "../lib/medicine-reminder-time";
+import { medicineReminderTime, reminderScheduleTime } from "../lib/medicine-reminder-time";
 
 describe("responsive GIF frames", () => {
   it("keeps both wide and tall GIFs fully within the gallery’s bounded frame", () => {
@@ -24,5 +24,10 @@ describe("medicine reminder time", () => {
     expect(medicineReminderTime("12:01 AM")).toEqual({ hour: 0, minute: 1 });
     expect(medicineReminderTime("11:59 PM")).toEqual({ hour: 23, minute: 59 });
     expect(medicineReminderTime("noon")).toBeNull();
+  });
+
+  it("uses a separately chosen reminder time instead of the log time", () => {
+    expect(reminderScheduleTime({ time: "7:00 AM", reminderTime: "9:30 PM" })).toEqual({ hour: 21, minute: 30 });
+    expect(reminderScheduleTime({ time: "7:00 AM" })).toEqual({ hour: 7, minute: 0 });
   });
 });

@@ -19,6 +19,7 @@ type HealthItem = {
   time?: string;
   done?: Partial<Record<PartnerId, boolean>>;
   reminder?: boolean;
+  reminderTime?: string;
 };
 const HEALTH_MEALS = [
   { key: "breakfast", emoji: "☀", label: "Breakfast" },
@@ -62,6 +63,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
   const [editingMedicine, setEditingMedicine] = useState<string | null>(null);
   const [medicineEditDraft, setMedicineEditDraft] = useState("");
   const [medicineEditTime, setMedicineEditTime] = useState("");
+  const [editingReminderTime, setEditingReminderTime] = useState<string | null>(null);
+  const [reminderTimeDraft, setReminderTimeDraft] = useState("");
   const [medicineReminderFeedback, setMedicineReminderFeedback] = useState("");
   const [snackDraft, setSnackDraft] = useState("");
   const [snackTimeDraft, setSnackTimeDraft] = useState(currentTimeLabel());
@@ -214,13 +217,21 @@ function HealthContent({ userId }: { userId: PartnerId }) {
       setMedicineReminderFeedback(`Reminder off for ${item.text}.`);
       return;
     }
-    const scheduled = await scheduleMedicineReminder({ id: item.id, text: item.text, time: item.time, reminder: true });
+    setEditingReminderTime(item.id);
+    setReminderTimeDraft(item.reminderTime || item.time || currentTimeLabel());
+  };
+  const saveMedicineReminder = async (item: HealthItem) => {
+    const reminderTime = reminderTimeDraft.trim();
+    if (timeOrder(reminderTime) === Number.MAX_SAFE_INTEGER) return;
+    const scheduled = await scheduleMedicineReminder({ id: item.id, text: item.text, time: item.time, reminderTime, reminder: true });
     if (!scheduled) {
       Alert.alert("Reminder not set", "Allow Together Daily notifications in your phone settings, then try again.");
       return;
     }
-    save({ medicines: medicines.map((medicine) => medicine.id === item.id ? { ...medicine, reminder: true } : medicine) });
-    setMedicineReminderFeedback(`Daily reminder set for ${item.time}.`);
+    save({ medicines: medicines.map((medicine) => medicine.id === item.id ? { ...medicine, reminder: true, reminderTime } : medicine) });
+    setEditingReminderTime(null);
+    setReminderTimeDraft("");
+    setMedicineReminderFeedback(`Daily reminder set for ${reminderTime}.`);
   };
   const adjustWater = (delta: number) => {
     const mine = waterFor(userId);
@@ -301,7 +312,8 @@ function HealthContent({ userId }: { userId: PartnerId }) {
             </TouchableOpacity>
           </View>
         ) : (
-          <View key={item.id} style={styles.row}>
+          <View key={item.id} style={styles.medicineItem}>
+          <View style={styles.row}>
             {kind === "tasks" ? <TouchableOpacity
               onPress={() => toggle("tasks", item.id)}
               style={[
@@ -325,10 +337,12 @@ function HealthContent({ userId }: { userId: PartnerId }) {
                 <Text style={styles.timeText}>{item.time || "No time"}</Text>
               ) : null}
             </View>
-            {kind === "medicines" ? <><TouchableOpacity onPress={() => { void toggleMedicineReminder(item); }}><Text style={styles.reminderLink}>{item.reminder ? "Reminder on" : "Set reminder"}</Text></TouchableOpacity><TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit</Text></TouchableOpacity></> : null}
+            {kind === "medicines" ? <><TouchableOpacity onPress={() => { void toggleMedicineReminder(item); }}><Text style={styles.reminderLink}>{item.reminder ? `Reminder ${item.reminderTime || item.time || "on"}` : "Set reminder time"}</Text></TouchableOpacity><TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit log</Text></TouchableOpacity></> : null}
             <TouchableOpacity onPress={() => remove(kind, item.id)}>
               <Text style={styles.delete}>×</Text>
             </TouchableOpacity>
+          </View>
+          {kind === "medicines" && editingReminderTime === item.id ? <View style={styles.reminderTimeRow}><Text style={styles.reminderTimeLabel}>REMIND ME AT</Text><TextInput value={reminderTimeDraft} onChangeText={setReminderTimeDraft} placeholder="8:30 AM" placeholderTextColor="#7F7582" style={styles.timeInput}/><TouchableOpacity onPress={() => { void saveMedicineReminder(item); }} style={[styles.add, { backgroundColor: PARTNERS[userId].color }]}><Text style={styles.addText}>Save reminder</Text></TouchableOpacity><TouchableOpacity onPress={() => { setEditingReminderTime(null); setReminderTimeDraft(""); }}><Text style={styles.cancel}>Cancel</Text></TouchableOpacity></View> : null}
           </View>
         ),
       )}
@@ -652,6 +666,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#11131A",
     padding: 9,
   },
+  medicineItem: { gap: 7 },
   editRow: { flexDirection: "row", gap: 7, alignItems: "center" },
   check: {
     width: 26,
@@ -676,6 +691,8 @@ const styles = StyleSheet.create({
   edit: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },
   cancel: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
   reminderLink: { color: COLORS.gold, fontSize: 9, fontWeight: "900", textAlign: "right" },
+  reminderTimeRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, alignItems: "center", paddingHorizontal: 8, paddingBottom: 2 },
+  reminderTimeLabel: { color: "#8FC8EF", fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
   reminderFeedback: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginTop: -9 },
   notificationButton: {
     paddingHorizontal: 8,

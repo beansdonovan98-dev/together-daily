@@ -49,8 +49,10 @@ export function RoomSetupEditor() {
   }, [open, roomSettings]);
 
   const chooseMode = (nextMode: RoomMode) => {
+    const nextSettings = setRoomMode(settings, nextMode);
     setMode(nextMode);
-    setSettings((current) => setRoomMode(current, nextMode));
+    setSettings(nextSettings);
+    setRoomSettings(nextSettings);
   };
 
   const save = () => {

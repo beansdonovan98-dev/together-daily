@@ -1,10 +1,10 @@
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
-import { medicineReminderTime } from "./medicine-reminder-time";
+import { reminderScheduleTime } from "./medicine-reminder-time";
 
-export type ReminderMedicine = { id: string; text: string; time?: string; reminder?: boolean };
+export type ReminderMedicine = { id: string; text: string; time?: string; reminderTime?: string; reminder?: boolean };
 
-export { medicineReminderTime } from "./medicine-reminder-time";
+export { medicineReminderTime, reminderScheduleTime } from "./medicine-reminder-time";
 
 async function permitted(requestIfNeeded: boolean) {
   if (Platform.OS === "web") return false;
@@ -23,7 +23,7 @@ export async function cancelMedicineReminder(medicineId: string) {
 
 /** Schedules one private daily reminder on the current phone only. */
 export async function scheduleMedicineReminder(medicine: ReminderMedicine, requestPermission = true) {
-  const time = medicineReminderTime(medicine.time);
+  const time = reminderScheduleTime(medicine);
   if (!medicine.reminder || !time || !(await permitted(requestPermission))) return false;
   await cancelMedicineReminder(medicine.id);
   if (Platform.OS === "android") {
