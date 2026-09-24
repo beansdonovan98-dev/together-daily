@@ -33,7 +33,7 @@ export type NamedColorTheme = { id: string; name: string; accentColor: string; b
 export type CleaningTemplate = { id: string; name: string; tasks: string[]; createdBy: PartnerId };
 export type PurchaseCategory = "groceries" | "house" | "misc";
 export type PurchaseItem = { id: string; text: string; category: PurchaseCategory; addedBy: PartnerId; purchased: boolean; purchasedBy?: PartnerId; purchasedOn?: string };
-type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[]; savedLogStyles?: SavedLogStyle[]; customSubheadings?: Record<string, string>; theme?: Partial<Record<PartnerId, SharedThemePreferences>> | SharedThemePreferences; themesByPartner?: Partial<Record<PartnerId, SharedThemePreferences>>; pageStyles?: Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | Record<string, PageStylePreferences>; partnerNames?: Partial<Record<PartnerId, string>>; partnerColors?: Partial<Record<PartnerId, string>>; partnerAvatars?: Partial<Record<PartnerId, string>>; namedColorThemes?: NamedColorTheme[]; cleaningTemplates?: CleaningTemplate[]; purchaseItems?: PurchaseItem[]; tabLabels?: Record<string, string>; tabGlyphs?: Record<string, string>; tabOrder?: string[]; customHeaders?: Record<string, string>; healthPeriodVisible?: boolean };
+type JournalState = { days: Record<string, Record<string, any>>; records: LocalRecord[]; media: LocalMedia[]; savedLogStyles?: SavedLogStyle[]; customSubheadings?: Record<string, string>; theme?: Partial<Record<PartnerId, SharedThemePreferences>> | SharedThemePreferences; themesByPartner?: Partial<Record<PartnerId, SharedThemePreferences>>; pageStyles?: Partial<Record<PartnerId, Record<string, PageStylePreferences>>> | Record<string, PageStylePreferences>; themeUpdatedAt?: number; partnerNames?: Partial<Record<PartnerId, string>>; partnerColors?: Partial<Record<PartnerId, string>>; partnerAvatars?: Partial<Record<PartnerId, string>>; namedColorThemes?: NamedColorTheme[]; cleaningTemplates?: CleaningTemplate[]; purchaseItems?: PurchaseItem[]; tabLabels?: Record<string, string>; tabGlyphs?: Record<string, string>; tabOrder?: string[]; customHeaders?: Record<string, string>; healthPeriodVisible?: boolean };
 type RoomPrefs = { roomCode: string | null; memberId: PartnerId | null };
 
 function normalizeJournalState(value: unknown): JournalState {
@@ -85,7 +85,7 @@ function currentSharedPageStyles(state: JournalState): Record<string, PageStyleP
 }
 
 function withSharedThemeAndPageStyles(state: JournalState, theme: SharedThemePreferences, pageStyles: Record<string, PageStylePreferences>): JournalState {
-  return { ...state, theme, themesByPartner: undefined, pageStyles };
+  return { ...state, theme, themesByPartner: undefined, pageStyles, themeUpdatedAt: Date.now() };
 }
 
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
@@ -123,9 +123,9 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     theme:activeTheme,
     setTheme:(patch)=>{const currentPageStyles=activePageStyles ?? {};const pageStyles=patch.backgroundGradient?Object.fromEntries(Object.entries(currentPageStyles).map(([pageId,pageStyle])=>[pageId,{...pageStyle,backgroundColor:undefined,backgroundGradient:undefined}])):currentPageStyles;persist(withSharedThemeAndPageStyles(state,{...(activeTheme ?? {}),...patch},pageStyles),"private-update");},
     pageStyles:activePageStyles,
-    setPageStyle:(pageId,patch)=>{const current=activePageStyles ?? {};persist({...state,pageStyles:{...current,[pageId]:{...(current[pageId]??{}),...patch}}},"private-update");},
-    setPageStyles:(patches)=>{const current=activePageStyles ?? {};const next={...current};Object.entries(patches).forEach(([pageId,patch])=>{next[pageId]={...(current[pageId]??{}),...patch};});persist({...state,pageStyles:next},"private-update");},
-    resetPageStyle:(pageId)=>{persist({...state,pageStyles:removeSharedPageStyle(activePageStyles,pageId)},"private-update");},
+    setPageStyle:(pageId,patch)=>{const current=activePageStyles ?? {};persist({...state,pageStyles:{...current,[pageId]:{...(current[pageId]??{}),...patch}},themeUpdatedAt:Date.now()},"private-update");},
+    setPageStyles:(patches)=>{const current=activePageStyles ?? {};const next={...current};Object.entries(patches).forEach(([pageId,patch])=>{next[pageId]={...(current[pageId]??{}),...patch};});persist({...state,pageStyles:next,themeUpdatedAt:Date.now()},"private-update");},
+    resetPageStyle:(pageId)=>{persist({...state,pageStyles:removeSharedPageStyle(activePageStyles,pageId),themeUpdatedAt:Date.now()},"private-update");},
     namedColorThemes:state.namedColorThemes??[],
     saveNamedColorTheme:(input)=>{const existing=state.namedColorThemes??[];const duplicate=existing.find((item)=>item.name.trim().toLowerCase()===input.name.trim().toLowerCase());const saved:NamedColorTheme=duplicate?{...duplicate,...input}:{...input,id:`named-theme-${Date.now()}-${Math.random().toString(16).slice(2)}`,createdBy:prefs.memberId??"beans"};const nextState=withSharedThemeAndPageStyles({...state,namedColorThemes:duplicate?existing.map((item)=>item.id===duplicate.id?saved:item):[...existing,saved]},{...(activeTheme ?? {}),accentColor:saved.accentColor,backgroundColor:saved.backgroundColor},activePageStyles);persist(nextState,"private-update");},
     renameNamedColorTheme:(id,name)=>{const trimmed=name.trim();if(!trimmed)return;const existing=state.namedColorThemes??[];persist({...state,namedColorThemes:existing.map((item)=>item.id===id?{...item,name:trimmed}:item)});},

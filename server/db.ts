@@ -13,6 +13,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { buildPartnerNotification, sendPartnerPushNotifications, type PartnerNotificationEvent } from "./partner-notifications";
+import { mergeSharedThemeRevision } from "../lib/shared-theme-sync";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -460,7 +461,8 @@ export async function updateGuestRoom(roomCode: string, journalState: JsonObject
   const normalizedCode = roomCode.trim().toUpperCase();
   const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!existing[0]) throw new Error("That shared room code was not found.");
-  const nextState = journalState;
+  const currentState = parseObject(existing[0].journalState);
+  const nextState = mergeSharedThemeRevision(currentState, journalState);
   await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, normalizedCode));
   if (actorId && notificationType) await notifyGuestRoomPartner(normalizedCode, actorId, notificationType);
   return { roomCode: normalizedCode, journalState: nextState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
