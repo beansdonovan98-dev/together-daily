@@ -4,7 +4,7 @@ import { PrivateGate } from "@/components/together-access";
 import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 type CleaningTask = { id: string; text: string; createdBy: PartnerId; completed: boolean; completedBy?: PartnerId };
@@ -26,8 +26,10 @@ export default function CleaningScreen() {
 function CleaningContent({ userId }: { userId: PartnerId }) {
   const weekStart = weekStartKey();
   const today = localDateKey();
-  const { ready, getDay, ensureDay, updateDay, customSubheadings, setCustomSubheading, cleaningTemplates, saveCleaningTemplate, updateCleaningTemplate, deleteCleaningTemplate } = useLocalJournal();
+  const { ready, getDay, ensureDay, updateDay, addWeeklyCleaningTask, customSubheadings, setCustomSubheading, cleaningTemplates, saveCleaningTemplate, updateCleaningTemplate, deleteCleaningTemplate } = useLocalJournal();
   const [draft, setDraft] = useState("");
+  const [weeklySaving, setWeeklySaving] = useState(false);
+  const [weeklyError, setWeeklyError] = useState("");
   const [dailyDraft, setDailyDraft] = useState("");
   const [defaultDailyDraft, setDefaultDailyDraft] = useState("");
   const [templateName, setTemplateName] = useState("");
@@ -64,11 +66,21 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
   const addDefaultDailyTask = () => { const text = defaultDailyDraft.trim(); if (!text || defaultDailyTasks.some((task) => task.toLowerCase() === text.toLowerCase())) return; saveDefaultDailyTasks([...defaultDailyTasks, text]); setDefaultDailyDraft(""); };
   const deleteDefaultDailyTask = (text: string) => saveDefaultDailyTasks(defaultDailyTasks.filter((task) => task !== text));
   useEffect(() => { if (!ready || !defaultDailyTasks.length || dailyTasks.length) return; saveDailyTasks(defaultDailyTasks.map((text, index) => ({ id: `daily-default-${today}-${index}`, text, createdBy: userId, completed: false }))); }, [ready, today, defaultDailyTasks, dailyTasks.length, saveDailyTasks, userId]);
-  const addTask = () => {
+  const addTask = async () => {
     const text = draft.trim();
     if (!text) return;
-    saveTasks([...tasks, { id: `clean-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, createdBy: userId, completed: false }]);
-    setDraft("");
+    setWeeklySaving(true);
+    setWeeklyError("");
+    try {
+      await addWeeklyCleaningTask(weekStart, text);
+      setDraft("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "This chore could not be added. Please try again.";
+      setWeeklyError(message);
+      Alert.alert("Weekly cleaning", message);
+    } finally {
+      setWeeklySaving(false);
+    }
   };
   const toggleTask = (taskId: string) => saveTasks(tasks.map((task) => task.id === taskId ? { ...task, completed: !task.completed, completedBy: task.completed ? undefined : userId } : task));
   const removeTask = (taskId: string) => saveTasks(tasks.filter((task) => task.id !== taskId));
@@ -90,7 +102,31 @@ function CleaningContent({ userId }: { userId: PartnerId }) {
 
     <View style={[styles.progressCard, { backgroundColor: "transparent", borderColor: "#000000" }]}><View style={styles.progressTop}><View><Text style={styles.progressKicker}>THIS WEEK’S PROGRESS</Text><Text style={styles.progressNumber}>{completed}<Text style={styles.progressTotal}> / {tasks.length}</Text></Text></View><Text style={styles.progressPercent}>{progress}%</Text></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: activePartner.color }]} /></View><View style={styles.partnerCounts}><Text style={[styles.partnerCount, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name} · {beansCount}</Text><Text style={[styles.partnerCount, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name} · {princessCount}</Text></View>{weeklyComplete ? <View style={styles.completeBanner}><Text style={styles.completeTitle}>✦ Weekly cleaning complete! ✦</Text></View> : null}</View>
 
-    <View style={[styles.composer, { backgroundColor: "transparent", borderColor: "#000000" }]}><Text style={styles.composerTitle}>Weekly cleaning list</Text><View style={styles.addRow}><TextInput value={draft} onChangeText={setDraft} onSubmitEditing={addTask} returnKeyType="done" placeholder="e.g. Wipe down the counters" placeholderTextColor="#7F7582" style={styles.input}/><TouchableOpacity accessibilityRole="button" onPress={addTask} style={[styles.addButton, { backgroundColor: activePartner.color }]}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View></View>
+    <View style={[styles.composer, { backgroundColor: "transparent", borderColor: "#000000" }]}>
+      <Text style={styles.composerTitle}>Weekly cleaning list</Text>
+      <View style={styles.addRow}>
+        <TextInput
+          value={draft}
+          editable={!weeklySaving}
+          onChangeText={setDraft}
+          onSubmitEditing={() => { void addTask(); }}
+          returnKeyType="done"
+          placeholder="e.g. Wipe down the counters"
+          placeholderTextColor="#7F7582"
+          style={styles.input}
+        />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Add weekly cleaning task"
+          disabled={weeklySaving || !draft.trim()}
+          onPress={() => { void addTask(); }}
+          style={[styles.addButton, { backgroundColor: activePartner.color }, (weeklySaving || !draft.trim()) && styles.disabledButton]}
+        >
+          <Text style={styles.addButtonText}>{weeklySaving ? "Adding…" : "Add"}</Text>
+        </TouchableOpacity>
+      </View>
+      {weeklyError ? <Text style={styles.addError}>{weeklyError}</Text> : null}
+    </View>
     <View style={styles.templatesCard}><Text style={styles.templatesKicker}>REUSABLE WEEKLY LISTS</Text><Text style={styles.templatesTitle}>Cleaning templates</Text><Text style={styles.templatesCopy}>Save your current chores as a template, then add a saved list to any week without duplicating tasks.</Text><View style={styles.templateSaveRow}><TextInput value={templateName} onChangeText={setTemplateName} placeholder="Name this list" placeholderTextColor="#7F7582" maxLength={28} style={styles.templateInput}/><TouchableOpacity accessibilityRole="button" disabled={!templateName.trim() || !tasks.length} onPress={saveTemplate} style={[styles.templateSaveButton, (!templateName.trim() || !tasks.length) && styles.disabledButton]}><Text style={styles.templateSaveText}>Save list</Text></TouchableOpacity></View>{cleaningTemplates.length ? <View style={styles.templateList}>{cleaningTemplates.map((template) => { const creator = PARTNERS[template.createdBy]; const editing = editingTemplateId === template.id; const confirmingDelete = confirmDeleteId === template.id; return <View key={template.id} style={styles.templateRow}><View style={styles.templateBody}>{editing ? <View style={styles.templateEditForm}><TextInput value={editingName} onChangeText={setEditingName} placeholderTextColor="#7F7582" maxLength={28} style={styles.templateEditName}/><TextInput value={editingTasks} onChangeText={setEditingTasks} placeholder="One task per line" placeholderTextColor="#7F7582" multiline textAlignVertical="top" style={styles.templateEditTasks}/><View style={styles.templateEditActions}><TouchableOpacity accessibilityRole="button" onPress={saveTemplateEdit} style={styles.templateEditSave}><Text style={styles.templateEditSaveText}>Save changes</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setEditingTemplateId(null)} style={styles.templateTextAction}><Text style={styles.templateTextActionLabel}>Cancel</Text></TouchableOpacity></View></View> : <><Text style={styles.templateName}>{template.name}</Text><Text style={[styles.templateMeta,{color:creator.color}]}>{template.tasks.length} chores · {creator.name} created</Text>{confirmingDelete ? <View style={styles.templateDeleteConfirm}><Text style={styles.templateDeleteCopy}>Delete “{template.name}”?</Text><TouchableOpacity accessibilityRole="button" onPress={() => { deleteCleaningTemplate(template.id); setConfirmDeleteId(null); }} style={styles.templateDeleteButton}><Text style={styles.templateDeleteText}>Delete</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setConfirmDeleteId(null)} style={styles.templateTextAction}><Text style={styles.templateTextActionLabel}>Keep</Text></TouchableOpacity></View> : <View style={styles.templateManageActions}><TouchableOpacity accessibilityRole="button" onPress={() => startTemplateEdit(template.id, template.name, template.tasks)} style={styles.templateTextAction}><Text style={styles.templateTextActionLabel}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setConfirmDeleteId(template.id)} style={styles.templateDeleteLink}><Text style={styles.templateDeleteLinkText}>Delete</Text></TouchableOpacity></View>}</>}</View>{!editing ? <TouchableOpacity accessibilityRole="button" onPress={() => addTemplateToWeek(template.tasks)} style={[styles.useTemplateButton,{borderColor:creator.color}]}><Text style={[styles.useTemplateText,{color:creator.color}]}>Add to week</Text></TouchableOpacity> : null}</View>; })}</View> : <Text style={styles.noTemplates}>No saved lists yet.</Text>}</View>
 
     <View style={styles.list}>{tasks.map((task) => { const creator = PARTNERS[task.createdBy]; const completer = task.completedBy ? PARTNERS[task.completedBy] : null; const editing = editingTaskId === task.id; return <View key={task.id} style={[styles.taskCard, task.completed && styles.taskCardDone, { backgroundColor: "transparent", borderColor: "#000000" }]}>{editing ? <View style={styles.taskEditBody}><TextInput value={editingTaskText} onChangeText={setEditingTaskText} placeholder="Cleaning task" placeholderTextColor="#7F7582" style={styles.taskEditInput}/><View style={styles.taskEditActions}><TouchableOpacity onPress={saveTaskEdit} style={[styles.taskEditSave,{backgroundColor:activePartner.color}]}><Text style={styles.taskEditSaveText}>Save</Text></TouchableOpacity><TouchableOpacity onPress={() => { setEditingTaskId(null); setEditingTaskText(""); }} style={styles.templateTextAction}><Text style={styles.templateTextActionLabel}>Cancel</Text></TouchableOpacity></View></View> : <><TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: task.completed }} accessibilityLabel={`Mark ${task.text} ${task.completed ? "incomplete" : "complete"}`} onPress={() => toggleTask(task.id)} style={[styles.checkCircle, task.completed && { backgroundColor: completer?.color ?? COLORS.sage, borderColor: completer?.color ?? COLORS.sage }]}><Text style={styles.checkText}>{task.completed ? "✓" : ""}</Text></TouchableOpacity><View style={styles.taskBody}><Text style={[styles.taskText, task.completed && styles.taskTextDone]}>{task.text}</Text><Text style={[styles.taskMeta, { color: task.completed ? completer?.color : creator.color }]}>{task.completed ? `${completer?.name} completed` : `${creator.name} added`}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${task.text}`} onPress={() => startTaskEdit(task)} style={styles.taskEditButton}><Text style={styles.taskEditButtonText}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${task.text}`} onPress={() => removeTask(task.id)} style={styles.deleteButton}><Text style={styles.deleteText}>×</Text></TouchableOpacity></>}</View>; })}</View>
@@ -122,6 +158,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 43, borderRadius: 11, borderWidth: 1, borderColor: "#3A4443", backgroundColor: "#121415", color: COLORS.plum, paddingHorizontal: 11, fontSize: 13 },
   addButton: { minWidth: 58, borderRadius: 11, justifyContent: "center", alignItems: "center" },
   addButtonText: { color: COLORS.white, fontSize: 12, fontWeight: "900" },
+  addError: { color: "#FF9FB1", fontFamily: "monospace", fontSize: 10, lineHeight: 15 },
   dailyCard: { borderRadius: 18, borderWidth: 1, borderColor: TAB_CARD_PALETTES.cleaning.border, backgroundColor: TAB_CARD_PALETTES.cleaning.surface, padding: 14, gap: 10 },
   dailyHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   dailyKicker: { color: "#9BA6EE", fontSize: 9, fontWeight: "900", letterSpacing: 1 },

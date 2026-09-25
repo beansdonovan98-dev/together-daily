@@ -14,6 +14,7 @@ import {
 import { ENV } from "./_core/env";
 import { buildPartnerNotification, sendPartnerPushNotifications, type PartnerNotificationEvent } from "./partner-notifications";
 import { mergeSharedThemeRevision } from "../lib/shared-theme-sync";
+import { appendWeeklyCleaningTask } from "../lib/weekly-cleaning";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -507,6 +508,34 @@ export async function sendGuestRoomPartnerTestAlert(roomCode: string, actorId: G
       ? "Test alert sent to your partner's phone."
       : "Your partner needs to open Themes and enable alerts on their phone first.",
   } as const;
+}
+
+/** Adds one weekly chore against the latest room state, rather than replacing the full room snapshot. */
+export async function addGuestRoomWeeklyCleaningTask(input: { roomCode: string; partnerId: GuestRoomMemberId; weekStart: string; text: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  if (!parseGuestRoomMembers(existing[0].memberIds).includes(input.partnerId)) throw new Error("Join this shared room before adding a weekly chore.");
+
+  const state = parseObject(existing[0].journalState);
+  const days = state.days && typeof state.days === "object" && !Array.isArray(state.days) ? state.days as JsonObject : {};
+  const week = days[input.weekStart] && typeof days[input.weekStart] === "object" && !Array.isArray(days[input.weekStart]) ? days[input.weekStart] as JsonObject : {};
+  const cleaning = week.cleaning && typeof week.cleaning === "object" && !Array.isArray(week.cleaning) ? week.cleaning as JsonObject : {};
+  const task = { id: `clean-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, text: input.text.trim(), createdBy: input.partnerId, completed: false };
+  const nextState: JsonObject = {
+    ...state,
+    days: {
+      ...days,
+      [input.weekStart]: {
+        ...week,
+        date: input.weekStart,
+        cleaning: { ...cleaning, tasks: appendWeeklyCleaningTask(cleaning.tasks, task), weekStart: input.weekStart },
+      },
+    },
+  };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  return { roomCode, journalState: nextState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }
 
 export async function updateGuestRoom(roomCode: string, journalState: JsonObject, actorId?: GuestRoomMemberId, notificationType?: PartnerNotificationEvent) {
