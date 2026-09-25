@@ -8,7 +8,7 @@ describe("global Theme application", () => {
   it("uses the shared Theme for every page without a page-by-page reset control", () => {
     const frame = file("components/app-frame.tsx");
     const journal = file("lib/local-journal.tsx");
-    expect(frame).toContain("resolveThemeBackdrop(theme, undefined, COLORS.blush)");
+    expect(frame).toContain("resolveThemeBackdrop(renderedTheme, undefined, COLORS.blush)");
     expect(frame).not.toContain("resetPageStyle");
     expect(frame).not.toContain("Reset {currentPage.label} to default");
     expect(journal).toContain("pageStyles: undefined");

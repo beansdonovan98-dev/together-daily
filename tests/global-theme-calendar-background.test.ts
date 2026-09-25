@@ -9,10 +9,10 @@ describe("global Theme and Calendar background", () => {
     const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
 
     expect(themes).toContain("ONE SHARED LOOK");
-    expect(themes).toContain("Every selection automatically applies across both of your apps and every page.");
+    expect(themes).toContain("both choices apply to both of your apps and every page.");
     expect(frame).not.toContain("resetPageStyle");
     expect(frame).not.toContain("Reset {currentPage.label} to default");
-    expect(frame).toContain("resolveThemeBackdrop(theme, undefined, COLORS.blush)");
+    expect(frame).toContain("resolveThemeBackdrop(renderedTheme, undefined, COLORS.blush)");
     expect(journal).toContain("pageStyles: undefined");
     expect(journal).not.toContain("setPageStyle:");
   });

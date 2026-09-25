@@ -1,5 +1,5 @@
 import { ScreenContainer } from "@/components/screen-container";
-import { COLORS } from "@/lib/together";
+import { COLORS, localDateKey } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
@@ -12,9 +12,12 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
+  Animated,
+  Easing,
   Linking,
   Platform,
   Pressable,
@@ -30,6 +33,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
+import { dynamicThemeForDate, isAnimatedTheme } from "@/lib/dynamic-theme";
 import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 import { PageContentReset } from "@/components/page-content-reset";
 
@@ -167,6 +171,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pagesOpen, setPagesOpen] = useState(false);
+  const [themeDate, setThemeDate] = useState(() => localDateKey());
+  const gradientMotion = useRef(new Animated.Value(0)).current;
   const [pushStatus, setPushStatus] = useState<
     "idle" | "setting-up" | "enabled"
   >("idle");
@@ -188,8 +194,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
       (item) =>
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
-  const accentColor = theme.accentColor ?? COLORS.orchid;
-  const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(theme, undefined, COLORS.blush);
+  const renderedTheme = dynamicThemeForDate(theme, themeDate);
+  const accentColor = renderedTheme.accentColor ?? COLORS.orchid;
+  const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(renderedTheme, undefined, COLORS.blush);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
   const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
@@ -204,6 +211,26 @@ export function AppFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     setPagesOpen(false);
   }, [pathname]);
+  useEffect(() => {
+    const timer = setInterval(() => setThemeDate((current) => {
+      const next = localDateKey();
+      return current === next ? current : next;
+    }), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+  const animatedGradient = Boolean(backgroundGradient) && isAnimatedTheme(theme);
+  useEffect(() => {
+    gradientMotion.stopAnimation();
+    gradientMotion.setValue(0);
+    if (!animatedGradient) return;
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(gradientMotion, { toValue: 1, duration: 12_000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(gradientMotion, { toValue: 0, duration: 12_000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [animatedGradient, gradientMotion]);
+  const gradientShift = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [-32, 32] });
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -328,7 +355,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   return (
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
-        {backgroundGradient ? <LinearGradient pointerEvents="none" colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /> : null}
+        {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShift }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
@@ -549,7 +576,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
-  frame: { flex: 1, backgroundColor: COLORS.blush },
+  animatedGradient: { ...StyleSheet.absoluteFillObject, left: -32, right: -32 },
+  frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
     paddingHorizontal: 20,
     paddingTop: 15,

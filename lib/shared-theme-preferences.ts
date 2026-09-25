@@ -5,6 +5,8 @@ export type SharedThemeValues = {
   fontColor?: string;
   borderColor?: string;
   fontId?: string;
+  animatedGradient?: boolean;
+  dailyGradientRotation?: boolean;
 };
 
 const PAGE_STYLE_ALIASES: Record<string, string> = {

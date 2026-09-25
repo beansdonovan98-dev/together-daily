@@ -14,7 +14,7 @@ export default function ThemesScreen() {
 
 function ThemesContent() {
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} showsVerticalScrollIndicator={false}>
-    <View style={styles.hero}><Text style={styles.eyebrow}>ONE SHARED LOOK</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose one shared gradient, font, font color, and borders. Every selection automatically applies across both of your apps and every page.</Text></View>
+    <View style={styles.hero}><Text style={styles.eyebrow}>ONE SHARED LOOK</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose one shared gradient, font, font color, and borders. You can also animate the shared backdrop or rotate its gradient daily—both choices apply to both of your apps and every page.</Text></View>
     <PageThemeEditor />
     <GradientCreator />
     <TabManager />

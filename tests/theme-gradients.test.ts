@@ -56,6 +56,18 @@ describe("theme gradients", () => {
     expect(rootLayout).toContain("theme.fontId ?? customSubheadings.globalFont");
   });
 
+  it("offers shared animated and daily-rotating backdrops without rotating typography or borders", () => {
+    const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
+    const appFrame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
+
+    expect(editor).toContain("ANIMATED GRADIENT");
+    expect(editor).toContain("CHANGE THEME DAILY");
+    expect(editor).toContain("setTheme({ animatedGradient:");
+    expect(editor).toContain("setTheme({ dailyGradientRotation:");
+    expect(appFrame).toContain("dynamicThemeForDate(theme, themeDate)");
+    expect(appFrame).toContain("Animated.loop");
+  });
+
   it("gives every ready-made Theme a valid vibrant gradient", () => {
     const allThemes = [...SAVED_THEMES, ...PASTEL_THEMES];
     expect(allThemes.length).toBeGreaterThan(0);
