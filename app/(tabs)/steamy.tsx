@@ -60,7 +60,7 @@ function SteamyContent() {
     theme,
   } = useLocalJournal();
   const [revealed, setRevealed] = useState(false);
-  const [chatDraft, setChatDraft] = useState("");
+  const [cumNote, setCumNote] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
@@ -85,7 +85,7 @@ function SteamyContent() {
   const [galleryWidth, setGalleryWidth] = useState(320);
   const gradientCard = { backgroundColor: "transparent", borderColor: "#000000" };
   const privateMedia = privateMediaForDate(media, date);
-  const chatEntries = intimateEntriesForDate(records, date);
+  const cumEntries = intimateEntriesForDate(records, date);
   const day = getDay(date);
   const partnerId = memberId === "beans" ? "princess" : memberId === "princess" ? "beans" : null;
   const partnerViewedAt =
@@ -97,7 +97,7 @@ function SteamyContent() {
       ? day.steamyChatViewedAt[memberId]
       : null;
   const newestIncomingMessageAt =
-    [...chatEntries]
+    [...cumEntries]
       .reverse()
       .find((record) => record.authorId !== memberId)?.createdAt ?? null;
 
@@ -106,7 +106,7 @@ function SteamyContent() {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    setChatDraft("");
+    setCumNote("");
     setPendingPreview(null);
     setUploadError("");
     setUploadSuccess("");
@@ -138,11 +138,11 @@ function SteamyContent() {
     updateDay,
   ]);
 
-  const addChatEntry = () => {
-    const text = chatDraft.trim();
+  const addCumEntry = () => {
+    const text = cumNote.trim();
     if (!isToday || !text) return;
     addRecord("cumLog", { text, date, matureOnly: true });
-    setChatDraft("");
+    setCumNote("");
   };
 
   const savePrivateAsset = useCallback(
@@ -445,47 +445,56 @@ function SteamyContent() {
         </View>
 
         <View style={[styles.cumCard, gradientCard]}>
-          <Text style={styles.cardKicker}>PRIVATE INTIMATE CHAT</Text>
+          <Text style={styles.cardKicker}>PRIVATE INTIMATE LOG</Text>
           <Text style={styles.cardTitle}>Shared intimate log</Text>
           <Text style={styles.copy}>
             {isToday
-              ? "Chat privately together. Messages stay in today’s conversation, then remain in this dated history."
-              : `Archived conversation from ${prettyDate(date)}.`}
+              ? "Add a private consensual entry for the two of you. At midnight, a fresh day opens and this one stays in history."
+              : `Archived entries from ${prettyDate(date)}.`}
           </Text>
-          <View style={styles.chatList}>
-            {chatEntries.length ? (
-              chatEntries.map((record) => {
+          {isToday ? (
+            <>
+              <TextInput
+                value={cumNote}
+                onChangeText={setCumNote}
+                placeholder="Optional private note…"
+                placeholderTextColor="#7F7582"
+                multiline
+                style={styles.textArea}
+              />
+              <TouchableOpacity
+                disabled={!cumNote.trim()}
+                style={[
+                  styles.cumButton,
+                  !cumNote.trim() && styles.disabledPhotoButton,
+                ]}
+                onPress={addCumEntry}
+              >
+                <Text style={styles.cumButtonText}>Add private entry</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
+          <View style={styles.cumList}>
+            {cumEntries.length ? (
+              cumEntries.map((record) => {
                 const author = PARTNERS[record.authorId];
                 const mine = record.authorId === memberId;
                 const read = mine && intimateEntryReadByPartner(record, partnerViewedAt);
                 const text = String(record.content.text ?? "");
                 return (
-                  <View
-                    key={record.id}
-                    style={[
-                      styles.chatBubbleWrap,
-                      mine ? styles.chatMine : styles.chatPartner,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.chatBubble,
-                        mine ? styles.chatMineBubble : styles.chatPartnerBubble,
-                      ]}
-                    >
-                      <Text
-                        style={[styles.chatAuthor, { color: author.color }]}
-                      >
+                  <View key={record.id} style={styles.cumEntry}>
+                    <View style={styles.cumEntryHeader}>
+                      <Text style={[styles.noteAuthor, { color: author.color }]}>
                         {author.avatar} {author.name}
                       </Text>
-                      <Text style={styles.chatText}>
-                        {text || "Private entry added."}
-                      </Text>
-                      <Text style={styles.chatTime}>
-                        {intimateEntryDateTimeLabel(record.createdAt, date)}
+                      <Text style={styles.notePrivate}>
+                        {intimateEntryDateTimeLabel(record.createdAt, date)} · PRIVATE
                         {mine ? (read ? " · Read" : " · Sent") : ""}
                       </Text>
                     </View>
+                    <Text style={styles.cumEntryText}>
+                      {text || "Private entry added."}
+                    </Text>
                   </View>
                 );
               })
@@ -493,39 +502,17 @@ function SteamyContent() {
               <View style={styles.cumEmpty}>
                 <Text style={styles.emptyGalleryTitle}>
                   {isToday
-                    ? "Today’s private chat is ready."
+                    ? "Today’s private log is ready."
                     : "No intimate entries were saved this day."}
                 </Text>
                 <Text style={styles.emptyGalleryCopy}>
                   {isToday
-                    ? "Send the first private message whenever you are both ready."
+                    ? "New entries stay on today until midnight, then remain available in this dated history."
                     : "Use Previous or Next to browse another day."}
                 </Text>
               </View>
             )}
           </View>
-          {isToday ? (
-            <View style={styles.chatComposer}>
-              <TextInput
-                value={chatDraft}
-                onChangeText={setChatDraft}
-                placeholder="Write a private message…"
-                placeholderTextColor="#7F7582"
-                multiline
-                style={styles.textArea}
-              />
-              <TouchableOpacity
-                disabled={!chatDraft.trim()}
-                style={[
-                  styles.cumButton,
-                  !chatDraft.trim() && styles.disabledPhotoButton,
-                ]}
-                onPress={addChatEntry}
-              >
-                <Text style={styles.cumButtonText}>Send private message</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
         </View>
 
         <View style={[styles.card, gradientCard]}>
@@ -995,35 +982,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
-  chatList: { gap: 8, marginTop: 14 },
-  chatBubbleWrap: { width: "100%" },
-  chatMine: { alignItems: "flex-end" },
-  chatPartner: { alignItems: "flex-start" },
-  chatBubble: {
-    maxWidth: "88%",
-    borderRadius: 14,
-    padding: 11,
-    borderWidth: 1,
-  },
-  chatMineBubble: {
-    backgroundColor: "#3D1730",
-    borderColor: "#9B426A",
-    borderBottomRightRadius: 3,
-  },
-  chatPartnerBubble: {
-    backgroundColor: "#281018",
-    borderColor: "#5A2D3D",
-    borderBottomLeftRadius: 3,
-  },
-  chatAuthor: { fontSize: 10, fontWeight: "900", marginBottom: 3 },
-  chatText: { color: "#F7E6EE", fontSize: 14, lineHeight: 20 },
-  chatTime: {
-    color: "#BCA5AF",
-    fontFamily: "monospace",
-    fontSize: 8,
-    marginTop: 6,
-  },
-  chatComposer: { marginTop: 12 },
+  cumList: { gap: 9, marginTop: 14 },
+  cumEntry: { backgroundColor: "#281018", borderRadius: 12, padding: 12, borderWidth: 1, borderColor: "#5A2D3D" },
+  cumEntryHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 },
+  cumEntryText: { color: COLORS.plum, fontSize: 14, lineHeight: 20, fontStyle: "italic" },
+  noteAuthor: { fontSize: 11, fontWeight: "900", flexShrink: 0 },
+  notePrivate: { color: "#A89AA1", fontFamily: "monospace", fontSize: 9, lineHeight: 14, letterSpacing: .8, flex: 1, textAlign: "right" },
   textArea: {
     minHeight: 76,
     marginTop: 0,
