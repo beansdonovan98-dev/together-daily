@@ -21,7 +21,7 @@ describe("two-person room, reset, and automatic media fitting", () => {
     expect(db).toContain("currentMembers.length >= 2");
   });
 
-  it("persists original dimensions and derives bounded no-crop media frames", () => {
+  it("persists original dimensions, preserves full GIFs, and fills the Calendar backdrop without distortion", () => {
     const journal = projectFile("lib/local-journal.tsx");
     const steamy = projectFile("app/(tabs)/steamy.tsx");
     const calendar = projectFile("app/(tabs)/calendar.tsx");
@@ -32,8 +32,9 @@ describe("two-person room, reset, and automatic media fitting", () => {
     expect(router).toContain("width: input.width");
     expect(steamy).toContain("gifFrameHeight(galleryWidth, dimensions)");
     expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
-    expect(calendar).toContain("mediaFrameHeight(calendarWidth, backgroundDimensions, 280, 760)");
-    expect(calendar).toContain('contentFit="contain" transition={180}');
+    expect(calendar).toContain('contentFit="cover" contentPosition="center"');
+    expect(calendar).toContain("backgroundLayer: { ...StyleSheet.absoluteFillObject");
+    expect(calendar).not.toContain("mediaFrameHeight");
     expect(sizing).toContain("maximumHeight = 640");
     expect(sizing).toContain("naturalHeight");
   });

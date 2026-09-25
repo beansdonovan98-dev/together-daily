@@ -20,17 +20,18 @@ describe("global typography", () => {
     expect(normalizeGlobalFont(undefined)).toBe("handwritten");
   });
 
-  it("defaults the shared font color to white and accepts only the Themes color choices", () => {
+  it("defaults the shared font color to white and accepts the full Themes color palette", () => {
     expect(FONT_COLOR_OPTIONS[0]).toEqual(["#FFFFFF", "White"]);
     expect(normalizeGlobalTextColor("#FF8FC6")).toBe("#FF8FC6");
-    expect(normalizeGlobalTextColor("#000000")).toBe("#FFFFFF");
+    expect(normalizeGlobalTextColor("#000000")).toBe("#000000");
     expect(normalizeGlobalTextColor(undefined)).toBe("#FFFFFF");
   });
 
-  it("offers visibly distinct readable font-color selections", () => {
-    expect(FONT_COLOR_OPTIONS.map(([color]) => color)).toEqual([
-      "#FFFFFF", "#FF8FC6", "#8FE8FF", "#FFE16B", "#D7A7FF",
-    ]);
+  it("offers a wide set of visibly distinct font-color selections", () => {
+    expect(FONT_COLOR_OPTIONS.map(([color]) => color)).toEqual(expect.arrayContaining([
+      "#FFFFFF", "#000000", "#FF8FC6", "#8FE8FF", "#FFE16B", "#D7A7FF", "#B7ED4B",
+    ]));
+    expect(FONT_COLOR_OPTIONS).toHaveLength(11);
   });
 
   it("defaults the shared border color to black and accepts only the Themes border choices", () => {
@@ -76,8 +77,8 @@ describe("global typography", () => {
     expect(profiles).not.toContain("FONT_COLOR_OPTIONS");
     expect(profiles).not.toContain("TextInput value={partnerAvatars[id]}");
     expect(frame).toContain('styles.brand, { fontFamily, color: textColor }');
-    expect(frame).toContain('styles.tabLabel,\n                    { fontFamily, color: textColor }');
-    expect(frame).toContain('styles.tabGlyph, { color: textColor }');
+    expect(frame).toContain('styles.pageMenuCurrent, { fontFamily, color: textColor }');
+    expect(frame).toContain('styles.pageMenuItemGlyph, { color: textColor }');
   });
 
   it("updates the native root typography bridge from the current shared journal state", () => {

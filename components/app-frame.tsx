@@ -168,6 +168,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
   const [inviteToolsOpen, setInviteToolsOpen] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [pagesOpen, setPagesOpen] = useState(false);
   const [pushStatus, setPushStatus] = useState<
     "idle" | "setting-up" | "enabled"
   >("idle");
@@ -209,6 +210,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
     if (Platform.OS === "web" && typeof document !== "undefined")
       document.documentElement.style.setProperty("--together-font", fontFamily);
   }, [fontFamily]);
+  useEffect(() => {
+    setPagesOpen(false);
+  }, [pathname]);
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -359,48 +363,37 @@ export function AppFrame({ children }: { children: ReactNode }) {
             </Text>
           </View>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.tabs, isLaptopLayout && styles.tabsLaptop]}
-          style={styles.tabScroller}
-        >
-          {orderedNavigation.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href === "/" && pathname === "/index");
-            return (
-              <Pressable
-                key={item.href}
-                style={({ pressed, hovered }) => [
-                  styles.tab,
-                  (hovered || pressed) && styles.tabInteractive,
-                  active && styles.tabActive,
-                  active && { backgroundColor: accentColor },
-                  pressed && styles.tabPressed,
-                ]}
-                onPress={() => router.replace(item.href as never)}
-              >
-                <Text style={[styles.tabGlyph, { color: textColor }]}>
-                  {tabGlyphs[item.id]?.trim() || item.glyph}
-                </Text>
-                <Text
-                  style={[
-                    styles.tabLabel,
-                    { fontFamily, color: textColor },
-                  ]}
-                >
-                  {tabLabels[item.id]?.trim() || item.label}
-                </Text>
-                {item.href === "/log" ? (
-                  <View style={styles.badge}>
-                    <Text style={[styles.badgeText, { color: textColor }]}>LIVE</Text>
-                  </View>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.pageMenu}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Choose a page"
+            accessibilityState={{ expanded: pagesOpen }}
+            onPress={() => setPagesOpen((open) => !open)}
+            style={({ pressed }) => [styles.pageMenuToggle, pressed && styles.pageMenuPressed, { borderColor }]}
+          >
+            <View style={styles.pageMenuLead}>
+              <Text style={[styles.pageMenuKicker, { color: textColor }]}>PAGES</Text>
+              <Text style={[styles.pageMenuCurrent, { fontFamily, color: textColor }]}>
+                {tabGlyphs[currentPage.id]?.trim() || currentPage.glyph} {tabLabels[currentPage.id]?.trim() || currentPage.label}
+              </Text>
+            </View>
+            <Text style={[styles.pageMenuChevron, { color: textColor }]}>{pagesOpen ? "⌃" : "⌄"}</Text>
+          </Pressable>
+          {pagesOpen ? <View style={[styles.pageMenuGrid, { borderColor }]}>{orderedNavigation.map((item) => {
+            const active = pathname === item.href || (item.href === "/" && pathname === "/index");
+            return <Pressable
+              key={item.href}
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${tabLabels[item.id]?.trim() || item.label}`}
+              accessibilityState={{ selected: active }}
+              onPress={() => router.replace(item.href as never)}
+              style={({ pressed }) => [styles.pageMenuItem, active && { backgroundColor: accentColor }, pressed && styles.pageMenuPressed, { borderColor }]}
+            >
+              <Text style={[styles.pageMenuItemGlyph, { color: textColor }]}>{tabGlyphs[item.id]?.trim() || item.glyph}</Text>
+              <Text style={[styles.pageMenuItemLabel, { fontFamily, color: textColor }]} numberOfLines={1}>{tabLabels[item.id]?.trim() || item.label}</Text>
+            </Pressable>;
+          })}</View> : null}
+        </View>
         {currentPage.id === "themes" ? (
           <View style={styles.identityArea}>
             {roomCode ? (
@@ -616,44 +609,17 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     fontWeight: "900",
   },
-  tabScroller: {
-    flexGrow: 0,
-    backgroundColor: "transparent",
-    borderBottomWidth: 1,
-    borderBottomColor: "#211C24",
-  },
-  tabs: { gap: 7, paddingHorizontal: 16, paddingVertical: 11 },
-  tabsLaptop: { paddingHorizontal: 32, justifyContent: "center" },
-  tab: {
-    height: 48,
-    paddingHorizontal: 13,
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    backgroundColor: "transparent",
-  },
-  tabInteractive: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    transform: [{ translateY: -1 }],
-  },
-  tabPressed: { opacity: 0.84, transform: [{ scale: 0.98 }] },
-  tabActive: { backgroundColor: COLORS.orchid },
-  tabGlyph: { color: COLORS.slate, fontSize: 16 },
-  tabLabel: { color: COLORS.plum, fontSize: 14, fontWeight: "800" },
-  tabActiveText: { color: COLORS.white },
-  badge: {
-    backgroundColor: "rgba(255,255,255,0.17)",
-    borderRadius: 7,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    color: COLORS.white,
-    fontSize: 8,
-    fontWeight: "900",
-    letterSpacing: 0.6,
-  },
+  pageMenu: { borderBottomWidth: 1, borderBottomColor: "#211C24", backgroundColor: "transparent", paddingHorizontal: 16, paddingVertical: 9, zIndex: 10 },
+  pageMenuToggle: { minHeight: 48, borderRadius: 14, borderWidth: 1, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(255,255,255,0.05)" },
+  pageMenuLead: { gap: 2, flex: 1 },
+  pageMenuKicker: { fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
+  pageMenuCurrent: { fontSize: 15, fontWeight: "900" },
+  pageMenuChevron: { fontSize: 19, fontWeight: "900", paddingLeft: 12 },
+  pageMenuGrid: { marginTop: 8, borderWidth: 1, borderRadius: 14, padding: 8, flexDirection: "row", flexWrap: "wrap", gap: 7, backgroundColor: "rgba(10,7,15,0.16)" },
+  pageMenuItem: { width: "48.6%", minHeight: 45, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: "rgba(255,255,255,0.05)" },
+  pageMenuItemGlyph: { fontSize: 15 },
+  pageMenuItemLabel: { flex: 1, fontSize: 11, fontWeight: "900" },
+  pageMenuPressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
   identityArea: {
     borderBottomWidth: 1,
     borderBottomColor: "#211C24",

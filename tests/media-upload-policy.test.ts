@@ -35,6 +35,8 @@ describe("GIF media upload policy", () => {
     expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
     expect(steamy).toContain('contentFit={pendingPreview.isGif ? "contain" : "cover"}');
     expect(steamy).toContain('gifFrameHeight(galleryWidth, dimensions)');
+    expect(steamy).toContain("onLayout={(event) =>");
+    expect(steamy).toContain("recyclingKey={`${item.id}-${galleryWidth}");
     expect(steamy).toContain('autoplay={isGif}');
     expect(server).toContain("maxStoredBytesForMedia(input.mimeType, \"cover\")");
   });

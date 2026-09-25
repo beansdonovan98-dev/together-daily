@@ -4,13 +4,12 @@ import { PrivateGate } from "@/components/together-access";
 import { imageMimeFromAsset, maxBase64LengthForMedia } from "@/lib/media-upload-policy";
 import { preparePickedImageForUpload } from "@/lib/media-base64";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
-import { mediaFrameHeight } from "@/lib/gif-frame";
 import { monthCells, monthLabel, shiftMonth } from "@/lib/shared-calendar";
 import { COLORS, prettyDate } from "@/lib/together";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -21,7 +20,6 @@ export default function CalendarScreen() {
 
 function CalendarContent() {
   const now = new Date();
-  const { width: viewportWidth } = useWindowDimensions();
   const {
     calendarEntries,
     addCalendarEntry,
@@ -39,15 +37,9 @@ function CalendarContent() {
   const [editingText, setEditingText] = useState("");
   const [backgroundBusy, setBackgroundBusy] = useState(false);
   const [backgroundError, setBackgroundError] = useState("");
-  const [loadedBackgroundDimensions, setLoadedBackgroundDimensions] = useState<{ width: number; height: number } | null>(null);
   const cells = useMemo(() => monthCells(year, monthIndex), [year, monthIndex]);
   const selectedEntries = calendarEntries.filter((entry) => entry.date === selectedDate).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const mediaUrl = (url: string) => url.startsWith("/") ? `${getApiBaseUrl()}${url}` : url;
-  const calendarWidth = Math.max(240, Math.min(viewportWidth - 32, 840));
-  const backgroundDimensions = calendarBackground?.width && calendarBackground.height
-    ? { width: calendarBackground.width, height: calendarBackground.height }
-    : loadedBackgroundDimensions ?? undefined;
-  const backgroundHeight = mediaFrameHeight(calendarWidth, backgroundDimensions, 280, 760);
 
   const changeMonth = (delta: number) => {
     const next = shiftMonth(year, monthIndex, delta);
@@ -97,7 +89,7 @@ function CalendarContent() {
   );
 
   return <AppFrame><View style={styles.pageShell}>
-    {calendarBackground?.url ? <View pointerEvents="none" style={[styles.backgroundLayer, { height: backgroundHeight }]}><ExpoImage source={mediaUrl(calendarBackground.url)} contentFit="contain" transition={180} onLoad={({ source }) => { if (source.width > 0 && source.height > 0) setLoadedBackgroundDimensions({ width: source.width, height: source.height }); }} style={styles.backgroundImage} /><View style={styles.backgroundShade} /></View> : null}
+    {calendarBackground?.url ? <View pointerEvents="none" style={styles.backgroundLayer}><ExpoImage source={mediaUrl(calendarBackground.url)} contentFit="cover" contentPosition="center" transition={180} style={styles.backgroundImage} /><View style={styles.backgroundShade} /></View> : null}
     <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <Text style={styles.eyebrow}>SHARED LONG-TERM PLANNER</Text>
       <Text style={styles.hero}>Calendar</Text>
@@ -105,7 +97,7 @@ function CalendarContent() {
 
       <View style={styles.card}>
         <Text style={styles.kicker}>CALENDAR BACKGROUND</Text>
-        <Text style={styles.copy}>Choose a photo from either phone. It saves as the shared background for this Calendar only and automatically fits without cropping.</Text>
+        <Text style={styles.copy}>Choose a photo from either phone. It becomes a soft shared Calendar backdrop and fills the page cleanly without stretching.</Text>
         <View style={styles.backgroundActions}>
           <TouchableOpacity accessibilityRole="button" disabled={backgroundBusy} onPress={() => { void chooseBackground(); }} style={styles.backgroundButton}>
             <Text style={styles.backgroundButtonText}>{backgroundBusy ? "Saving…" : calendarBackground ? "Change photo" : "Choose photo"}</Text>
@@ -142,9 +134,9 @@ function CalendarContent() {
 
 const styles = StyleSheet.create({
   pageShell: { flex: 1, position: "relative", overflow: "hidden" },
-  backgroundLayer: { position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", justifyContent: "center", opacity: 0.56 },
-  backgroundImage: { width: "100%", height: "100%" },
-  backgroundShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(8,5,12,0.30)" },
+  backgroundLayer: { ...StyleSheet.absoluteFillObject, opacity: 0.32 },
+  backgroundImage: { ...StyleSheet.absoluteFillObject },
+  backgroundShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(8,5,12,0.46)" },
   page: { padding: 18, paddingBottom: 42, gap: 14, flexGrow: 1, backgroundColor: "transparent" },
   eyebrow: { color: COLORS.gold, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
   hero: { color: COLORS.plum, fontSize: 34, fontWeight: "900", fontStyle: "italic", marginTop: -7 },

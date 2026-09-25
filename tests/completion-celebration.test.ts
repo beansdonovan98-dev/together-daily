@@ -11,13 +11,13 @@ describe("task-list completion celebrations", () => {
     expect(component).toContain("✦");
   });
 
-  it("celebrates completed daily Health, Good Habits, and daily or weekly Cleaning lists", () => {
+  it("celebrates completed daily Health, Six Little Things, and daily or weekly Cleaning lists", () => {
     const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
     const habits = readFileSync(resolve(process.cwd(), "app/(tabs)/habits.tsx"), "utf8");
     const cleaning = readFileSync(resolve(process.cwd(), "app/(tabs)/cleaning.tsx"), "utf8");
 
     expect(health).toContain("healthComplete ? <CompletionCelebration");
-    expect(habits).toContain("dailyHabitsComplete ? <CompletionCelebration");
+    expect(habits).toContain("sixLittleThingsComplete ? <CompletionCelebration");
     expect(cleaning).toContain("dailyComplete || weeklyComplete ? <CompletionCelebration");
   });
 });

@@ -2,84 +2,271 @@ import { AppFrame } from "@/components/app-frame";
 import { CompletionCelebration } from "@/components/completion-celebration";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
+import { DEFAULT_AFFECTION_GOALS, type AffectionGoalKey } from "@/lib/affection-goals";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
-const DEFAULT_HABITS = ["Move my body", "Wind down well"];
 const COLORS = {
   ...BASE_COLORS,
   ink: TAB_CARD_PALETTES.habits.surface,
   surface: TAB_CARD_PALETTES.habits.surface,
 };
-const AFFECTION_GOALS = [
-  { key: "hugs", emoji: "🤗", label: "Hugs" },
-  { key: "kisses", emoji: "💋", label: "Kisses" },
-  { key: "loveYew", emoji: "♥", label: "I love yew" },
-] as const;
 
-function hasBothAffectionCompleted(day: Record<string, any> | undefined) {
+function hasBothAffectionCompleted(day: Record<string, unknown> | undefined, goalKeys: AffectionGoalKey[]) {
   const affection = asObject(day?.affection);
-  return (["beans", "princess"] as PartnerId[]).every((partnerId) => AFFECTION_GOALS.reduce((total, goal) => {
-    const contribution = asObject(asObject(affection.contributions)[goal.key]);
+  return (["beans", "princess"] as PartnerId[]).every((partnerId) => goalKeys.reduce((total, key) => {
+    const contribution = asObject(asObject(affection.contributions)[key]);
     return total + Math.max(0, Number(contribution[partnerId] ?? 0));
   }, 0) >= 6);
 }
 
-export default function HabitsScreen() { return <PrivateGate>{({ userId }) => <HabitsContent userId={userId} />}</PrivateGate>; }
+export default function HabitsScreen() {
+  return <PrivateGate>{({ userId }) => <HabitsContent userId={userId} />}</PrivateGate>;
+}
 
 function HabitsContent({ userId }: { userId: PartnerId }) {
   const today = localDateKey();
-  const { ready, getDay, updateDay, allDays, ensureDay, customSubheadings, theme } = useLocalJournal();
-  const [newHabit, setNewHabit] = useState("");
-  const [editingHabit, setEditingHabit] = useState<string | null>(null);
-  const [habitDraft, setHabitDraft] = useState("");
+  const {
+    ready,
+    getDay,
+    updateDay,
+    allDays,
+    ensureDay,
+    customSubheadings,
+    theme,
+    affectionGoals,
+    updateAffectionGoal,
+  } = useLocalJournal();
   const [celebrating, setCelebrating] = useState<PartnerId | null>(null);
+  const [editingGoalKey, setEditingGoalKey] = useState<AffectionGoalKey | null>(null);
+  const [goalLabelDraft, setGoalLabelDraft] = useState("");
+  const [goalEmojiDraft, setGoalEmojiDraft] = useState("");
   const celebrationProgress = useRef(new Animated.Value(0)).current;
-  useEffect(() => { if (ready) ensureDay(today); }, [ensureDay, ready, today]);
-  useEffect(() => { if (!celebrating) return; celebrationProgress.setValue(0); const animation = Animated.sequence([Animated.spring(celebrationProgress, { toValue: 1, useNativeDriver: true, damping: 11, stiffness: 180 }), Animated.delay(1850), Animated.timing(celebrationProgress, { toValue: 0, duration: 260, useNativeDriver: true })]); animation.start(({ finished }) => { if (finished) setCelebrating(null); }); return () => animation.stop(); }, [celebrating, celebrationProgress]);
-  const content = asObject(getDay(today)); const habits = asObject(content.habits); const affection = asObject(content.affection);
-  const list = ((Array.isArray(habits.list) && habits.list.length ? habits.list : DEFAULT_HABITS) as string[]).filter((habit) => habit !== "Share a loving moment" && habit !== "Drink water");
-  const checks = asObject(habits.checks); const partner = PARTNERS[userId];
-  const save = (nextList: string[], nextChecks: Record<string, unknown>) => updateDay(today, { habits: { list: nextList, checks: nextChecks } });
-  const toggle = (habit: string, id: PartnerId) => { const current = asObject(checks[habit]); save(list, { ...checks, [habit]: { ...current, [id]: !current[id] } }); };
-  const addHabit = () => { const value = newHabit.trim(); if (!value || list.includes(value)) return; save([...list, value], checks); setNewHabit(""); };
-  const removeHabit = (habit: string) => { const { [habit]: _removed, ...remainingChecks } = checks; save(list.filter((item) => item !== habit), remainingChecks); };
-  const startHabitEdit = (habit: string) => { setEditingHabit(habit); setHabitDraft(habit); };
-  const saveHabitEdit = () => { const next = habitDraft.trim(); if (!editingHabit || !next || (next !== editingHabit && list.includes(next))) return; const { [editingHabit]: previousChecks, ...remainingChecks } = checks; save(list.map((habit) => habit === editingHabit ? next : habit), { ...remainingChecks, [next]: { ...asObject(previousChecks), ...asObject(remainingChecks[next]) } }); setEditingHabit(null); setHabitDraft(""); };
-  const contributionFor = (key: (typeof AFFECTION_GOALS)[number]["key"], partnerId: PartnerId, source = affection) => Math.max(0, Number(asObject(asObject(source.contributions)[key])[partnerId] ?? 0));
-  const dailyContributionTotal = (partnerId: PartnerId, source = affection) => AFFECTION_GOALS.reduce((total, goal) => total + contributionFor(goal.key, partnerId, source), 0);
-  const adjustAffection = (key: (typeof AFFECTION_GOALS)[number]["key"], delta: number) => {
+  const goals = affectionGoals.length ? affectionGoals : DEFAULT_AFFECTION_GOALS;
+  const goalKeys = useMemo(() => affectionGoals.length ? affectionGoals.map((goal) => goal.key) : DEFAULT_AFFECTION_GOALS.map((goal) => goal.key), [affectionGoals]);
+  const content = asObject(getDay(today));
+  const affection = asObject(content.affection);
+
+  useEffect(() => {
+    if (ready) ensureDay(today);
+  }, [ensureDay, ready, today]);
+
+  useEffect(() => {
+    if (!celebrating) return;
+    celebrationProgress.setValue(0);
+    const animation = Animated.sequence([
+      Animated.spring(celebrationProgress, { toValue: 1, useNativeDriver: true, damping: 11, stiffness: 180 }),
+      Animated.delay(1850),
+      Animated.timing(celebrationProgress, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]);
+    animation.start(({ finished }) => {
+      if (finished) setCelebrating(null);
+    });
+    return () => animation.stop();
+  }, [celebrating, celebrationProgress]);
+
+  const contributionFor = (key: AffectionGoalKey, partnerId: PartnerId, source = affection) =>
+    Math.max(0, Number(asObject(asObject(source.contributions)[key])[partnerId] ?? 0));
+  const dailyContributionTotal = (partnerId: PartnerId, source = affection) =>
+    goalKeys.reduce((total, key) => total + contributionFor(key, partnerId, source), 0);
+  const startGoalEdit = (key: AffectionGoalKey) => {
+    const goal = goals.find((item) => item.key === key);
+    if (!goal) return;
+    setEditingGoalKey(key);
+    setGoalLabelDraft(goal.label);
+    setGoalEmojiDraft(goal.emoji);
+  };
+  const saveGoalEdit = () => {
+    if (!editingGoalKey) return;
+    updateAffectionGoal(editingGoalKey, { label: goalLabelDraft, emoji: goalEmojiDraft });
+    setEditingGoalKey(null);
+    setGoalLabelDraft("");
+    setGoalEmojiDraft("");
+  };
+  const adjustAffection = (key: AffectionGoalKey, delta: number) => {
     const total = Math.max(0, Math.min(6, Number(affection[key] ?? 0)));
-    const contributions = asObject(affection.contributions); const current = asObject(contributions[key]); const mine = Math.max(0, Number(current[userId] ?? 0));
+    const contributions = asObject(affection.contributions);
+    const current = asObject(contributions[key]);
+    const mine = Math.max(0, Number(current[userId] ?? 0));
     if ((delta < 0 && mine === 0) || (delta > 0 && total >= 6)) return;
-    const nextTotal = Math.max(0, Math.min(6, total + delta)); const nextAffection = { ...affection, [key]: nextTotal, contributions: { ...contributions, [key]: { ...current, [userId]: Math.max(0, mine + delta) } } };
-    const celebrations = asObject(content.affectionCelebrations); const shouldCelebrate = delta > 0 && dailyContributionTotal(userId, nextAffection) >= 6 && !celebrations[userId];
-    updateDay(today, { affection: nextAffection, affectionCelebrations: shouldCelebrate ? { ...celebrations, [userId]: true } : celebrations });
+    const nextTotal = Math.max(0, Math.min(6, total + delta));
+    const nextAffection = {
+      ...affection,
+      [key]: nextTotal,
+      contributions: { ...contributions, [key]: { ...current, [userId]: Math.max(0, mine + delta) } },
+    };
+    const celebrations = asObject(content.affectionCelebrations);
+    const shouldCelebrate = delta > 0 && dailyContributionTotal(userId, nextAffection) >= 6 && !celebrations[userId];
+    updateDay(today, {
+      affection: nextAffection,
+      affectionCelebrations: shouldCelebrate ? { ...celebrations, [userId]: true } : celebrations,
+    });
     if (shouldCelebrate) setCelebrating(userId);
   };
-  const completed = (id: PartnerId) => list.filter((habit) => Boolean(asObject(checks[habit])[id])).length;
-  const dailyHabitsComplete = list.length > 0 && list.every((habit) => (['beans', 'princess'] as PartnerId[]).every((partnerId) => Boolean(asObject(checks[habit])[partnerId])));
-  const streak = useMemo(() => { const relevant = [...allDays].sort((a, b) => String(b.date).localeCompare(String(a.date))); let count = 0; for (const day of relevant) { const dayHabits = asObject(day.habits); const dayList = (Array.isArray(dayHabits.list) && dayHabits.list.length ? dayHabits.list : DEFAULT_HABITS) as string[]; const dayChecks = asObject(dayHabits.checks); if (dayList.some((habit) => Boolean(asObject(dayChecks[habit])[userId]))) count++; else break; } return count; }, [allDays, userId]);
-  const sharedAffectionStreak = useMemo(() => { const dayMap = new Map(allDays.map((day) => [String(day.date), asObject(day)])); const cursor = new Date(`${today}T12:00:00`); if (!hasBothAffectionCompleted(dayMap.get(today))) cursor.setDate(cursor.getDate() - 1); let count = 0; while (true) { const key = cursor.toISOString().slice(0, 10); if (!hasBothAffectionCompleted(dayMap.get(key))) break; count += 1; cursor.setDate(cursor.getDate() - 1); } return count; }, [allDays, today]);
-  const weekDays = useMemo(() => { const dayMap = new Map(allDays.map((day) => [String(day.date), asObject(day)])); return Array.from({ length: 7 }, (_, index) => { const cursor = new Date(`${today}T12:00:00`); cursor.setDate(cursor.getDate() - 6 + index); const dateKey = cursor.toISOString().slice(0, 10); return { dateKey, label: cursor.toLocaleDateString("en-US", { weekday: "narrow" }), number: cursor.getDate(), isToday: dateKey === today, complete: hasBothAffectionCompleted(dayMap.get(dateKey)) }; }); }, [allDays, today]);
+  const sharedAffectionStreak = useMemo(() => {
+    const dayMap = new Map(allDays.map((day) => [String(day.date), asObject(day)]));
+    const cursor = new Date(`${today}T12:00:00`);
+    if (!hasBothAffectionCompleted(dayMap.get(today), goalKeys)) cursor.setDate(cursor.getDate() - 1);
+    let count = 0;
+    while (true) {
+      const key = cursor.toISOString().slice(0, 10);
+      if (!hasBothAffectionCompleted(dayMap.get(key), goalKeys)) break;
+      count += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return count;
+  }, [allDays, goalKeys, today]);
+  const weekDays = useMemo(() => {
+    const dayMap = new Map(allDays.map((day) => [String(day.date), asObject(day)]));
+    return Array.from({ length: 7 }, (_, index) => {
+      const cursor = new Date(`${today}T12:00:00`);
+      cursor.setDate(cursor.getDate() - 6 + index);
+      const dateKey = cursor.toISOString().slice(0, 10);
+      return {
+        dateKey,
+        label: cursor.toLocaleDateString("en-US", { weekday: "narrow" }),
+        number: cursor.getDate(),
+        isToday: dateKey === today,
+        complete: hasBothAffectionCompleted(dayMap.get(dateKey), goalKeys),
+      };
+    });
+  }, [allDays, goalKeys, today]);
+  const sixLittleThingsComplete = hasBothAffectionCompleted(content, goalKeys);
 
-  return <AppFrame><ScrollView contentContainerStyle={[styles.page,{backgroundColor:theme.backgroundColor??COLORS.blush}]} showsVerticalScrollIndicator={false}>
-    {dailyHabitsComplete ? <CompletionCelebration title="Today’s good habits complete!" detail="You both checked off every habit for today." /> : null}
-    <Text style={styles.eyebrow}>GOOD HABITS</Text><Text style={styles.title}>Little things, often.</Text><Text style={styles.copy}>{prettyDate(today)} · {getSubheading(customSubheadings,"goodHabits")}</Text>
-    <View style={styles.affectionCard}><View style={styles.affectionHeader}><View><Text style={styles.affectionKicker}>SHARED DAILY AFFECTION</Text><Text style={styles.affectionTitle}>Six little things</Text></View><Text style={styles.affectionGoal}>6 EACH</Text></View><Text style={styles.affectionCopy}>Add to the shared count whenever the moment happens. Every goal resets on a new daily page.</Text>{celebrating ? <Animated.View style={[styles.celebrationBanner,{opacity:celebrationProgress,transform:[{scale:celebrationProgress.interpolate({inputRange:[0,1],outputRange:[.82,1]})}]}]}><Text style={styles.celebrationSparkles}>✦ ✦ ✦</Text><Text style={[styles.celebrationTitle,{color:PARTNERS[celebrating].color}]}>{PARTNERS[celebrating].name} completed six little things!</Text><Text style={styles.celebrationCopy}>A loving daily win, saved just for today.</Text></Animated.View> : null}<View style={styles.affectionList}>{AFFECTION_GOALS.map((goal) => { const count = Math.max(0, Math.min(6, Number(affection[goal.key] ?? 0))); const beansCount = contributionFor(goal.key, "beans"); const princessCount = contributionFor(goal.key, "princess"); const mine = contributionFor(goal.key, userId); return <View key={goal.key} style={styles.affectionRow}><Text style={styles.affectionEmoji}>{goal.emoji}</Text><View style={styles.affectionMain}><View style={styles.affectionTop}><Text style={styles.affectionLabel}>{goal.label}</Text><Text style={styles.affectionCount}>{count} / 6</Text></View><View style={styles.dotRow}>{[1,2,3,4,5,6].map((step) => <View key={step} style={[styles.goalDot, step <= count && styles.goalDotDone]} />)}</View><View style={styles.contributionRow}><View style={styles.contribution}><Text style={[styles.contributionName,{color:PARTNERS.beans.color}]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()}</Text><Text style={[styles.contributionCount,{color:PARTNERS.beans.color}]}>{beansCount}</Text></View><View style={styles.contribution}><Text style={[styles.contributionName,{color:PARTNERS.princess.color}]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text><Text style={[styles.contributionCount,{color:PARTNERS.princess.color}]}>{princessCount}</Text></View></View></View><TouchableOpacity style={styles.counterButton} onPress={() => adjustAffection(goal.key, -1)} disabled={mine === 0}><Text style={[styles.counterText, mine === 0 && styles.counterDisabled]}>−</Text></TouchableOpacity><TouchableOpacity style={styles.counterButton} onPress={() => adjustAffection(goal.key, 1)} disabled={count === 6}><Text style={[styles.counterText, count === 6 && styles.counterDisabled]}>+</Text></TouchableOpacity></View>; })}</View><View style={styles.dailyContributionSummary}><View><Text style={[styles.dailyContributionName,{color:PARTNERS.beans.color}]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name} today</Text><Text style={styles.dailyContributionValue}>{dailyContributionTotal("beans")} / 6</Text></View><View style={styles.dailyContributionDivider}/><View><Text style={[styles.dailyContributionName,{color:PARTNERS.princess.color}]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name} today</Text><Text style={styles.dailyContributionValue}>{dailyContributionTotal("princess")} / 6</Text></View></View><View style={styles.sharedStreakCard}><View><Text style={styles.sharedStreakKicker}>OUR SHARED STREAK</Text><Text style={styles.sharedStreakCopy}>Days where you both reached six.</Text></View><View style={styles.sharedStreakCount}><Text style={styles.sharedStreakNumber}>{sharedAffectionStreak}</Text><Text style={styles.sharedStreakUnit}>{sharedAffectionStreak === 1 ? "DAY" : "DAYS"}</Text></View></View>
-    </View><View style={styles.weekCard}><View style={styles.weekHeader}><View><Text style={styles.weekKicker}>SEVEN DAYS OF US</Text><Text style={styles.weekTitle}>Shared affection week</Text></View><Text style={styles.weekMeta}>{sharedAffectionStreak} day streak</Text></View><View style={styles.weekRow}>{weekDays.map((day) => <View key={day.dateKey} style={[styles.weekDay, day.complete && styles.weekDayComplete, day.isToday && styles.weekDayToday]}><Text style={[styles.weekDayLabel, day.complete && styles.weekDayLabelComplete]}>{day.label}</Text><Text style={[styles.weekDayNumber, day.complete && styles.weekDayNumberComplete]}>{day.number}</Text><Text style={[styles.weekDayMark, day.complete && styles.weekDayMarkComplete]}>{day.complete ? "♥" : "·"}</Text></View>)}</View><Text style={styles.weekCaption}>A heart marks a day where you both completed all six little things.</Text></View>
-    <View style={styles.stats}><View style={styles.stat}><Text style={styles.statNumber}>{completed("beans")}/{list.length}</Text><Text style={[styles.statLabel, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()}</Text></View><View style={styles.stat}><Text style={styles.statNumber}>{completed("princess")}/{list.length}</Text><Text style={[styles.statLabel, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text></View><View style={styles.stat}><Text style={styles.statNumber}>{streak}</Text><Text style={styles.statLabel}>DAY STREAK</Text></View></View>
-    <View style={styles.card}><Text style={styles.cardTitle}>Today’s good habits</Text><View style={styles.habitList}>{list.map((habit) => { const item = asObject(checks[habit]); const editing = editingHabit === habit; return <View key={habit} style={styles.habitRow}>{editing ? <View style={styles.habitEditBody}><TextInput value={habitDraft} onChangeText={setHabitDraft} placeholder="Habit name" placeholderTextColor="#7F7582" style={styles.habitEditInput}/><View style={styles.habitEditActions}><TouchableOpacity onPress={saveHabitEdit} style={[styles.habitSaveButton,{backgroundColor:partner.color}]}><Text style={styles.habitSaveText}>Save</Text></TouchableOpacity><TouchableOpacity onPress={() => { setEditingHabit(null); setHabitDraft(""); }} style={styles.habitTextButton}><Text style={styles.habitTextButtonLabel}>Cancel</Text></TouchableOpacity></View></View> : <><Text style={styles.habitText}>{habit}</Text>{(["beans", "princess"] as PartnerId[]).map((id) => { const done = Boolean(item[id]); const person = PARTNERS[id]; return <TouchableOpacity key={id} disabled={id !== userId} onPress={() => toggle(habit, id)} style={[styles.personCheck, { borderColor: person.color, backgroundColor: done ? person.color : COLORS.surface }, id !== userId && !done && styles.partnerWaiting]}><Text style={[styles.personCheckText, done && styles.personCheckTextDone]}>{done ? "✓" : id === "beans" ? "B" : "P"}</Text></TouchableOpacity>; })}<View style={styles.habitManage}><TouchableOpacity accessibilityRole="button" onPress={() => startHabitEdit(habit)} style={styles.habitTextButton}><Text style={styles.habitTextButtonLabel}>Edit</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => removeHabit(habit)} style={styles.habitDeleteButton}><Text style={styles.habitDeleteText}>×</Text></TouchableOpacity></View></>}</View>; })}</View><View style={styles.addRow}><TextInput value={newHabit} onChangeText={setNewHabit} onSubmitEditing={addHabit} placeholder="Add a good habit" placeholderTextColor="#7F7582" style={styles.addInput}/><TouchableOpacity style={[styles.addButton, { backgroundColor: partner.color }]} onPress={addHabit}><Text style={styles.addButtonText}>Add</Text></TouchableOpacity></View></View>
-    <View style={styles.card}><Text style={styles.cardTitle}>Recent history</Text><Text style={styles.historyCopy}>A simple record of days where either of you chose a good habit.</Text>{allDays.slice(0, 7).map((day) => { const dayChecks = asObject(asObject(day.habits).checks); const total = Object.values(dayChecks).reduce((sum: number, item) => sum + Number(Boolean(asObject(item).beans)) + Number(Boolean(asObject(item).princess)), 0); return <View key={day.date} style={styles.historyRow}><Text style={styles.historyDate}>{prettyDate(String(day.date))}</Text><Text style={styles.historyValue}>{total ? `${total} check${total === 1 ? "" : "s"}` : "No check-ins"}</Text></View>; })}</View>
+  return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: theme.backgroundColor ?? COLORS.blush }]} showsVerticalScrollIndicator={false}>
+    {sixLittleThingsComplete ? <CompletionCelebration title="Six little things complete!" detail="You both finished your shared little things for today." /> : null}
+    <Text style={styles.eyebrow}>GOOD HABITS</Text>
+    <Text style={styles.title}>Little things, often.</Text>
+    <Text style={styles.copy}>{prettyDate(today)} · {getSubheading(customSubheadings, "goodHabits")}</Text>
+
+    <View style={styles.affectionCard}>
+      <View style={styles.affectionHeader}>
+        <View><Text style={styles.affectionKicker}>SHARED DAILY AFFECTION</Text><Text style={styles.affectionTitle}>Six little things</Text></View>
+        <Text style={styles.affectionGoal}>6 EACH</Text>
+      </View>
+      <Text style={styles.affectionCopy}>Add to the shared count whenever the moment happens. Tap Edit to personalize each little thing for both of you.</Text>
+      {celebrating ? <Animated.View style={[styles.celebrationBanner, { opacity: celebrationProgress, transform: [{ scale: celebrationProgress.interpolate({ inputRange: [0, 1], outputRange: [.82, 1] }) }] }]}>
+        <Text style={styles.celebrationSparkles}>✦ ✦ ✦</Text>
+        <Text style={[styles.celebrationTitle, { color: PARTNERS[celebrating].color }]}>{PARTNERS[celebrating].name} completed six little things!</Text>
+        <Text style={styles.celebrationCopy}>A loving daily win, saved just for today.</Text>
+      </Animated.View> : null}
+      <View style={styles.affectionList}>{goals.map((goal) => {
+        const count = Math.max(0, Math.min(6, Number(affection[goal.key] ?? 0)));
+        const beansCount = contributionFor(goal.key, "beans");
+        const princessCount = contributionFor(goal.key, "princess");
+        const mine = contributionFor(goal.key, userId);
+        const editing = editingGoalKey === goal.key;
+        return <View key={goal.key} style={styles.affectionRow}>
+          {editing ? <View style={styles.goalEditBody}>
+            <View style={styles.goalEditInputs}>
+              <TextInput value={goalEmojiDraft} onChangeText={setGoalEmojiDraft} maxLength={12} placeholder="✨" placeholderTextColor="#7F7582" style={styles.goalEmojiInput} />
+              <TextInput value={goalLabelDraft} onChangeText={setGoalLabelDraft} maxLength={40} placeholder="Little thing" placeholderTextColor="#7F7582" style={styles.goalLabelInput} />
+            </View>
+            <View style={styles.goalEditActions}>
+              <TouchableOpacity accessibilityRole="button" onPress={saveGoalEdit} style={[styles.goalSaveButton, { backgroundColor: PARTNERS[userId].color }]}><Text style={styles.goalSaveText}>Save</Text></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" onPress={() => setEditingGoalKey(null)} style={styles.goalEditLink}><Text style={styles.goalEditLinkText}>Cancel</Text></TouchableOpacity>
+            </View>
+          </View> : <>
+            <Text style={styles.affectionEmoji}>{goal.emoji}</Text>
+            <View style={styles.affectionMain}>
+              <View style={styles.affectionTop}><Text style={styles.affectionLabel}>{goal.label}</Text><Text style={styles.affectionCount}>{count} / 6</Text></View>
+              <View style={styles.dotRow}>{[1, 2, 3, 4, 5, 6].map((step) => <View key={step} style={[styles.goalDot, step <= count && styles.goalDotDone]} />)}</View>
+              <View style={styles.contributionRow}>
+                <View style={styles.contribution}><Text style={[styles.contributionName, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()}</Text><Text style={[styles.contributionCount, { color: PARTNERS.beans.color }]}>{beansCount}</Text></View>
+                <View style={styles.contribution}><Text style={[styles.contributionName, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name.toUpperCase()}</Text><Text style={[styles.contributionCount, { color: PARTNERS.princess.color }]}>{princessCount}</Text></View>
+              </View>
+            </View>
+            <View style={styles.goalActions}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => startGoalEdit(goal.key)} style={styles.goalEditLink}><Text style={styles.goalEditLinkText}>Edit</Text></TouchableOpacity>
+              <View style={styles.counterRow}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Decrease ${goal.label}`} style={styles.counterButton} onPress={() => adjustAffection(goal.key, -1)} disabled={mine === 0}><Text style={[styles.counterText, mine === 0 && styles.counterDisabled]}>−</Text></TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Increase ${goal.label}`} style={styles.counterButton} onPress={() => adjustAffection(goal.key, 1)} disabled={count === 6}><Text style={[styles.counterText, count === 6 && styles.counterDisabled]}>+</Text></TouchableOpacity>
+              </View>
+            </View>
+          </>}
+        </View>;
+      })}</View>
+      <View style={styles.dailyContributionSummary}>
+        <View><Text style={[styles.dailyContributionName, { color: PARTNERS.beans.color }]}>{PARTNERS.beans.avatar} {PARTNERS.beans.name} today</Text><Text style={styles.dailyContributionValue}>{dailyContributionTotal("beans")} / 6</Text></View>
+        <View style={styles.dailyContributionDivider} />
+        <View><Text style={[styles.dailyContributionName, { color: PARTNERS.princess.color }]}>{PARTNERS.princess.avatar} {PARTNERS.princess.name} today</Text><Text style={styles.dailyContributionValue}>{dailyContributionTotal("princess")} / 6</Text></View>
+      </View>
+      <View style={styles.sharedStreakCard}><View><Text style={styles.sharedStreakKicker}>OUR SHARED STREAK</Text><Text style={styles.sharedStreakCopy}>Days where you both reached six.</Text></View><View style={styles.sharedStreakCount}><Text style={styles.sharedStreakNumber}>{sharedAffectionStreak}</Text><Text style={styles.sharedStreakUnit}>{sharedAffectionStreak === 1 ? "DAY" : "DAYS"}</Text></View></View>
+    </View>
+    <View style={styles.weekCard}><View style={styles.weekHeader}><View><Text style={styles.weekKicker}>SEVEN DAYS OF US</Text><Text style={styles.weekTitle}>Shared affection week</Text></View><Text style={styles.weekMeta}>{sharedAffectionStreak} day streak</Text></View><View style={styles.weekRow}>{weekDays.map((day) => <View key={day.dateKey} style={[styles.weekDay, day.complete && styles.weekDayComplete, day.isToday && styles.weekDayToday]}><Text style={[styles.weekDayLabel, day.complete && styles.weekDayLabelComplete]}>{day.label}</Text><Text style={[styles.weekDayNumber, day.complete && styles.weekDayNumberComplete]}>{day.number}</Text><Text style={[styles.weekDayMark, day.complete && styles.weekDayMarkComplete]}>{day.complete ? "♥" : "·"}</Text></View>)}</View><Text style={styles.weekCaption}>A heart marks a day where you both completed all six little things.</Text></View>
   </ScrollView></AppFrame>;
 }
 
 const styles = StyleSheet.create({
-  page:{padding:18,paddingBottom:36,gap:14,backgroundColor:COLORS.blush},eyebrow:{color:COLORS.gold,fontSize:10,fontWeight:"900",letterSpacing:1.2},title:{color:COLORS.plum,fontSize:32,fontWeight:"900",fontStyle:"italic",marginTop:-7},copy:{color:COLORS.slate,fontFamily:"monospace",fontSize:12,lineHeight:19},
-  affectionCard:{backgroundColor:COLORS.ink,borderRadius:20,borderWidth:1,borderColor:TAB_CARD_PALETTES.habits.border,padding:16},affectionHeader:{flexDirection:"row",alignItems:"flex-start",justifyContent:"space-between"},affectionKicker:{color:COLORS.gold,fontSize:9,fontWeight:"900",letterSpacing:1.1},affectionTitle:{color:COLORS.plum,fontSize:22,fontWeight:"900",fontStyle:"italic",marginTop:3},affectionGoal:{color:COLORS.gold,fontFamily:"monospace",fontSize:10,fontWeight:"900",paddingTop:4},affectionCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:11,lineHeight:17,marginTop:5},celebrationBanner:{marginTop:14,borderRadius:14,borderWidth:1,borderColor:"#C6A04C",backgroundColor:"#18121C",padding:14,alignItems:"center"},celebrationSparkles:{color:COLORS.gold,fontSize:17,letterSpacing:5},celebrationTitle:{fontSize:16,fontWeight:"900",marginTop:5,textAlign:"center"},celebrationCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:10,textAlign:"center",marginTop:4},affectionList:{gap:10,marginTop:15},affectionRow:{flexDirection:"row",alignItems:"center",gap:8,backgroundColor:COLORS.surface,borderRadius:13,borderWidth:1,borderColor:"#413349",padding:10},affectionEmoji:{fontSize:19},affectionMain:{flex:1},affectionTop:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},affectionLabel:{color:COLORS.plum,fontSize:14,fontWeight:"800"},affectionCount:{color:COLORS.gold,fontFamily:"monospace",fontSize:11,fontWeight:"900"},dotRow:{flexDirection:"row",gap:4,marginTop:7},goalDot:{width:8,height:8,borderRadius:4,backgroundColor:"#4C3B55"},goalDotDone:{backgroundColor:COLORS.rose},contributionRow:{flexDirection:"row",gap:9,marginTop:8},contribution:{flexDirection:"row",alignItems:"center",gap:4},contributionName:{fontSize:8,fontWeight:"900",letterSpacing:.4},contributionCount:{fontFamily:"monospace",fontSize:10,fontWeight:"900"},dailyContributionSummary:{flexDirection:"row",alignItems:"center",justifyContent:"space-around",marginTop:14,paddingTop:12,borderTopWidth:1,borderTopColor:"#4D3B58"},dailyContributionName:{fontSize:10,fontWeight:"900",textAlign:"center"},dailyContributionValue:{color:COLORS.plum,fontSize:20,fontWeight:"900",textAlign:"center",marginTop:3},dailyContributionDivider:{height:31,width:1,backgroundColor:"#5A4862"},sharedStreakCard:{marginTop:12,padding:12,borderRadius:13,borderWidth:1,borderColor:"#C6A04C",backgroundColor:"rgba(198,160,76,0.10)",flexDirection:"row",alignItems:"center",justifyContent:"space-between"},sharedStreakKicker:{color:COLORS.gold,fontSize:9,fontWeight:"900",letterSpacing:1},sharedStreakCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:10,marginTop:3},sharedStreakCount:{alignItems:"center",minWidth:48},sharedStreakNumber:{color:COLORS.plum,fontSize:25,fontWeight:"900",lineHeight:27},sharedStreakUnit:{color:COLORS.gold,fontSize:8,fontWeight:"900",letterSpacing:.8},weekCard:{backgroundColor:COLORS.ink,borderRadius:18,borderWidth:1,borderColor:"#4D3C54",padding:14},weekHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center"},weekKicker:{color:COLORS.gold,fontSize:9,fontWeight:"900",letterSpacing:1},weekTitle:{color:COLORS.plum,fontSize:17,fontWeight:"900",fontStyle:"italic",marginTop:3},weekMeta:{color:COLORS.sage,fontFamily:"monospace",fontSize:10,fontWeight:"900"},weekRow:{flexDirection:"row",justifyContent:"space-between",gap:4,marginTop:14},weekDay:{flex:1,minHeight:66,borderRadius:10,backgroundColor:COLORS.surface,borderWidth:1,borderColor:"#39303E",alignItems:"center",justifyContent:"center"},weekDayComplete:{backgroundColor:"rgba(144,185,157,0.18)",borderColor:COLORS.sage},weekDayToday:{borderColor:COLORS.gold,borderWidth:1.5},weekDayLabel:{color:COLORS.slate,fontSize:9,fontWeight:"900"},weekDayLabelComplete:{color:COLORS.sage},weekDayNumber:{color:COLORS.plum,fontSize:13,fontWeight:"900",marginTop:2},weekDayNumberComplete:{color:COLORS.plum},weekDayMark:{color:"#665C69",fontSize:14,lineHeight:15},weekDayMarkComplete:{color:COLORS.rose},weekCaption:{color:COLORS.slate,fontFamily:"monospace",fontSize:10,lineHeight:15,marginTop:10},counterButton:{width:30,height:30,borderRadius:9,borderWidth:1,borderColor:"#604A6B",alignItems:"center",justifyContent:"center",backgroundColor:"#19151C"},counterText:{color:COLORS.plum,fontSize:19,fontWeight:"900",lineHeight:20},counterDisabled:{color:"#514755"},
-  weightCard:{backgroundColor:"#141922",borderRadius:18,borderWidth:1,borderColor:"#35425A",padding:14},weightHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"flex-start"},weightKicker:{color:"#66B7DD",fontSize:9,fontWeight:"900",letterSpacing:1},weightTitle:{color:COLORS.plum,fontSize:19,fontWeight:"900",fontStyle:"italic",marginTop:3},weightCadence:{color:"#66B7DD",fontSize:9,fontWeight:"900",fontFamily:"monospace",paddingTop:4},weightCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:10,lineHeight:16,marginTop:5},weightGrid:{flexDirection:"row",gap:9,marginTop:13},weightPersonCard:{flex:1,borderRadius:13,borderWidth:1,backgroundColor:"#11141B",padding:11},weightPartner:{fontSize:11,fontWeight:"900"},weightValue:{color:COLORS.plum,fontSize:23,fontWeight:"900",fontStyle:"italic",marginTop:7},weightMeta:{color:COLORS.slate,fontFamily:"monospace",fontSize:9,marginTop:2},weightStatus:{fontFamily:"monospace",fontSize:9,fontWeight:"900",marginTop:10,lineHeight:13},weightInputRow:{flexDirection:"row",gap:5,marginTop:9,alignItems:"center"},weightInput:{flex:1,minHeight:35,borderRadius:8,borderWidth:1,borderColor:"#3A465D",backgroundColor:"#0E1118",color:COLORS.plum,paddingHorizontal:7,fontSize:11},weightSaveButton:{minHeight:35,borderRadius:8,alignItems:"center",justifyContent:"center",paddingHorizontal:7},weightSaveText:{color:COLORS.white,fontSize:9,fontWeight:"900"},weightHistoryCard:{backgroundColor:"#111720",borderRadius:18,borderWidth:1,borderColor:"#344A65",padding:14,gap:9},weightHistoryKicker:{color:"#66B7DD",fontSize:9,fontWeight:"900",letterSpacing:1},weightHistoryTitle:{color:COLORS.plum,fontSize:19,fontWeight:"900",fontStyle:"italic"},weightHistoryCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:10,lineHeight:16},
-  stats:{flexDirection:"row",gap:8},stat:{flex:1,backgroundColor:COLORS.ink,borderWidth:1,borderColor:"#35273D",padding:12,borderRadius:14,alignItems:"center"},statNumber:{color:COLORS.plum,fontSize:21,fontWeight:"900"},statLabel:{fontSize:9,fontWeight:"900",letterSpacing:.7,marginTop:3,textAlign:"center"},waterCard:{backgroundColor:"#14202A",borderRadius:18,borderWidth:1,borderColor:"#31516D",padding:14,gap:11},waterHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"flex-start",gap:8},waterKicker:{color:"#66B7DD",fontSize:9,fontWeight:"900",letterSpacing:1},waterTitle:{color:COLORS.plum,fontSize:19,fontWeight:"900",fontStyle:"italic",marginTop:3},waterCopy:{color:COLORS.slate,fontSize:11,fontFamily:"monospace",marginTop:3,maxWidth:210},waterResetButton:{minHeight:30,borderRadius:8,borderWidth:1,borderColor:"#54738D",paddingHorizontal:9,justifyContent:"center"},waterResetText:{color:"#A9CDEC",fontSize:9,fontWeight:"900"},waterResetConfirm:{alignItems:"flex-end",gap:4},waterResetPrompt:{color:COLORS.slate,fontSize:9,fontFamily:"monospace",textAlign:"right"},waterResetConfirmButton:{minHeight:27,borderRadius:7,backgroundColor:"#A84261",paddingHorizontal:8,justifyContent:"center"},waterResetConfirmText:{color:COLORS.white,fontSize:9,fontWeight:"900"},waterResetCancel:{paddingVertical:2,paddingHorizontal:4},waterResetCancelText:{color:COLORS.slate,fontSize:9,fontWeight:"900"},waterPeople:{gap:8},waterPerson:{backgroundColor:"#101923",borderRadius:11,padding:10,borderWidth:1,borderColor:"#2C465E"},waterName:{fontSize:11,fontWeight:"900"},waterControls:{flexDirection:"row",alignItems:"center",gap:10,marginTop:7},waterButton:{width:30,height:30,borderRadius:9,borderWidth:1,borderColor:"#54738D",alignItems:"center",justifyContent:"center",backgroundColor:"#10151D"},waterButtonDisabled:{opacity:.38},waterButtonText:{color:COLORS.plum,fontSize:18,fontWeight:"900"},waterCount:{minWidth:36,textAlign:"center",color:COLORS.plum,fontSize:15,fontWeight:"900"},waterCelebrate:{borderRadius:11,borderWidth:1,borderColor:"#C6A04C",backgroundColor:"rgba(198,160,76,0.12)",padding:10,alignItems:"center"},waterCelebrateTitle:{color:COLORS.gold,fontSize:13,fontWeight:"900"},waterCelebrateCopy:{color:COLORS.slate,fontSize:10,fontFamily:"monospace",marginTop:3},waterWeek:{borderTopWidth:1,borderTopColor:"#31516D",paddingTop:10},waterWeekLabel:{color:"#66B7DD",fontSize:9,fontWeight:"900",letterSpacing:1},waterWeekRow:{flexDirection:"row",gap:4,marginTop:7},waterWeekDay:{flex:1,alignItems:"center",borderRadius:8,backgroundColor:"#101923",paddingVertical:6,borderWidth:1,borderColor:"#2C465E"},waterWeekDayComplete:{borderColor:"#63C8A3",backgroundColor:"rgba(99,200,163,0.13)"},waterWeekDayToday:{borderColor:COLORS.gold},waterWeekName:{color:COLORS.slate,fontSize:8,fontWeight:"900"},waterWeekTotal:{color:COLORS.plum,fontSize:9,fontWeight:"900",marginTop:2},waterWeekMark:{color:COLORS.gold,fontSize:11,lineHeight:12},card:{backgroundColor:COLORS.ink,borderRadius:20,borderWidth:1,borderColor:"#35273D",padding:17},cardTitle:{color:COLORS.plum,fontSize:21,fontWeight:"800",fontStyle:"italic"},habitList:{gap:8,marginTop:13},habitRow:{flexDirection:"row",alignItems:"center",gap:7,backgroundColor:COLORS.surface,borderRadius:12,borderWidth:1,borderColor:"#393039",padding:10},habitText:{color:COLORS.plum,flex:1,fontSize:14,fontWeight:"700"},habitManage:{flexDirection:"row",alignItems:"center",gap:3},habitTextButton:{minHeight:28,justifyContent:"center",paddingHorizontal:4},habitTextButtonLabel:{color:COLORS.slate,fontSize:9,fontWeight:"900"},habitDeleteButton:{width:25,height:25,borderRadius:13,alignItems:"center",justifyContent:"center"},habitDeleteText:{color:"#E98393",fontSize:19,lineHeight:20},habitEditBody:{flex:1,gap:7},habitEditInput:{minHeight:36,borderRadius:8,borderWidth:1,borderColor:"#4A3B50",backgroundColor:"#121014",color:COLORS.plum,paddingHorizontal:9,fontSize:13},habitEditActions:{flexDirection:"row",gap:8,alignItems:"center"},habitSaveButton:{minHeight:30,borderRadius:8,paddingHorizontal:9,justifyContent:"center"},habitSaveText:{color:COLORS.white,fontSize:9,fontWeight:"900"},personCheck:{width:31,height:31,borderRadius:9,borderWidth:1,alignItems:"center",justifyContent:"center"},partnerWaiting:{opacity:.55},personCheckText:{color:COLORS.slate,fontSize:11,fontWeight:"900"},personCheckTextDone:{color:"#FFFFFF",fontSize:16},addRow:{flexDirection:"row",gap:8,marginTop:12},addInput:{flex:1,minHeight:43,borderRadius:11,borderWidth:1,borderColor:"#3A313E",backgroundColor:"#121014",paddingHorizontal:12,color:COLORS.plum},addButton:{justifyContent:"center",borderRadius:11,paddingHorizontal:14},addButtonText:{color:"#FFFFFF",fontWeight:"900",fontSize:13},historyCopy:{color:COLORS.slate,fontFamily:"monospace",fontSize:11,lineHeight:17,marginTop:4},historyRow:{flexDirection:"row",justifyContent:"space-between",paddingVertical:11,borderBottomWidth:1,borderBottomColor:"#2D2730"},historyDate:{color:COLORS.plum,fontSize:13,fontWeight:"700"},historyValue:{color:COLORS.slate,fontFamily:"monospace",fontSize:11},
+  page: { padding: 18, paddingBottom: 36, gap: 14, backgroundColor: COLORS.blush },
+  eyebrow: { color: COLORS.gold, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
+  title: { color: COLORS.plum, fontSize: 32, fontWeight: "900", fontStyle: "italic", marginTop: -7 },
+  copy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 12, lineHeight: 19 },
+  affectionCard: { backgroundColor: COLORS.ink, borderRadius: 20, borderWidth: 1, borderColor: TAB_CARD_PALETTES.habits.border, padding: 16 },
+  affectionHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  affectionKicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
+  affectionTitle: { color: COLORS.plum, fontSize: 22, fontWeight: "900", fontStyle: "italic", marginTop: 3 },
+  affectionGoal: { color: COLORS.gold, fontFamily: "monospace", fontSize: 10, fontWeight: "900", paddingTop: 4 },
+  affectionCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 11, lineHeight: 17, marginTop: 5 },
+  celebrationBanner: { marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: "#C6A04C", backgroundColor: "#18121C", padding: 14, alignItems: "center" },
+  celebrationSparkles: { color: COLORS.gold, fontSize: 17, letterSpacing: 5 },
+  celebrationTitle: { fontSize: 16, fontWeight: "900", marginTop: 5, textAlign: "center" },
+  celebrationCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, textAlign: "center", marginTop: 4 },
+  affectionList: { gap: 10, marginTop: 15 },
+  affectionRow: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: COLORS.surface, borderRadius: 13, borderWidth: 1, borderColor: "#413349", padding: 10 },
+  affectionEmoji: { fontSize: 19 },
+  affectionMain: { flex: 1 },
+  affectionTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  affectionLabel: { color: COLORS.plum, fontSize: 14, fontWeight: "800", flex: 1 },
+  affectionCount: { color: COLORS.gold, fontFamily: "monospace", fontSize: 11, fontWeight: "900" },
+  dotRow: { flexDirection: "row", gap: 4, marginTop: 7 },
+  goalDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#4C3B55" },
+  goalDotDone: { backgroundColor: COLORS.rose },
+  contributionRow: { flexDirection: "row", gap: 9, marginTop: 8 },
+  contribution: { flexDirection: "row", alignItems: "center", gap: 4 },
+  contributionName: { fontSize: 8, fontWeight: "900", letterSpacing: .4 },
+  contributionCount: { fontFamily: "monospace", fontSize: 10, fontWeight: "900" },
+  goalActions: { alignItems: "flex-end", gap: 5 },
+  counterRow: { flexDirection: "row", gap: 5 },
+  counterButton: { width: 30, height: 30, borderRadius: 9, borderWidth: 1, borderColor: "#604A6B", alignItems: "center", justifyContent: "center", backgroundColor: "#19151C" },
+  counterText: { color: COLORS.plum, fontSize: 19, fontWeight: "900", lineHeight: 20 },
+  counterDisabled: { color: "#514755" },
+  goalEditLink: { minHeight: 26, justifyContent: "center", paddingHorizontal: 4 },
+  goalEditLinkText: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },
+  goalEditBody: { flex: 1, gap: 8 },
+  goalEditInputs: { flexDirection: "row", gap: 7 },
+  goalEmojiInput: { width: 48, minHeight: 38, borderRadius: 9, borderWidth: 1, borderColor: "#4A3B50", backgroundColor: "#121014", color: COLORS.plum, textAlign: "center", fontSize: 18 },
+  goalLabelInput: { flex: 1, minHeight: 38, borderRadius: 9, borderWidth: 1, borderColor: "#4A3B50", backgroundColor: "#121014", color: COLORS.plum, paddingHorizontal: 10, fontSize: 13 },
+  goalEditActions: { flexDirection: "row", alignItems: "center", gap: 7 },
+  goalSaveButton: { minHeight: 30, borderRadius: 8, paddingHorizontal: 11, justifyContent: "center" },
+  goalSaveText: { color: COLORS.white, fontSize: 9, fontWeight: "900" },
+  dailyContributionSummary: { flexDirection: "row", alignItems: "center", justifyContent: "space-around", marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#4D3B58" },
+  dailyContributionName: { fontSize: 10, fontWeight: "900", textAlign: "center" },
+  dailyContributionValue: { color: COLORS.plum, fontSize: 20, fontWeight: "900", textAlign: "center", marginTop: 3 },
+  dailyContributionDivider: { height: 31, width: 1, backgroundColor: "#5A4862" },
+  sharedStreakCard: { marginTop: 12, padding: 12, borderRadius: 13, borderWidth: 1, borderColor: "#C6A04C", backgroundColor: "rgba(198,160,76,0.10)", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  sharedStreakKicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  sharedStreakCopy: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, marginTop: 3 },
+  sharedStreakCount: { alignItems: "center", minWidth: 48 },
+  sharedStreakNumber: { color: COLORS.plum, fontSize: 25, fontWeight: "900", lineHeight: 27 },
+  sharedStreakUnit: { color: COLORS.gold, fontSize: 8, fontWeight: "900", letterSpacing: .8 },
+  weekCard: { backgroundColor: COLORS.ink, borderRadius: 18, borderWidth: 1, borderColor: "#4D3C54", padding: 14 },
+  weekHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  weekKicker: { color: COLORS.gold, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  weekTitle: { color: COLORS.plum, fontSize: 17, fontWeight: "900", fontStyle: "italic", marginTop: 3 },
+  weekMeta: { color: COLORS.sage, fontFamily: "monospace", fontSize: 10, fontWeight: "900" },
+  weekRow: { flexDirection: "row", justifyContent: "space-between", gap: 4, marginTop: 14 },
+  weekDay: { flex: 1, minHeight: 66, borderRadius: 10, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: "#39303E", alignItems: "center", justifyContent: "center" },
+  weekDayComplete: { backgroundColor: "rgba(144,185,157,0.18)", borderColor: COLORS.sage },
+  weekDayToday: { borderColor: COLORS.gold, borderWidth: 1.5 },
+  weekDayLabel: { color: COLORS.slate, fontSize: 9, fontWeight: "900" },
+  weekDayLabelComplete: { color: COLORS.sage },
+  weekDayNumber: { color: COLORS.plum, fontSize: 13, fontWeight: "900", marginTop: 2 },
+  weekDayNumberComplete: { color: COLORS.plum },
+  weekDayMark: { color: "#665C69", fontSize: 14, lineHeight: 15 },
+  weekDayMarkComplete: { color: COLORS.rose },
+  weekCaption: { color: COLORS.slate, fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginTop: 10 },
 });

@@ -27,7 +27,8 @@ describe("global Theme and Calendar background", () => {
     expect(calendar).toContain("Change photo");
     expect(calendar).toContain("uploadCalendarBackground");
     expect(calendar).toContain("deleteCalendarBackground");
-    expect(calendar).toContain('contentFit="contain"');
+    expect(calendar).toContain('contentFit="cover"');
+    expect(calendar).toContain("It becomes a soft shared Calendar backdrop");
     expect(journal).toContain("uploadCalendarBackground:async");
     expect(journal).toContain("calendarBackground:state.calendarBackground??null");
     expect(router).toContain("uploadCalendarBackground: publicProcedure");

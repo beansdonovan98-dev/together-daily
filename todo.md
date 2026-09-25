@@ -294,3 +294,9 @@
 - [x] Remove RaRa and second-room functionality from the next update.
 - [x] Restore the confirmed page-content reset control at the bottom of each applicable page.
 - [x] Repair automatic fitting for Steamy GIFs and Calendar background photos.
+- [x] Make the Six Little Things labels and emoji editable.
+- [x] Remove the Today’s Good Habits checklist from the Habits page.
+- [x] Replace the horizontal top page picker with a compact Pages menu.
+- [x] Add more Theme font colors, including black.
+- [x] Refine the Calendar photo background presentation.
+- [x] Repair Steamy GIF sizing after latest device test.
