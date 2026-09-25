@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, longtext, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /** Core account table managed by the included OAuth flow. */
 export const users = mysqlTable("users", {
@@ -91,7 +91,9 @@ export const guestRooms = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     roomCode: varchar("roomCode", { length: 16 }).notNull(),
-    journalState: text("journalState").notNull(),
+    // A shared room accumulates dated journal entries and media metadata over time.
+    // TEXT stops at 64 KB, which is too small for an established room.
+    journalState: longtext("journalState").notNull(),
     memberIds: varchar("memberIds", { length: 64 }).notNull().default("[]"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
