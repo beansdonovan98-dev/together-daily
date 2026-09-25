@@ -44,4 +44,15 @@ describe("GIF media upload policy", () => {
     expect(server).toContain("maxBase64LengthForMedia(input.mimeType, \"private\")");
     expect(server).toContain(".max(84_000_000)");
   });
+
+  it("uses direct signed storage for private GIFs instead of sending them inside JSON", () => {
+    const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+    const server = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+
+    expect(steamy).toContain("uploadPrivateMediaDirect");
+    expect(journal).toContain("uploadPickedImageDirect");
+    expect(server).toContain("requestPrivateMediaDirectUpload");
+    expect(server).toContain("confirmPrivateMediaDirectUpload");
+  });
 });

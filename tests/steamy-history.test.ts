@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   intimateEntriesForDate,
   intimateEntryDateTimeLabel,
+  intimateEntryReadByPartner,
   privateMediaForDate,
 } from "../lib/steamy-history";
 
@@ -38,5 +39,11 @@ describe("Steamy daily history", () => {
     const label = intimateEntryDateTimeLabel("2026-09-24T14:30:00.000Z", "2026-09-24");
     expect(label).toContain("Sep 24, 2026");
     expect(label).toContain("·");
+  });
+
+  it("marks an outgoing chat entry as read only after the partner opens the chat", () => {
+    const record = { recordType: "cumLog", authorId: "beans", createdAt: "2026-09-24T14:30:00.000Z", content: { date: "2026-09-24" } };
+    expect(intimateEntryReadByPartner(record, "2026-09-24T14:29:59.000Z")).toBe(false);
+    expect(intimateEntryReadByPartner(record, "2026-09-24T14:30:01.000Z")).toBe(true);
   });
 });

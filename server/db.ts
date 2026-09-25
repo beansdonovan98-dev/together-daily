@@ -431,6 +431,18 @@ export async function getGuestRoom(roomCode: string) {
   return toGuestRoomResponse(found[0]);
 }
 
+/** Ensures a presigned upload is issued only to a member of this specific room. */
+export async function assertGuestRoomMember(roomCode: string, partnerId: GuestRoomMemberId) {
+  const db = requireDb(await getDb());
+  const normalizedCode = roomCode.trim().toUpperCase();
+  const found = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
+  if (!found[0]) throw new Error("That shared room code was not found.");
+  if (!parseGuestRoomMembers(found[0].memberIds).includes(partnerId)) {
+    throw new Error("Join this shared room before adding private media.");
+  }
+  return normalizedCode;
+}
+
 export async function joinGuestRoom(roomCode: string, memberId: GuestRoomMemberId) {
   const db = requireDb(await getDb());
   const normalizedCode = roomCode.trim().toUpperCase();
@@ -683,4 +695,41 @@ export async function addGuestRoomPrivateMediaComment(input: { roomCode: string;
   await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
   await notifyGuestRoomPartner(roomCode, input.partnerId, "steamy-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), comment };
+}
+
+export async function deleteGuestRoomPrivateMediaComment(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string; commentId: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before deleting a private comment.");
+  if (input.commentId.endsWith("-legacy-caption")) throw new Error("This older caption cannot be deleted as a comment.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const media = Array.isArray(journalState.media) ? journalState.media : [];
+  let foundMedia = false;
+  let removed = false;
+  const nextMedia = media.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const current = item as Record<string, unknown>;
+    if (current.id !== input.mediaId || current.kind !== "private") return item;
+    foundMedia = true;
+    const comments = Array.isArray(current.comments) ? current.comments : [];
+    const nextComments = comments.filter((comment) => {
+      if (!comment || typeof comment !== "object") return true;
+      const candidate = comment as Record<string, unknown>;
+      if (candidate.id !== input.commentId) return true;
+      if (candidate.authorId !== input.partnerId) throw new Error("Only the person who wrote a comment can delete it.");
+      removed = true;
+      return false;
+    });
+    return { ...current, comments: nextComments };
+  });
+  if (!foundMedia) throw new Error("That private photo or GIF is no longer available.");
+  if (!removed) throw new Error("That private comment is no longer available.");
+  const nextState = { ...journalState, media: nextMedia };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "steamy-update");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
 }

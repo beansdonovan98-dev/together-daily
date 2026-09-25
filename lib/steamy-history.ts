@@ -3,6 +3,7 @@ import { dateTimeLabel, localDateKey } from "./together";
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 type SteamyRecord = {
+  authorId?: string;
   createdAt: string;
   content: Record<string, unknown>;
   recordType: string;
@@ -29,6 +30,12 @@ export function intimateEntriesForDate<T extends SteamyRecord>(records: T[], dat
   return records
     .filter((record) => record.recordType === "cumLog" && steamyRecordDateKey(record) === date)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+/** Shows a receipt after the message sender's partner has opened the live Steamy chat. */
+export function intimateEntryReadByPartner(record: SteamyRecord, partnerViewedAt: string | null) {
+  if (!partnerViewedAt) return false;
+  return new Date(partnerViewedAt).getTime() >= new Date(record.createdAt).getTime();
 }
 
 export function privateMediaForDate<T extends PrivateMedia>(media: T[], date: string) {

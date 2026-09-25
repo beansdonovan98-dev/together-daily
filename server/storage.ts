@@ -1,5 +1,5 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uploads via Forge Server presigned URL to S3 (PUT direct).
+// Preconfigured storage helpers for Manus WebDev templates.
+// Uploads use Forge-issued S3 presigned URLs; mobile clients can upload large files directly.
 // Downloads return /manus-storage/{key} paths served via 307 redirect.
 
 import { ENV } from "./_core/env";
@@ -17,26 +17,19 @@ function getForgeConfig() {
   return { forgeUrl: forgeUrl.replace(/\/+$/, ""), forgeKey };
 }
 
-function normalizeKey(relKey: string): string {
+function normalizeKey(relKey: string) {
   return relKey.replace(/^\/+/, "");
 }
 
-function appendHashSuffix(relKey: string): string {
+function appendHashSuffix(relKey: string) {
   const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
   const lastDot = relKey.lastIndexOf(".");
   if (lastDot === -1) return `${relKey}_${hash}`;
   return `${relKey.slice(0, lastDot)}_${hash}${relKey.slice(lastDot)}`;
 }
 
-export async function storagePut(
-  relKey: string,
-  data: Buffer | Uint8Array | string,
-  contentType = "application/octet-stream",
-): Promise<{ key: string; url: string }> {
+async function createPresignedPutUrl(key: string) {
   const { forgeUrl, forgeKey } = getForgeConfig();
-  const key = appendHashSuffix(normalizeKey(relKey));
-
-  // 1. Get presigned PUT URL from Forge
   const presignUrl = new URL("v1/storage/presign/put", forgeUrl + "/");
   presignUrl.searchParams.set("path", key);
 
@@ -49,16 +42,32 @@ export async function storagePut(
     throw new Error(`Storage presign failed (${presignResp.status}): ${msg}`);
   }
 
-  const { url: s3Url } = (await presignResp.json()) as { url: string };
-  if (!s3Url) throw new Error("Forge returned empty presign URL");
+  const { url } = (await presignResp.json()) as { url: string };
+  if (!url) throw new Error("Forge returned empty presign URL");
+  return url;
+}
 
-  // 2. PUT file directly to S3
+/** Allocates a one-time S3 PUT URL. Keep this URL private and use it immediately. */
+export async function storageCreateDirectUpload(
+  relKey: string,
+): Promise<{ key: string; url: string; uploadUrl: string }> {
+  const key = appendHashSuffix(normalizeKey(relKey));
+  const uploadUrl = await createPresignedPutUrl(key);
+  return { key, url: `/manus-storage/${key}`, uploadUrl };
+}
+
+export async function storagePut(
+  relKey: string,
+  data: Buffer | Uint8Array | string,
+  contentType = "application/octet-stream",
+): Promise<{ key: string; url: string }> {
+  const stored = await storageCreateDirectUpload(relKey);
   const blob =
     typeof data === "string"
       ? new Blob([data], { type: contentType })
       : new Blob([data as any], { type: contentType });
 
-  const uploadResp = await fetch(s3Url, {
+  const uploadResp = await fetch(stored.uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": contentType },
     body: blob,
@@ -68,7 +77,7 @@ export async function storagePut(
     throw new Error(`Storage upload to S3 failed (${uploadResp.status})`);
   }
 
-  return { key, url: `/manus-storage/${key}` };
+  return { key: stored.key, url: stored.url };
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {

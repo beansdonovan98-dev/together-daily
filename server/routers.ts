@@ -4,7 +4,7 @@ import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { storagePut } from "./storage";
+import { storageCreateDirectUpload, storageGet, storagePut } from "./storage";
 import { maxBase64LengthForMedia, maxStoredBytesForMedia } from "../lib/media-upload-policy";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD calendar date.");
@@ -114,6 +114,37 @@ export const appRouter = router({
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
     getPushStatus: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema })).query(({ input }) => db.getGuestRoomPushStatus(input.roomCode, input.partnerId)),
     sendTestPartnerAlert: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema })).mutation(({ input }) => db.sendGuestRoomPartnerTestAlert(input.roomCode, input.partnerId)),
+    requestPrivateMediaDirectUpload: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, byteSize: z.number().int().positive().max(60 * 1024 * 1024) }))
+      .mutation(async ({ input }) => {
+        const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
+        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "private")) throw new Error(input.mimeType === "image/gif" ? "Please choose a private GIF smaller than 60 MB." : "Please choose a private photo smaller than 5 MB.");
+        const fileName = safeFileName(input.fileName);
+        return storageCreateDirectUpload(`guest-rooms/${roomCode}/private/${Date.now()}-${fileName}`);
+      }),
+    confirmPrivateMediaDirectUpload: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, storageKey: z.string().min(1).max(600), caption: z.string().max(500).optional(), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
+      .mutation(async ({ input }) => {
+        const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
+        const privatePrefix = `guest-rooms/${roomCode}/private/`;
+        if (!input.storageKey.startsWith(privatePrefix)) throw new Error("This private upload does not belong to your shared room.");
+        const stored = await storageGet(input.storageKey);
+        const media = {
+          id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          kind: "private",
+          url: stored.url,
+          storageKey: stored.key,
+          fileName: safeFileName(input.fileName),
+          mimeType: input.mimeType,
+          caption: input.caption ?? "",
+          width: input.width,
+          height: input.height,
+          createdAt: new Date().toISOString(),
+          dailyDate: input.dailyDate,
+          uploadedBy: input.partnerId,
+        };
+        return db.addGuestRoomPrivateMedia({ roomCode, partnerId: input.partnerId, media });
+      }),
     uploadCalendarBackground: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(84_000_000), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
       .mutation(async ({ input }) => {
@@ -186,6 +217,9 @@ export const appRouter = router({
     addPrivateMediaComment: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120), text: z.string().trim().min(1).max(500) }))
       .mutation(({ input }) => db.addGuestRoomPrivateMediaComment(input)),
+    deletePrivateMediaComment: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120), commentId: z.string().trim().min(1).max(160) }))
+      .mutation(({ input }) => db.deleteGuestRoomPrivateMediaComment(input)),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),
