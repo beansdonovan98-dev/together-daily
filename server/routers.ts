@@ -5,7 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
-import { maxStoredBytesForMedia } from "../lib/media-upload-policy";
+import { maxBase64LengthForMedia, maxStoredBytesForMedia } from "../lib/media-upload-policy";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD calendar date.");
 const jsonObjectSchema = z.record(z.string(), z.unknown());
@@ -84,13 +84,13 @@ export const appRouter = router({
           kind: z.enum(["cover", "photo"]),
           fileName: z.string().min(1).max(255),
           mimeType: imageMimeTypeSchema,
-          base64: z.string().min(1).max(7_000_000),
+          base64: z.string().min(1).max(84_000_000),
           caption: z.string().max(500).optional(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Please choose a photo smaller than 5 MB.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a GIF smaller than 60 MB." : "Please choose a photo smaller than 2.5 MB.");
         const log = await db.getDailyLogForUser(ctx.user.id, input.date);
         const fileName = safeFileName(input.fileName);
         const storageKey = `couples/${log.coupleId}/photos/${Date.now()}-${fileName}`;
@@ -113,10 +113,11 @@ export const appRouter = router({
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
     uploadCalendarBackground: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(6_700_000), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(84_000_000), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a Calendar GIF smaller than 5 MB." : "Please choose a Calendar background smaller than 2.5 MB.");
+        if (input.base64.length > maxBase64LengthForMedia(input.mimeType, "cover")) throw new Error("Please choose a smaller Calendar image or GIF.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a Calendar GIF smaller than 60 MB." : "Please choose a Calendar background smaller than 2.5 MB.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/calendar/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const background = { id: `calendar-background-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, kind: "calendar", url: stored.url, storageKey: stored.key, fileName, mimeType: input.mimeType, caption: "", width: input.width, height: input.height, createdAt: new Date().toISOString(), dailyDate: "calendar", uploadedBy: input.partnerId };
@@ -126,10 +127,11 @@ export const appRouter = router({
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema }))
       .mutation(({ input }) => db.setGuestRoomCalendarBackground({ roomCode: input.roomCode, partnerId: input.partnerId })),
     uploadPrivateMedia: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(7_000_000), caption: z.string().max(500).optional(), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(84_000_000), caption: z.string().max(500).optional(), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Please choose a private photo or GIF smaller than 5 MB.");
+        if (input.base64.length > maxBase64LengthForMedia(input.mimeType, "private")) throw new Error("Please choose a smaller private photo or GIF.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "private")) throw new Error(input.mimeType === "image/gif" ? "Please choose a private GIF smaller than 60 MB." : "Please choose a private photo smaller than 5 MB.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/private/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const media = {
@@ -149,10 +151,11 @@ export const appRouter = router({
         return db.addGuestRoomPrivateMedia({ roomCode: input.roomCode, partnerId: input.partnerId, media });
       }),
     uploadDailyCover: publicProcedure
-      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(6_700_000), caption: z.string().max(500).optional() }))
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(84_000_000), caption: z.string().max(500).optional() }))
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 5 MB." : "Please choose a smaller cover photo.");
+        if (input.base64.length > maxBase64LengthForMedia(input.mimeType, "cover")) throw new Error("Please choose a smaller cover photo or GIF.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a smaller cover photo.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/covers/${input.dailyDate}/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const media = {

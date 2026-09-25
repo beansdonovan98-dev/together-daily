@@ -17,10 +17,10 @@ describe("GIF media upload policy", () => {
   });
 
   it("allows larger private GIFs while keeping cover uploads conservative", () => {
-    expect(maxBase64LengthForMedia("image/gif", "cover")).toBe(6_700_000);
-    expect(maxStoredBytesForMedia("image/gif", "cover")).toBe(5 * 1024 * 1024);
-    expect(maxBase64LengthForMedia("image/gif", "private")).toBe(26_800_000);
-    expect(maxStoredBytesForMedia("image/gif", "private")).toBe(20 * 1024 * 1024);
+    expect(maxBase64LengthForMedia("image/gif", "cover")).toBe(84_000_000);
+    expect(maxStoredBytesForMedia("image/gif", "cover")).toBe(60 * 1024 * 1024);
+    expect(maxBase64LengthForMedia("image/gif", "private")).toBe(84_000_000);
+    expect(maxStoredBytesForMedia("image/gif", "private")).toBe(60 * 1024 * 1024);
     expect(maxBase64LengthForMedia("image/jpeg", "cover")).toBe(2_400_000);
     expect(maxStoredBytesForMedia("image/jpeg", "cover")).toBe(2.5 * 1024 * 1024);
   });
@@ -41,5 +41,7 @@ describe("GIF media upload policy", () => {
     expect(steamy).toContain("recyclingKey={`${item.id}-${galleryWidth}");
     expect(steamy).toContain('autoplay={isGif}');
     expect(server).toContain("maxStoredBytesForMedia(input.mimeType, \"cover\")");
+    expect(server).toContain("maxBase64LengthForMedia(input.mimeType, \"private\")");
+    expect(server).toContain(".max(84_000_000)");
   });
 });

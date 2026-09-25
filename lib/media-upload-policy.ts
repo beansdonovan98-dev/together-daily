@@ -29,13 +29,15 @@ export function isAnimatedGif(mimeType?: string | null, fileName?: string | null
 }
 
 export function maxBase64LengthForMedia(mimeType: SupportedImageMimeType, target: MediaUploadTarget) {
-  if (target === "private" && mimeType === "image/gif") return 26_800_000;
-  if (target === "private" || mimeType === "image/gif") return 6_700_000;
+  // A 60 MiB binary GIF encodes to 83,886,080 Base64 characters. Leave a small
+  // amount of headroom so the app's preflight check and the server agree.
+  if (mimeType === "image/gif") return 84_000_000;
+  if (target === "private") return 6_700_000;
   return 2_400_000;
 }
 
 export function maxStoredBytesForMedia(mimeType: SupportedImageMimeType, target: MediaUploadTarget) {
-  if (target === "private" && mimeType === "image/gif") return 20 * 1024 * 1024;
-  if (target === "private" || mimeType === "image/gif") return 5 * 1024 * 1024;
+  if (mimeType === "image/gif") return 60 * 1024 * 1024;
+  if (target === "private") return 5 * 1024 * 1024;
   return 2.5 * 1024 * 1024;
 }
