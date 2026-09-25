@@ -218,7 +218,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     }), 60_000);
     return () => clearInterval(timer);
   }, []);
-  const animatedGradient = Boolean(backgroundGradient) && isAnimatedTheme(theme);
+  const animatedGradient = Boolean(backgroundGradient) && isAnimatedTheme(renderedTheme);
   useEffect(() => {
     gradientMotion.stopAnimation();
     gradientMotion.setValue(0);

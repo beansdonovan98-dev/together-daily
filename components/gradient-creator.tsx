@@ -22,7 +22,7 @@ export function GradientCreator() {
       <View><Text style={styles.kicker}>MAKE YOUR OWN</Text><Text style={styles.title}>Gradient Creator</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text>
     </TouchableOpacity>
     {open ? <View style={styles.body}>
-      <Text style={styles.copy}>Choose three colors for a richer shared gradient both of you will see.</Text>
+      <Text style={styles.copy}>Choose three colors for a richer shared gradient both of you will see. With Animated Gradient on, these exact colors flow across every page.</Text>
       <LinearGradient colors={[first, second, third]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.preview}><Text style={styles.previewText}>Your shared gradient</Text></LinearGradient>
       <Text style={styles.label}>START COLOR</Text><View style={styles.swatches}>{COLOR_CHOICES.map((color) => <TouchableOpacity key={`start-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} as start color`} onPress={() => setFirst(color)} style={[styles.swatch, { backgroundColor: color }, first === color && styles.selectedSwatch]}/>)}</View>
       <Text style={styles.label}>END COLOR</Text><View style={styles.swatches}>{COLOR_CHOICES.map((color) => <TouchableOpacity key={`end-${color}`} accessibilityRole="button" accessibilityLabel={`Choose ${color} as end color`} onPress={() => setSecond(color)} style={[styles.swatch, { backgroundColor: color }, second === color && styles.selectedSwatch]}/>)}</View>

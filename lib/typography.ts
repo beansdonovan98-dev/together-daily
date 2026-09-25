@@ -24,6 +24,18 @@ export const FONT_COLOR_OPTIONS = [
   ["#D7A7FF", "Violet"],
   ["#B7CEFF", "Periwinkle"],
   ["#B7ED4B", "Lime"],
+  ["#F4EFFF", "Lilac white"],
+  ["#FFD6EA", "Blush"],
+  ["#FFB8DF", "Bubblegum"],
+  ["#C9B6FF", "Soft lavender"],
+  ["#BEF3FF", "Ice blue"],
+  ["#70E8FF", "Electric sky"],
+  ["#B9FFE0", "Seafoam"],
+  ["#F8FFA8", "Lemon cream"],
+  ["#FFD6A5", "Peach cream"],
+  ["#FFB1BC", "Strawberry"],
+  ["#D0FF8A", "Spring green"],
+  ["#9E7BFF", "Bright purple"],
 ] as const;
 
 export const BORDER_COLOR_OPTIONS = [

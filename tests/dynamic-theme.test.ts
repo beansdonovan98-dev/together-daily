@@ -38,4 +38,15 @@ describe("shared dynamic themes", () => {
     expect(DYNAMIC_GRADIENT_MOTION.verticalTravel).toBeGreaterThanOrEqual(40);
     expect(DYNAMIC_GRADIENT_MOTION.peakScale).toBeGreaterThan(DYNAMIC_GRADIENT_MOTION.baseScale);
   });
+
+  it("keeps a custom three-color gradient intact while its animation is enabled", () => {
+    const custom = {
+      ...sharedTheme,
+      backgroundGradient: ["#FF3D9A", "#00D8FF", "#B7ED4B"],
+      animatedGradient: true,
+    };
+
+    expect(dynamicThemeForDate(custom, "2026-09-25").backgroundGradient).toEqual(custom.backgroundGradient);
+    expect(isAnimatedTheme(custom)).toBe(true);
+  });
 });

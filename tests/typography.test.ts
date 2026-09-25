@@ -29,9 +29,9 @@ describe("global typography", () => {
 
   it("offers a wide set of visibly distinct font-color selections", () => {
     expect(FONT_COLOR_OPTIONS.map(([color]) => color)).toEqual(expect.arrayContaining([
-      "#FFFFFF", "#000000", "#FF8FC6", "#8FE8FF", "#FFE16B", "#D7A7FF", "#B7ED4B",
+      "#FFFFFF", "#000000", "#FF8FC6", "#8FE8FF", "#FFE16B", "#D7A7FF", "#B7ED4B", "#F4EFFF", "#70E8FF", "#9E7BFF",
     ]));
-    expect(FONT_COLOR_OPTIONS).toHaveLength(11);
+    expect(FONT_COLOR_OPTIONS.length).toBeGreaterThanOrEqual(20);
   });
 
   it("defaults the shared border color to black and accepts only the Themes border choices", () => {

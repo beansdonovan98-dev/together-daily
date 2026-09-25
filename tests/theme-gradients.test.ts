@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PASTEL_THEMES, SAVED_THEMES } from "../lib/ready-made-themes";
+import { FONT_COLOR_OPTIONS } from "../lib/typography";
 import { isThemeGradient, resolveEffectiveTheme, resolveThemeBackdrop, themeGradientColors } from "../lib/theme-gradients";
 
 describe("theme gradients", () => {
@@ -263,6 +264,15 @@ describe("theme gradients", () => {
     expect(creator).toContain("THIRD COLOR");
     expect(creator).toContain('"#FF2D95"');
     expect(creator).toContain('"#B7ED4B"');
+  });
+
+  it("offers an expanded shared font color palette while retaining black", () => {
+    const labels = FONT_COLOR_OPTIONS.map(([, label]) => label);
+
+    expect(FONT_COLOR_OPTIONS.length).toBeGreaterThanOrEqual(20);
+    expect(labels).toContain("Black");
+    expect(labels).toContain("Lilac white");
+    expect(labels).toContain("Electric sky");
   });
 
   it("keeps Medicine as a checkbox-free time log and places Snack Tracker between Meals and Water", () => {
