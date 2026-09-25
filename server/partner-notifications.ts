@@ -1,4 +1,4 @@
-export type PartnerNotificationEvent = "connection" | "daily-log" | "love-note" | "todo" | "private-update";
+export type PartnerNotificationEvent = "connection" | "daily-log" | "love-note" | "todo" | "private-update" | "steamy-update";
 export type PartnerNotificationId = "beans" | "princess";
 
 type PartnerNotification = { title: string; body: string; path: string };
@@ -15,6 +15,7 @@ export function buildPartnerNotification(event: PartnerNotificationEvent, actorI
   if (event === "daily-log") return { title: "Together Daily", body: `${name} added a shared daily-log update.`, path: "/log" };
   if (event === "love-note") return { title: "Together Daily", body: `${name} left you a love note.`, path: "/" };
   if (event === "todo") return { title: "Together Daily", body: `${name} updated your shared to-dos.`, path: "/" };
+  if (event === "steamy-update") return { title: "Together Daily", body: `${name} added a Steamy update.`, path: "/steamy" };
   return { title: "Together Daily", body: `${name} added a private update.`, path: "/steamy" };
 }
 

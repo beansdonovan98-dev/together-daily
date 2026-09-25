@@ -19,5 +19,7 @@ describe("medicine reminder time editing", () => {
     expect(health).toContain("addedBy?: PartnerId");
     expect(health).toContain("addedBy: userId");
     expect(health).toContain("Added by {PARTNERS[item.addedBy ?? \"beans\"].name}");
+    expect(health).toContain("text: value, time, addedBy: userId");
+    expect(health).toContain("Added by {PARTNERS[snack.addedBy ?? \"beans\"].name}");
   });
 });

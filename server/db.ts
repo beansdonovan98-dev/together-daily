@@ -503,7 +503,7 @@ export async function addGuestRoomPrivateMedia(input: {
   const media = Array.isArray(journalState.media) ? journalState.media : [];
   const nextState = { ...journalState, media: [input.media, ...media] };
   await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
-  await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "steamy-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), media: input.media };
 }
 
@@ -640,6 +640,6 @@ export async function addGuestRoomPrivateMediaComment(input: { roomCode: string;
   if (!found) throw new Error("That private photo or GIF is no longer available.");
   const nextState = { ...journalState, media: nextMedia };
   await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
-  await notifyGuestRoomPartner(roomCode, input.partnerId, "private-update");
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "steamy-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date(), comment };
 }

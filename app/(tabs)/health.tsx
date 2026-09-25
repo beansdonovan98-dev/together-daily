@@ -183,7 +183,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
     const value = snackDraft.trim();
     const time = snackTimeDraft.trim();
     if (!value || timeOrder(time) === Number.MAX_SAFE_INTEGER) return;
-    save({ snacks: [...snacks, { id: `snack-${Date.now()}`, text: value, time }] });
+    save({ snacks: [...snacks, { id: `snack-${Date.now()}`, text: value, time, addedBy: userId }] });
     setSnackDraft("");
     setSnackTimeDraft(currentTimeLabel());
   };
@@ -337,7 +337,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
               {kind === "medicines" ? (
                 <>
                   <Text style={styles.timeText}>{item.time || "No time"}</Text>
-                  <Text style={[styles.medicineAddedBy, { color: PARTNERS[item.addedBy ?? "beans"].color }]}>{PARTNERS[item.addedBy ?? "beans"].avatar} Added by {PARTNERS[item.addedBy ?? "beans"].name}</Text>
+                  <Text style={[styles.entryAddedBy, { color: PARTNERS[item.addedBy ?? "beans"].color }]}>{PARTNERS[item.addedBy ?? "beans"].avatar} Added by {PARTNERS[item.addedBy ?? "beans"].name}</Text>
                 </>
               ) : null}
             </View>
@@ -531,6 +531,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
               <View style={styles.item}>
                 <Text style={styles.itemText}>{snack.text}</Text>
                 <Text style={styles.timeText}>{snack.time || "No time"}</Text>
+                <Text style={[styles.entryAddedBy, { color: PARTNERS[snack.addedBy ?? "beans"].color }]}>{PARTNERS[snack.addedBy ?? "beans"].avatar} Added by {PARTNERS[snack.addedBy ?? "beans"].name}</Text>
               </View>
               <TouchableOpacity onPress={() => remove("snacks", snack.id)}>
                 <Text style={styles.delete}>×</Text>
@@ -690,7 +691,7 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     marginTop: 2,
   },
-  medicineAddedBy: { fontSize: 9, fontWeight: "900", marginTop: 3 },
+  entryAddedBy: { fontSize: 9, fontWeight: "900", marginTop: 3 },
   done: { color: COLORS.slate, textDecorationLine: "line-through" },
   delete: { color: "#E98393", fontSize: 20 },
   edit: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },

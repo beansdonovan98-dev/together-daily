@@ -12,7 +12,7 @@ const jsonObjectSchema = z.record(z.string(), z.unknown());
 const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
 const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const guestMemberIdSchema = z.enum(["beans", "princess"]);
-const partnerNotificationTypeSchema = z.enum(["connection", "daily-log", "love-note", "todo", "private-update"]);
+const partnerNotificationTypeSchema = z.enum(["connection", "daily-log", "love-note", "todo", "private-update", "steamy-update"]);
 
 function safeFileName(fileName: string) {
   const normalized = fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
