@@ -161,6 +161,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
     roomMembers,
     isSyncing,
     registerPushToken,
+    partnerAlertStatus,
+    sendTestPartnerAlert,
     theme,
     tabLabels,
     tabGlyphs,
@@ -173,12 +175,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const [pagesOpen, setPagesOpen] = useState(false);
   const [themeDate, setThemeDate] = useState(() => localDateKey());
   const gradientMotion = useRef(new Animated.Value(0)).current;
+  const automaticPushRegistration = useRef<string | null>(null);
   const [pushStatus, setPushStatus] = useState<
-    "idle" | "setting-up" | "enabled"
+    "idle" | "setting-up" | "enabled" | "testing"
   >("idle");
   const partnerToInvite =
     memberId === "princess" ? PARTNERS.beans : PARTNERS.princess;
   const partnerConnected = roomMembers.includes(partnerToInvite.id);
+  const partnerAlertsReady = partnerAlertStatus?.partnerPhoneReady === true;
+  const currentPhoneAlertsReady = partnerAlertStatus?.currentPhoneReady === true;
+  const alertReadinessText = !currentPhoneAlertsReady
+    ? "This phone is not registered for alerts yet."
+    : partnerAlertsReady
+      ? "Both phones are registered for partner alerts."
+      : `${partnerToInvite.name} needs to open Themes and enable alerts on their phone.`;
   const roomInviteLink = roomCode
     ? `https://togdaily-agtvyn2n.manus.space/join?roomCode=${encodeURIComponent(roomCode)}&partner=${partnerToInvite.id}`
     : "";
@@ -344,6 +354,40 @@ export function AppFrame({ children }: { children: ReactNode }) {
     } catch {
       setPushStatus("idle");
       showInviteFeedback("Could not save this phone for alerts — try again");
+    }
+  };
+
+  useEffect(() => {
+    const registrationKey = roomCode && memberId ? `${roomCode}:${memberId}` : null;
+    if (!registrationKey || automaticPushRegistration.current === registrationKey) return;
+    automaticPushRegistration.current = registrationKey;
+    let active = true;
+
+    const registerCurrentPhone = async () => {
+      const result = await registerForPartnerPushNotifications();
+      if (!active) return;
+      if (!result.ok) return;
+      try {
+        await registerPushToken(result.token, result.platform);
+        if (active) setPushStatus("enabled");
+      } catch {
+        if (active) setPushStatus("idle");
+      }
+    };
+
+    void registerCurrentPhone();
+    return () => { active = false; };
+  }, [roomCode, memberId, registerPushToken]);
+
+  const testPartnerAlerts = async () => {
+    setPushStatus("testing");
+    try {
+      const result = await sendTestPartnerAlert();
+      showInviteFeedback(result.message);
+      setPushStatus("enabled");
+    } catch {
+      setPushStatus("idle");
+      showInviteFeedback("Could not send the test alert — refresh alerts and try again.");
     }
   };
 
@@ -535,25 +579,39 @@ export function AppFrame({ children }: { children: ReactNode }) {
                       : `WAITING FOR ${partnerToInvite.name.toUpperCase()}`}
                   </Text>
                 </View>
+                <Text style={styles.alertReadiness}>{alertReadinessText}</Text>
                 <View style={styles.alertRow}>
                   <TouchableOpacity
                     accessibilityRole="button"
-                    accessibilityLabel="Enable partner alerts"
-                    disabled={pushStatus !== "idle"}
+                    accessibilityLabel="Refresh partner alerts on this phone"
+                    disabled={pushStatus === "setting-up" || pushStatus === "testing"}
                     onPress={enablePartnerAlerts}
                     style={[
                       styles.inviteAction,
                       styles.alertAction,
-                      pushStatus !== "idle" && styles.disabledAction,
+                      (pushStatus === "setting-up" || pushStatus === "testing") && styles.disabledAction,
                     ]}
                   >
                     <Text style={styles.alertActionText}>
                       {pushStatus === "setting-up"
                         ? "CONNECTING…"
-                        : pushStatus === "enabled"
-                          ? "ALERTS ON"
+                        : currentPhoneAlertsReady || pushStatus === "enabled"
+                          ? "REFRESH ALERTS"
                           : "ENABLE ALERTS"}
                     </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Send a test partner alert"
+                    disabled={pushStatus === "setting-up" || pushStatus === "testing" || !partnerAlertsReady}
+                    onPress={testPartnerAlerts}
+                    style={[
+                      styles.inviteAction,
+                      styles.testAlertAction,
+                      (pushStatus === "setting-up" || pushStatus === "testing" || !partnerAlertsReady) && styles.disabledAction,
+                    ]}
+                  >
+                    <Text style={styles.alertActionText}>{pushStatus === "testing" ? "SENDING…" : "TEST PARTNER ALERT"}</Text>
                   </TouchableOpacity>
                 </View>
                 {inviteFeedback ? (
@@ -820,7 +878,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  alertRow: { flexDirection: "row", alignItems: "center" },
+  alertReadiness: { color: "#FFFFFF", fontSize: 10, lineHeight: 14, fontFamily: "monospace" },
+  alertRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   inviteAction: {
     borderWidth: 1,
     borderColor: "#C6A04C",
@@ -867,6 +926,10 @@ const styles = StyleSheet.create({
   alertAction: {
     borderColor: COLORS.sage,
     backgroundColor: "rgba(144,185,157,0.10)",
+  },
+  testAlertAction: {
+    borderColor: "#8FC8EF",
+    backgroundColor: "rgba(143,200,239,0.12)",
   },
   alertActionText: {
     color: "#FFFFFF",

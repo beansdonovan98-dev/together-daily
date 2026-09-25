@@ -33,9 +33,9 @@ describe("shared dynamic themes", () => {
   });
 
   it("uses clearly visible multi-directional motion for animated backdrops", () => {
-    expect(DYNAMIC_GRADIENT_MOTION.legDuration).toBeLessThanOrEqual(7_000);
-    expect(DYNAMIC_GRADIENT_MOTION.horizontalTravel).toBeGreaterThanOrEqual(90);
-    expect(DYNAMIC_GRADIENT_MOTION.verticalTravel).toBeGreaterThanOrEqual(40);
+    expect(DYNAMIC_GRADIENT_MOTION.legDuration).toBeLessThanOrEqual(3_600);
+    expect(DYNAMIC_GRADIENT_MOTION.horizontalTravel).toBeGreaterThanOrEqual(108);
+    expect(DYNAMIC_GRADIENT_MOTION.verticalTravel).toBeGreaterThanOrEqual(52);
     expect(DYNAMIC_GRADIENT_MOTION.peakScale).toBeGreaterThan(DYNAMIC_GRADIENT_MOTION.baseScale);
   });
 

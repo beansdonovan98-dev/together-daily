@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   coupleMembers,
@@ -385,16 +385,23 @@ function toGuestRoomResponse(room: typeof guestRooms.$inferSelect) {
 
 async function notifyGuestRoomPartner(roomCode: string, actorId: GuestRoomMemberId, event: PartnerNotificationEvent) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return { recipientCount: 0, acceptedCount: 0, invalidTokens: [] as string[] };
 
   const tokens = await db.select().from(guestRoomPushTokens).where(eq(guestRoomPushTokens.roomCode, roomCode));
   const recipientTokens = tokens.filter((entry) => entry.enabled && entry.partnerId !== actorId).map((entry) => entry.token);
-  if (!recipientTokens.length) return;
+  if (!recipientTokens.length) return { recipientCount: 0, acceptedCount: 0, invalidTokens: [] as string[] };
 
   try {
-    await sendPartnerPushNotifications(recipientTokens, buildPartnerNotification(event, actorId));
+    const delivery = await sendPartnerPushNotifications(recipientTokens, buildPartnerNotification(event, actorId));
+    if (delivery.invalidTokens.length) {
+      await db.update(guestRoomPushTokens)
+        .set({ enabled: false, updatedAt: new Date() })
+        .where(and(eq(guestRoomPushTokens.roomCode, roomCode), inArray(guestRoomPushTokens.token, delivery.invalidTokens)));
+    }
+    return { recipientCount: recipientTokens.length, ...delivery };
   } catch (error) {
     console.warn("[Push] Partner notification could not be delivered:", error);
+    return { recipientCount: recipientTokens.length, acceptedCount: 0, invalidTokens: [] as string[] };
   }
 }
 
@@ -454,6 +461,40 @@ export async function registerGuestRoomPushToken(input: { roomCode: string; part
     set: { platform: input.platform, enabled: true, updatedAt: new Date() },
   });
   return { registered: true } as const;
+}
+
+export async function getGuestRoomPushStatus(roomCode: string, partnerId: GuestRoomMemberId) {
+  const db = requireDb(await getDb());
+  const normalizedCode = roomCode.trim().toUpperCase();
+  const room = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
+  if (!room[0]) throw new Error("That shared room code was not found.");
+  const members = parseGuestRoomMembers(room[0].memberIds);
+  if (!members.includes(partnerId)) throw new Error("Join this shared room before checking partner alerts.");
+
+  const tokens = await db.select().from(guestRoomPushTokens).where(eq(guestRoomPushTokens.roomCode, normalizedCode));
+  const hasEnabledToken = (id: GuestRoomMemberId) => tokens.some((entry) => entry.partnerId === id && entry.enabled);
+  const otherPartnerId: GuestRoomMemberId = partnerId === "beans" ? "princess" : "beans";
+  return {
+    currentPhoneReady: hasEnabledToken(partnerId),
+    partnerPhoneReady: hasEnabledToken(otherPartnerId),
+    partnerId: otherPartnerId,
+  } as const;
+}
+
+export async function sendGuestRoomPartnerTestAlert(roomCode: string, actorId: GuestRoomMemberId) {
+  const db = requireDb(await getDb());
+  const normalizedCode = roomCode.trim().toUpperCase();
+  const room = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
+  if (!room[0]) throw new Error("That shared room code was not found.");
+  if (!parseGuestRoomMembers(room[0].memberIds).includes(actorId)) throw new Error("Join this shared room before testing partner alerts.");
+
+  const result = await notifyGuestRoomPartner(normalizedCode, actorId, "test");
+  return {
+    ...result,
+    message: result.acceptedCount
+      ? "Test alert sent to your partner's phone."
+      : "Your partner needs to open Themes and enable alerts on their phone first.",
+  } as const;
 }
 
 export async function updateGuestRoom(roomCode: string, journalState: JsonObject, actorId?: GuestRoomMemberId, notificationType?: PartnerNotificationEvent) {

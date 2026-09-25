@@ -112,6 +112,8 @@ export const appRouter = router({
     get: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16) })).query(({ input }) => db.getGuestRoom(input.roomCode)),
     join: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), memberId: guestMemberIdSchema })).mutation(({ input }) => db.joinGuestRoom(input.roomCode, input.memberId)),
     registerPushToken: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, token: z.string().regex(/^(ExponentPushToken|ExpoPushToken)\[.+\]$/), platform: z.enum(["android", "ios"]) })).mutation(({ input }) => db.registerGuestRoomPushToken(input)),
+    getPushStatus: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema })).query(({ input }) => db.getGuestRoomPushStatus(input.roomCode, input.partnerId)),
+    sendTestPartnerAlert: publicProcedure.input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema })).mutation(({ input }) => db.sendGuestRoomPartnerTestAlert(input.roomCode, input.partnerId)),
     uploadCalendarBackground: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, base64: z.string().min(1).max(84_000_000), width: z.number().positive().max(20_000).optional(), height: z.number().positive().max(20_000).optional() }))
       .mutation(async ({ input }) => {
