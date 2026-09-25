@@ -17,6 +17,7 @@ type HealthItem = {
   id: string;
   text: string;
   time?: string;
+  addedBy?: PartnerId;
   done?: Partial<Record<PartnerId, boolean>>;
   reminder?: boolean;
   reminderTime?: string;
@@ -157,7 +158,7 @@ function HealthContent({ userId }: { userId: PartnerId }) {
         ...items,
         kind === "tasks"
           ? { id: `${kind}-${Date.now()}`, text: value, done: {} }
-          : { id: `${kind}-${Date.now()}`, text: value, time, reminder: false },
+          : { id: `${kind}-${Date.now()}`, text: value, time, addedBy: userId, reminder: false },
       ],
     });
     clear();
@@ -334,7 +335,10 @@ function HealthContent({ userId }: { userId: PartnerId }) {
                 {item.text}
               </Text>
               {kind === "medicines" ? (
-                <Text style={styles.timeText}>{item.time || "No time"}</Text>
+                <>
+                  <Text style={styles.timeText}>{item.time || "No time"}</Text>
+                  <Text style={[styles.medicineAddedBy, { color: PARTNERS[item.addedBy ?? "beans"].color }]}>{PARTNERS[item.addedBy ?? "beans"].avatar} Added by {PARTNERS[item.addedBy ?? "beans"].name}</Text>
+                </>
               ) : null}
             </View>
             {kind === "medicines" ? <><TouchableOpacity onPress={() => { void toggleMedicineReminder(item); }}><Text style={styles.reminderLink}>{item.reminder ? `Reminder ${item.reminderTime || item.time || "on"}` : "Set reminder time"}</Text></TouchableOpacity><TouchableOpacity onPress={() => startMedicineEdit(item)}><Text style={styles.edit}>Edit log</Text></TouchableOpacity></> : null}
@@ -686,6 +690,7 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     marginTop: 2,
   },
+  medicineAddedBy: { fontSize: 9, fontWeight: "900", marginTop: 3 },
   done: { color: COLORS.slate, textDecorationLine: "line-through" },
   delete: { color: "#E98393", fontSize: 20 },
   edit: { color: "#A9CDEC", fontSize: 9, fontWeight: "900" },

@@ -12,4 +12,12 @@ describe("medicine reminder time editing", () => {
     expect(health).toContain("reminderTime, reminder: true");
     expect(health).toContain("Save reminder");
   });
+
+  it("records and displays the partner who adds each medicine log entry", () => {
+    const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
+
+    expect(health).toContain("addedBy?: PartnerId");
+    expect(health).toContain("addedBy: userId");
+    expect(health).toContain("Added by {PARTNERS[item.addedBy ?? \"beans\"].name}");
+  });
 });
