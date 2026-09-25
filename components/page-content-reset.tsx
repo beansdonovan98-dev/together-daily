@@ -21,7 +21,7 @@ export function PageContentReset({ pageId }: { pageId: string }) {
 
   const confirmClear = () => Alert.alert(
     `Clear ${label}?`,
-    `This removes content added on ${label} in this room. It does not change your Theme, room setup, saved Moment Types, templates, or the other saved room. This cannot be undone.`,
+    `This removes content added on ${label}. It does not change your Theme, saved Moment Types, templates, or other pages. This cannot be undone.`,
     [
       { text: "Cancel", style: "cancel" },
       {

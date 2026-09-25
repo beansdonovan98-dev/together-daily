@@ -13,7 +13,6 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { buildPartnerNotification, sendPartnerPushNotifications, type PartnerNotificationEvent } from "./partner-notifications";
-import { mayJoinRoom } from "../lib/room-access-policy";
 import { mergeSharedThemeRevision } from "../lib/shared-theme-sync";
 
 export type JsonObject = Record<string, unknown>;
@@ -363,13 +362,13 @@ function createGuestRoomCode() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
 }
 
-type GuestRoomMemberId = "beans" | "princess" | "rara";
+type GuestRoomMemberId = "beans" | "princess";
 
 function parseGuestRoomMembers(value: string): GuestRoomMemberId[] {
   try {
     const parsed = JSON.parse(value);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((member): member is GuestRoomMemberId => member === "beans" || member === "princess" || member === "rara");
+    return parsed.filter((member): member is GuestRoomMemberId => member === "beans" || member === "princess");
   } catch {
     return [];
   }
@@ -431,17 +430,9 @@ export async function joinGuestRoom(roomCode: string, memberId: GuestRoomMemberI
   const found = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!found[0]) throw new Error("That shared room code was not found.");
 
-  const journalState = parseObject(found[0].journalState);
-  const roomSettings = journalState.roomSettings && typeof journalState.roomSettings === "object"
-    ? journalState.roomSettings as JsonObject
-    : {};
-  if (!mayJoinRoom(memberId, roomSettings.mode)) {
-    throw new Error("RaRa can only join a Friend mode room. The relationship room is private to Daddy and Princess.");
-  }
-
   const currentMembers = parseGuestRoomMembers(found[0].memberIds);
-  if (!currentMembers.includes(memberId) && currentMembers.length >= 3) {
-    throw new Error("That shared room already has three connected members.");
+  if (!currentMembers.includes(memberId) && currentMembers.length >= 2) {
+    throw new Error("That private room already has two connected partners.");
   }
 
   const memberIds = currentMembers.includes(memberId) ? currentMembers : [...currentMembers, memberId];

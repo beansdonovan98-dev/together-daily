@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
-import { PARTNERS, ROOM_MEMBER_IDS, useLocalJournal } from "@/lib/local-journal";
+import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 
 export function PartnerProfilesEditor() {
   const { partnerNames, partnerColors, partnerAvatars, setPartnerProfiles } = useLocalJournal();
@@ -23,8 +23,8 @@ export function PartnerProfilesEditor() {
       <View><Text style={styles.kicker}>SHARED IDENTITIES</Text><Text style={styles.title}>Partner Profiles</Text></View><Text style={styles.chevron}>{open ? "⌃" : "⌄"}</Text>
     </TouchableOpacity>
     {open ? <View style={styles.body}>
-      <Text style={styles.copy}>Rename the room profiles here. Choose each profile emoji under Gradients & Fonts.</Text>
-      {ROOM_MEMBER_IDS.map((id) => <View key={id} style={styles.profile}>
+      <Text style={styles.copy}>Rename the two profiles here. Choose the profile emoji under Gradients & Fonts.</Text>
+      {(["beans", "princess"] as const).map((id) => <View key={id} style={styles.profile}>
         <Text style={styles.name}>{partnerAvatars[id]} {names[id]}</Text>
         <TextInput value={names[id]} onChangeText={(value) => setNames((current) => ({ ...current, [id]: value }))} placeholder={PARTNERS[id].name} placeholderTextColor="#FFFFFF99" style={styles.nameInput}/>
       </View>)}

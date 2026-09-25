@@ -6,42 +6,45 @@ function projectFile(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-describe("room switching and automatic media fitting", () => {
-  it("keeps a saved-room switcher and three-person room identity choices", () => {
+describe("two-person room, reset, and automatic media fitting", () => {
+  it("keeps the shared journal limited to Daddy and Princess", () => {
     const journal = projectFile("lib/local-journal.tsx");
-    const switcher = projectFile("components/room-switcher.tsx");
     const gate = projectFile("components/together-access.tsx");
     const router = projectFile("server/routers.ts");
     const db = projectFile("server/db.ts");
 
-    expect(journal).toContain('export type PartnerId = "beans" | "princess" | "rara"');
-    expect(journal).toContain("savedRooms:prefs.savedRooms");
-    expect(journal).toContain("switchRoom:async(room)");
-    expect(switcher).toContain("Add & open room");
-    expect(gate).toContain("ROOM_MEMBER_IDS.map");
-    expect(router).toContain('z.enum(["beans", "princess", "rara"])');
-    expect(db).toContain("currentMembers.length >= 3");
+    expect(journal).toContain('export type PartnerId = "beans" | "princess"');
+    expect(journal).not.toContain('"beans" | "princess" | "rara"');
+    expect(gate).toContain('(["beans","princess"] as PartnerId[])');
+    expect(router).toContain('z.enum(["beans", "princess"])');
+    expect(db).toContain('type GuestRoomMemberId = "beans" | "princess"');
+    expect(db).toContain("currentMembers.length >= 2");
   });
 
-  it("persists selected media dimensions and fits GIFs and Calendar images without cropping", () => {
+  it("persists original dimensions and derives bounded no-crop media frames", () => {
     const journal = projectFile("lib/local-journal.tsx");
     const steamy = projectFile("app/(tabs)/steamy.tsx");
     const calendar = projectFile("app/(tabs)/calendar.tsx");
     const router = projectFile("server/routers.ts");
+    const sizing = projectFile("lib/gif-frame.ts");
 
     expect(journal).toContain("width:input.width,height:input.height");
     expect(router).toContain("width: input.width");
-    expect(steamy).toContain("const dimensions = item.width && item.height");
     expect(steamy).toContain("gifFrameHeight(galleryWidth, dimensions)");
+    expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
+    expect(calendar).toContain("mediaFrameHeight(calendarWidth, backgroundDimensions, 280, 760)");
     expect(calendar).toContain('contentFit="contain" transition={180}');
-    expect(calendar).toContain("width: asset.width");
+    expect(sizing).toContain("maximumHeight = 640");
+    expect(sizing).toContain("naturalHeight");
   });
 
-  it("restores a confirmation-backed page-content clear without changing the Theme", () => {
+  it("places the confirmation-backed clear control inside every vertical page scroll", () => {
     const frame = projectFile("components/app-frame.tsx");
     const reset = projectFile("components/page-content-reset.tsx");
 
-    expect(frame).toContain("<PageContentReset pageId={currentPage.id} />");
+    expect(frame).toContain("function appendPageContentReset");
+    expect(frame).toContain("element.type === ScrollView && !element.props.horizontal");
+    expect(frame).toContain("<PageContentReset pageId={pageId} />");
     expect(reset).toContain("`Clear ${label}?`");
     expect(reset).toContain("Clear page");
     expect(reset).toContain("does not change your Theme");

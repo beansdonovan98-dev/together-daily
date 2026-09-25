@@ -11,7 +11,7 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD cal
 const jsonObjectSchema = z.record(z.string(), z.unknown());
 const recordTypeSchema = z.enum(["chat", "loveNote", "intimacy", "habit", "dateIdea"]);
 const imageMimeTypeSchema = z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const guestMemberIdSchema = z.enum(["beans", "princess", "rara"]);
+const guestMemberIdSchema = z.enum(["beans", "princess"]);
 const partnerNotificationTypeSchema = z.enum(["connection", "daily-log", "love-note", "todo", "private-update"]);
 
 function safeFileName(fileName: string) {

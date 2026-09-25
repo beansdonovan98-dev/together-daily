@@ -2,8 +2,7 @@ import { AppFrame } from "@/components/app-frame";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { dailySparkFor, friendMotivationFor } from "@/lib/daily-spark";
-import { shouldShowDailyRelationshipSection } from "@/lib/room-settings";
+import { dailySparkFor } from "@/lib/daily-spark";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -44,7 +43,7 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme, roomSettings } = useLocalJournal();
+  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -64,8 +63,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const textColor = theme.fontColor ?? "#FFFFFF";
   const together = useTogetherTime();
   const dailySpark = dailySparkFor(date);
-  const isFriendMode = roomSettings.mode === "friends";
-  const displayedQuote = isFriendMode ? friendMotivationFor(date, quoteOffset) : dailySparkFor(date, quoteOffset).quote;
+  const displayedQuote = dailySparkFor(date, quoteOffset).quote;
   const loveDraftKey = `${date}:${userId}`;
 
   useEffect(() => {
@@ -160,8 +158,8 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 
   return <AppFrame><ScrollView contentContainerStyle={[styles.page, { backgroundColor: "transparent" }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
     <View style={styles.topRow}><View><Text style={[styles.eyebrow, { color: partner.color }]}>{prettyDate(date).toUpperCase()}</Text><Text style={styles.title}>{coupleName}</Text></View><View style={[styles.avatar, { backgroundColor: partner.color }]}><Text style={styles.avatarText}>{memberName.slice(0, 1).toUpperCase()}</Text></View></View>
-    {shouldShowDailyRelationshipSection(roomSettings, "relationshipTracker") ? <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View> : null}
-    {shouldShowDailyRelationshipSection(roomSettings, "loveNotes") ? loveNotesSection : null}
+    <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
+    {loveNotesSection}
     <View style={styles.coverGrid}>{covers.map(({ key, cover: coverSlot, label }) => {
       const captions = asObject(coverSlot.captions);
       const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);
@@ -175,7 +173,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     })}</View>
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
     <View style={styles.dailySparkGrid}>
-      <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>{isFriendMode ? "MOTIVATION OF THE DAY" : "QUOTE OF THE DAY"}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel={isFriendMode ? "Switch to another daily motivation" : "Switch to another daily quote"} onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
+      <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>QUOTE OF THE DAY</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch to another daily quote" onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>TODAY’S DARKER JOKE</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.joke}</Text></View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>RIDDLE OF THE DAY</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.riddle.prompt}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel={riddleAnswerVisible ? "Hide riddle answer" : "Show riddle answer"} onPress={toggleRiddleAnswer} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>{riddleAnswerVisible ? "Hide answer" : "Show answer"}</Text></TouchableOpacity>{riddleAnswerVisible ? <Animated.View style={[styles.riddleAnswer, { opacity: riddleFlip, transform: [{ rotateX: riddleFlip.interpolate({ inputRange: [0, 1], outputRange: ["-90deg", "0deg"] }) }] }]}><Text style={[styles.riddleAnswerText, { color: textColor }]}>{dailySpark.riddle.answer}</Text></Animated.View> : null}</View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>WORD OF THE DAY</Text><Text style={[styles.dailySparkWord, { color: textColor }]}>{dailySpark.word.term}</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.word.definition}</Text></View>

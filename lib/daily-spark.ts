@@ -41,28 +41,6 @@ export const DAILY_QUOTES = [
   "Two people can make an ordinary day feel like a place worth returning to.",
 ] as const;
 
-/** Original, non-romantic encouragement for shared friend rooms. */
-export const FRIEND_MOTIVATIONAL_QUOTES = [
-  "Be brave enough to begin before you feel completely ready.",
-  "A small helpful step today can become a path you trust tomorrow.",
-  "Keep going; progress is usually quieter than people expect.",
-  "Make space for wonder, then do the next useful thing.",
-  "You do not need the whole map to take the next good step.",
-  "Kindness is a practical form of courage.",
-  "Your future is built from the ordinary choices you repeat with care.",
-  "Rest if you need to, then return with a steadier heart.",
-  "The hard part may be real, and so is your ability to meet it.",
-  "Bring your curiosity; it can turn a detour into an adventure.",
-  "Choose a goal that feels worth the effort, then give it one honest try.",
-  "A good day can start with one clear intention and a glass of water.",
-  "You are allowed to outgrow the version of you that only survived.",
-  "Look for the next right action, not a perfect one.",
-  "The people who cheer for you make the climb feel less lonely.",
-  "There is room for joy even while you are doing difficult things.",
-  "Strong friendships make ordinary days feel more possible.",
-  "When the road feels long, notice how far you have already come.",
-] as const;
-
 export const DAILY_MATURE_JOKES = [
   "Our relationship is not toxic. It is simply an abandoned amusement park where every ride is called ‘Let’s Talk About It.’",
   "We do not revisit old arguments. We exhume them, dress them nicely, and make them sit between us at dinner.",
@@ -208,11 +186,6 @@ function seedForDate(dateKey: string) {
     (total, character, index) => total + character.charCodeAt(0) * (index + 1),
     0,
   );
-}
-
-export function friendMotivationFor(dateKey: string, offset = 0) {
-  const seed = seedForDate(dateKey);
-  return FRIEND_MOTIVATIONAL_QUOTES[(seed + offset) % FRIEND_MOTIVATIONAL_QUOTES.length];
 }
 
 export function dailySparkFor(dateKey: string, quoteOffset = 0): DailySpark {

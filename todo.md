@@ -291,3 +291,6 @@
 - [x] Share new room switch links with both Daddy and Princess automatically.
 - [x] Restrict the relationship room to Daddy and Princess only.
 - [x] Add an independent scheduled time picker to Medicine Reminder.
+- [x] Remove RaRa and second-room functionality from the next update.
+- [x] Restore the confirmed page-content reset control at the bottom of each applicable page.
+- [x] Repair automatic fitting for Steamy GIFs and Calendar background photos.

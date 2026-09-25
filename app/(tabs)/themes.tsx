@@ -3,8 +3,6 @@ import { GradientCreator } from "@/components/gradient-creator";
 import { PageDescriptionsEditor } from "@/components/page-descriptions-editor";
 import { PartnerProfilesEditor } from "@/components/partner-profiles-editor";
 import { PageThemeEditor } from "@/components/page-theme-editor";
-import { RoomSetupEditor } from "@/components/room-setup-editor";
-import { RoomSwitcher } from "@/components/room-switcher";
 import { TabManager } from "@/components/tab-manager";
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
@@ -22,8 +20,6 @@ function ThemesContent() {
     <GradientCreator />
     <PartnerProfilesEditor />
     <TabManager />
-    <RoomSwitcher />
-    <RoomSetupEditor />
     <PageDescriptionsEditor />
   </ScrollView></AppFrame>;
 }

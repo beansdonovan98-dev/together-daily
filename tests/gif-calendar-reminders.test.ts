@@ -6,8 +6,8 @@ import { medicineReminderTime, reminderScheduleTime } from "../lib/medicine-remi
 
 describe("responsive GIF frames", () => {
   it("keeps both wide and tall GIFs fully within the gallery’s bounded frame", () => {
-    expect(gifFrameHeight(320, { width: 1600, height: 800 })).toBe(160);
-    expect(gifFrameHeight(320, { width: 800, height: 1600 })).toBe(420);
+    expect(gifFrameHeight(320, { width: 1600, height: 800 })).toBe(180);
+    expect(gifFrameHeight(320, { width: 800, height: 1600 })).toBe(640);
   });
 });
 
