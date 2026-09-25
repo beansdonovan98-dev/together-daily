@@ -29,11 +29,13 @@ export function isAnimatedGif(mimeType?: string | null, fileName?: string | null
 }
 
 export function maxBase64LengthForMedia(mimeType: SupportedImageMimeType, target: MediaUploadTarget) {
+  if (target === "private" && mimeType === "image/gif") return 26_800_000;
   if (target === "private" || mimeType === "image/gif") return 6_700_000;
   return 2_400_000;
 }
 
 export function maxStoredBytesForMedia(mimeType: SupportedImageMimeType, target: MediaUploadTarget) {
+  if (target === "private" && mimeType === "image/gif") return 20 * 1024 * 1024;
   if (target === "private" || mimeType === "image/gif") return 5 * 1024 * 1024;
   return 2.5 * 1024 * 1024;
 }

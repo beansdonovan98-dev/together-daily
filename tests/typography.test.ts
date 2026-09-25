@@ -63,19 +63,19 @@ describe("global typography", () => {
   it("routes Today’s daily content and partner labels through the shared font color", () => {
     const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
     const editor = readFileSync(resolve(process.cwd(), "components/page-theme-editor.tsx"), "utf8");
-    const profiles = readFileSync(resolve(process.cwd(), "components/partner-profiles-editor.tsx"), "utf8");
+    const themes = readFileSync(resolve(process.cwd(), "app/(tabs)/themes.tsx"), "utf8");
     const frame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
 
     expect(today).toContain('const textColor = theme.fontColor ?? "#FFFFFF"');
     expect(today).toContain('style={[styles.dailySparkText, { color: textColor }]}');
     expect(today).toContain('style={[styles.loveName, { color: textColor }]}');
-    expect(editor).toContain("PARTNER EMOJI");
+    expect(editor).toContain("PARTNER NAMES & EMOJI");
+    expect(editor).toContain("setPartnerDetails");
+    expect(editor).toContain("TextInput value={partnerNames[id]}");
     expect(editor).toContain("FONT COLOR");
     expect(editor).toContain("Together Daily header and page navigation above");
     expect(editor).toContain("setActiveGlobalTextColor(color)");
-    expect(editor).toContain("setPartnerEmoji");
-    expect(profiles).not.toContain("FONT_COLOR_OPTIONS");
-    expect(profiles).not.toContain("TextInput value={partnerAvatars[id]}");
+    expect(themes).not.toContain("PartnerProfilesEditor");
     expect(frame).toContain('styles.brand, { fontFamily, color: textColor }');
     expect(frame).toContain('styles.pageMenuCurrent, { fontFamily, color: textColor }');
     expect(frame).toContain('styles.pageMenuItemGlyph, { color: textColor }');

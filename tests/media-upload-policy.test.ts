@@ -16,9 +16,11 @@ describe("GIF media upload policy", () => {
     expect(isAnimatedGif("image/gif")).toBe(true);
   });
 
-  it("keeps cover GIFs within the same safe transport and storage budget as private GIFs", () => {
+  it("allows larger private GIFs while keeping cover uploads conservative", () => {
     expect(maxBase64LengthForMedia("image/gif", "cover")).toBe(6_700_000);
     expect(maxStoredBytesForMedia("image/gif", "cover")).toBe(5 * 1024 * 1024);
+    expect(maxBase64LengthForMedia("image/gif", "private")).toBe(26_800_000);
+    expect(maxStoredBytesForMedia("image/gif", "private")).toBe(20 * 1024 * 1024);
     expect(maxBase64LengthForMedia("image/jpeg", "cover")).toBe(2_400_000);
     expect(maxStoredBytesForMedia("image/jpeg", "cover")).toBe(2.5 * 1024 * 1024);
   });

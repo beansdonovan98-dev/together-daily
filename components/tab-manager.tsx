@@ -9,8 +9,6 @@ import { normalizeGlobalBorderColor, normalizeGlobalTextColor } from "@/lib/typo
 const TABS = [
   { id: "today", label: "Today", glyph: "✦" },
   { id: "log", label: "Daily Log", glyph: "☰" },
-  { id: "puzzles", label: "Puzzles", glyph: "▦" },
-  { id: "habits", label: "Habits", glyph: "✓" },
   { id: "health", label: "Health", glyph: "✚" },
   { id: "steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", label: "Purchase", glyph: "▤" },
@@ -32,7 +30,7 @@ export function TabManager() {
   const [glyphs, setGlyphs] = useState<Record<string, string>>({});
   const sorted = [...order].map((id) => TABS.find((tab) => tab.id === id)!).filter(Boolean);
 
-  useEffect(() => { if (!open) { const stored = tabOrder.includes("puzzles") ? tabOrder : (() => { const next = [...tabOrder]; const logIndex = next.indexOf("log"); next.splice(logIndex >= 0 ? logIndex + 1 : 0, 0, "puzzles"); return next; })(); setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels(tabLabels); setGlyphs(tabGlyphs); } }, [open, tabLabels, tabGlyphs, tabOrder]);
+  useEffect(() => { if (!open) { const stored = tabOrder; setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels(tabLabels); setGlyphs(tabGlyphs); } }, [open, tabLabels, tabGlyphs, tabOrder]);
   const move = (id: string, direction: -1 | 1) => { const index = order.indexOf(id); const target = index + direction; if (target < 0 || target >= order.length) return; const next = [...order]; [next[index], next[target]] = [next[target], next[index]]; setOrder(next); };
   const save = () => { setTabCustomizations({ labels, glyphs, order }); setOpen(false); };
 

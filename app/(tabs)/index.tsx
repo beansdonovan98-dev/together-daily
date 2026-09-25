@@ -11,7 +11,7 @@ import { preparePickedImageForUpload } from "@/lib/media-base64";
 import { imageMimeFromAsset, isAnimatedGif, maxBase64LengthForMedia } from "@/lib/media-upload-policy";
 import { Image as ExpoImage } from "expo-image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
@@ -51,8 +51,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const [confirmRemoveSlot, setConfirmRemoveSlot] = useState<"first" | "second" | null>(null);
   const [removingSlot, setRemovingSlot] = useState<"first" | "second" | null>(null);
   const [quoteOffset, setQuoteOffset] = useState(0);
-  const [riddleAnswerVisible, setRiddleAnswerVisible] = useState(false);
-  const riddleFlip = useRef(new Animated.Value(0)).current;
 
   const content = asObject(getDay(date));
   const cover = asObject(content.coverPhoto);
@@ -140,15 +138,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
       : { coverPhotoTwo: { ...current, captions: { ...captions, [partnerId]: caption } } });
   };
   const switchQuote = () => setQuoteOffset((offset) => offset + 1);
-  const toggleRiddleAnswer = () => {
-    if (riddleAnswerVisible) {
-      Animated.timing(riddleFlip, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setRiddleAnswerVisible(false));
-      return;
-    }
-    setRiddleAnswerVisible(true);
-    riddleFlip.setValue(0);
-    Animated.spring(riddleFlip, { toValue: 1, useNativeDriver: true, friction: 8, tension: 90 }).start();
-  };
   const mediaUrl = (url: string) => url.startsWith("/") ? `${getApiBaseUrl()}${url}` : url;
 
   if (!ready) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Opening your daily journal…</Text></View></AppFrame>;
@@ -174,8 +163,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
     <View style={styles.dailySparkGrid}>
       <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>QUOTE OF THE DAY</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch to another daily quote" onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
-      <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>TODAY’S DARKER JOKE</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.joke}</Text></View>
-      <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>RIDDLE OF THE DAY</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.riddle.prompt}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel={riddleAnswerVisible ? "Hide riddle answer" : "Show riddle answer"} onPress={toggleRiddleAnswer} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>{riddleAnswerVisible ? "Hide answer" : "Show answer"}</Text></TouchableOpacity>{riddleAnswerVisible ? <Animated.View style={[styles.riddleAnswer, { opacity: riddleFlip, transform: [{ rotateX: riddleFlip.interpolate({ inputRange: [0, 1], outputRange: ["-90deg", "0deg"] }) }] }]}><Text style={[styles.riddleAnswerText, { color: textColor }]}>{dailySpark.riddle.answer}</Text></Animated.View> : null}</View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>WORD OF THE DAY</Text><Text style={[styles.dailySparkWord, { color: textColor }]}>{dailySpark.word.term}</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.word.definition}</Text></View>
       <View style={styles.dailySparkCard}><Text style={[styles.cardKicker, { color: textColor }]}>LEARN SOMETHING TODAY</Text><Text style={[styles.dailySparkText, { color: textColor }]}>{dailySpark.fact}</Text></View>
     </View>

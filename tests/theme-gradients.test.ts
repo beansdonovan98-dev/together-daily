@@ -72,7 +72,6 @@ describe("theme gradients", () => {
     const cardFiles = [
       "components/page-theme-editor.tsx",
       "components/gradient-creator.tsx",
-      "components/partner-profiles-editor.tsx",
       "components/page-descriptions-editor.tsx",
     ];
     const gradientCases = [
@@ -171,8 +170,6 @@ describe("theme gradients", () => {
     const files = [
       "app/(tabs)/index.tsx",
       "app/(tabs)/log.tsx",
-      "app/(tabs)/puzzles.tsx",
-      "app/(tabs)/habits.tsx",
       "app/(tabs)/health.tsx",
       "app/(tabs)/cleaning.tsx",
       "app/(tabs)/calendar.tsx",
@@ -183,7 +180,6 @@ describe("theme gradients", () => {
       "app/(tabs)/themes.tsx",
       "components/page-theme-editor.tsx",
       "components/gradient-creator.tsx",
-      "components/partner-profiles-editor.tsx",
       "components/page-descriptions-editor.tsx",
       "components/tab-manager.tsx",
       "components/together-access.tsx",
@@ -203,16 +199,16 @@ describe("theme gradients", () => {
     }
   });
 
-  it("keeps Puzzles after Daily Log and preserves an optional shared Health Period section", () => {
+  it("removes Puzzles and Habits from navigation while preserving the optional shared Health Period section", () => {
     const frame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
     const tabManager = readFileSync(resolve(process.cwd(), "components/tab-manager.tsx"), "utf8");
     const health = readFileSync(resolve(process.cwd(), "app/(tabs)/health.tsx"), "utf8");
     const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
 
-    expect(frame.indexOf('id: "log"')).toBeLessThan(frame.indexOf('id: "puzzles"'));
-    expect(frame.indexOf('id: "puzzles"')).toBeLessThan(frame.indexOf('id: "habits"'));
-    expect(tabManager.indexOf('id: "log"')).toBeLessThan(tabManager.indexOf('id: "puzzles"'));
-    expect(tabManager.indexOf('id: "puzzles"')).toBeLessThan(tabManager.indexOf('id: "habits"'));
+    expect(frame).not.toContain('id: "puzzles"');
+    expect(frame).not.toContain('id: "habits"');
+    expect(tabManager).not.toContain('id: "puzzles"');
+    expect(tabManager).not.toContain('id: "habits"');
     expect(health).toContain("setHealthPeriodVisible(!healthPeriodVisible)");
     expect(health).toContain("healthPeriodVisible ? periodTracker : null");
     expect(journal).toContain("healthPeriodVisible:state.healthPeriodVisible!==false");

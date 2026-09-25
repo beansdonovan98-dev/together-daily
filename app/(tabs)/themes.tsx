@@ -1,7 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { GradientCreator } from "@/components/gradient-creator";
 import { PageDescriptionsEditor } from "@/components/page-descriptions-editor";
-import { PartnerProfilesEditor } from "@/components/partner-profiles-editor";
 import { PageThemeEditor } from "@/components/page-theme-editor";
 import { TabManager } from "@/components/tab-manager";
 import { PrivateGate } from "@/components/together-access";
@@ -18,7 +17,6 @@ function ThemesContent() {
     <View style={styles.hero}><Text style={styles.eyebrow}>ONE SHARED LOOK</Text><Text style={styles.title}>Themes</Text><Text style={styles.copy}>Choose one shared gradient, font, font color, and borders. Every selection automatically applies across both of your apps and every page.</Text></View>
     <PageThemeEditor />
     <GradientCreator />
-    <PartnerProfilesEditor />
     <TabManager />
     <PageDescriptionsEditor />
   </ScrollView></AppFrame>;

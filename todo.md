@@ -300,3 +300,7 @@
 - [x] Add more Theme font colors, including black.
 - [x] Refine the Calendar photo background presentation.
 - [x] Repair Steamy GIF sizing after latest device test.
+- [x] Raise the private Steamy GIF upload limit.
+- [x] Remove the daily joke and riddle cards.
+- [x] Remove Puzzles and Habits from the app pages.
+- [x] Move partner name editing beside the shared emoji controls and remove the separate profile card.
