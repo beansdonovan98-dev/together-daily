@@ -33,7 +33,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
-import { dynamicThemeForDate, isAnimatedTheme } from "@/lib/dynamic-theme";
+import { DYNAMIC_GRADIENT_MOTION, dynamicThemeForDate, isAnimatedTheme } from "@/lib/dynamic-theme";
 import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 import { PageContentReset } from "@/components/page-content-reset";
 
@@ -224,13 +224,15 @@ export function AppFrame({ children }: { children: ReactNode }) {
     gradientMotion.setValue(0);
     if (!animatedGradient) return;
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(gradientMotion, { toValue: 1, duration: 12_000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      Animated.timing(gradientMotion, { toValue: 0, duration: 12_000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(gradientMotion, { toValue: 1, duration: DYNAMIC_GRADIENT_MOTION.legDuration, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(gradientMotion, { toValue: 0, duration: DYNAMIC_GRADIENT_MOTION.legDuration, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
     ]));
     loop.start();
     return () => loop.stop();
   }, [animatedGradient, gradientMotion]);
-  const gradientShift = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [-32, 32] });
+  const gradientShiftX = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [-DYNAMIC_GRADIENT_MOTION.horizontalTravel, DYNAMIC_GRADIENT_MOTION.horizontalTravel] });
+  const gradientShiftY = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [DYNAMIC_GRADIENT_MOTION.verticalTravel, -DYNAMIC_GRADIENT_MOTION.verticalTravel] });
+  const gradientScale = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [DYNAMIC_GRADIENT_MOTION.baseScale, DYNAMIC_GRADIENT_MOTION.peakScale] });
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -355,7 +357,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   return (
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
-        {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShift }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
+        {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
@@ -576,7 +578,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
-  animatedGradient: { ...StyleSheet.absoluteFillObject, left: -32, right: -32 },
+  animatedGradient: { ...StyleSheet.absoluteFillObject, left: -112, right: -112, top: -82, bottom: -82 },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
     paddingHorizontal: 20,

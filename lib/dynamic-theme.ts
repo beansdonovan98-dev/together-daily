@@ -10,6 +10,15 @@ export type DynamicThemeSettings = {
 
 const ROTATING_THEMES: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_THEMES];
 
+/** Deliberately visible motion while keeping the backdrop comfortably behind journal content. */
+export const DYNAMIC_GRADIENT_MOTION = {
+  legDuration: 7_000,
+  horizontalTravel: 92,
+  verticalTravel: 42,
+  baseScale: 1.08,
+  peakScale: 1.18,
+} as const;
+
 function utcDayNumber(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
   if (!year || !month || !day) return 0;

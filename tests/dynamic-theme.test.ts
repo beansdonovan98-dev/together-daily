@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dailyThemePreset, dynamicThemeForDate, isAnimatedTheme } from "../lib/dynamic-theme";
+import { DYNAMIC_GRADIENT_MOTION, dailyThemePreset, dynamicThemeForDate, isAnimatedTheme } from "../lib/dynamic-theme";
 
 const sharedTheme = {
   accentColor: "#A421FF",
@@ -30,5 +30,12 @@ describe("shared dynamic themes", () => {
     expect(dynamicThemeForDate(sharedTheme, "2026-09-25")).toBe(sharedTheme);
     expect(isAnimatedTheme({ ...sharedTheme, animatedGradient: true })).toBe(true);
     expect(isAnimatedTheme(sharedTheme)).toBe(false);
+  });
+
+  it("uses clearly visible multi-directional motion for animated backdrops", () => {
+    expect(DYNAMIC_GRADIENT_MOTION.legDuration).toBeLessThanOrEqual(7_000);
+    expect(DYNAMIC_GRADIENT_MOTION.horizontalTravel).toBeGreaterThanOrEqual(90);
+    expect(DYNAMIC_GRADIENT_MOTION.verticalTravel).toBeGreaterThanOrEqual(40);
+    expect(DYNAMIC_GRADIENT_MOTION.peakScale).toBeGreaterThan(DYNAMIC_GRADIENT_MOTION.baseScale);
   });
 });
