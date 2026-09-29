@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -45,5 +47,16 @@ describe("Steamy daily history", () => {
     const record = { recordType: "cumLog", authorId: "beans", createdAt: "2026-09-24T14:30:00.000Z", content: { date: "2026-09-24" } };
     expect(intimateEntryReadByPartner(record, "2026-09-24T14:29:59.000Z")).toBe(false);
     expect(intimateEntryReadByPartner(record, "2026-09-24T14:30:01.000Z")).toBe(true);
+  });
+
+  it("keeps every chat message but confines the on-page conversation to its own scroll area", () => {
+    const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
+
+    expect(steamy).toContain("style={styles.chatScroll}");
+    expect(steamy).toContain("contentContainerStyle={styles.chatList}");
+    expect(steamy).toContain("chatScroll: { maxHeight: 280");
+    expect(steamy).toContain("chatEntries.map((record)");
+    expect(steamy).not.toContain("chatEntries.slice(");
+    expect(steamy).toContain('<PageContentReset pageId="steamy" />');
   });
 });

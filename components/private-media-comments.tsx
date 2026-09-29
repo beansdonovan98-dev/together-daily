@@ -1,6 +1,7 @@
 import { PARTNERS, type PartnerId } from "@/lib/local-journal";
 import type { PrivateMediaComment } from "@/lib/private-media-comments";
-import { StyleSheet } from "react-native";
+import { useState } from "react";
+import { ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "./visual-primitives";
 
 type PrivateMediaCommentsProps = {
@@ -20,9 +21,14 @@ function canDeleteComment(comment: PrivateMediaComment, currentMemberId: Partner
 }
 
 export function PrivateMediaComments({ comments, draft, isToday, saving, deletingCommentId, currentMemberId, onChangeDraft, onSubmit, onDelete }: PrivateMediaCommentsProps) {
+  const [expanded, setExpanded] = useState(false);
+  const commentCount = comments.length;
   return <View style={styles.section}>
-    <Text style={styles.kicker}>PRIVATE COMMENTS</Text>
-    {comments.length ? <View style={styles.list}>{comments.map((comment) => {
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle private media comments" accessibilityState={{ expanded }} onPress={() => setExpanded((value) => !value)} style={styles.toggle}>
+      <View style={styles.toggleLead}><Text style={styles.kicker}>PRIVATE COMMENTS</Text><Text style={styles.count}>{commentCount ? `${commentCount} saved` : "Add a note"}</Text></View>
+      <Text style={styles.chevron}>{expanded ? "⌃" : "⌄"}</Text>
+    </TouchableOpacity>
+    {expanded && (comments.length ? <ScrollView nestedScrollEnabled showsVerticalScrollIndicator style={styles.commentScroll} contentContainerStyle={styles.list}>{comments.map((comment) => {
       const author = PARTNERS[comment.authorId as PartnerId];
       const deleting = deletingCommentId === comment.id;
       return <View key={comment.id} style={[styles.comment, { borderLeftColor: author.color }]}>
@@ -32,7 +38,7 @@ export function PrivateMediaComments({ comments, draft, isToday, saving, deletin
         </View>
         <Text style={styles.body}>{comment.text}</Text>
       </View>;
-    })}</View> : <Text style={styles.empty}>No comments yet. Leave a private note for each other.</Text>}
+    })}</ScrollView> : <Text style={styles.empty}>No comments yet. Leave a private note for each other.</Text>)}
     {isToday ? <View style={styles.composer}>
       <TextInput value={draft} onChangeText={onChangeDraft} placeholder="Add a private comment…" placeholderTextColor="#7F7582" maxLength={500} multiline style={styles.input} />
       <TouchableOpacity disabled={saving || !draft.trim()} onPress={onSubmit} style={[styles.send, (saving || !draft.trim()) && styles.disabled]}><Text style={styles.sendText}>{saving ? "Sending…" : "Comment"}</Text></TouchableOpacity>
@@ -42,7 +48,12 @@ export function PrivateMediaComments({ comments, draft, isToday, saving, deletin
 
 const styles = StyleSheet.create({
   section: { marginTop: 10, borderTopWidth: 1, borderTopColor: "#49313B", paddingTop: 10, gap: 8 },
+  toggle: { minHeight: 30, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  toggleLead: { flexDirection: "row", alignItems: "baseline", gap: 7, flex: 1 },
   kicker: { color: "#A89AA1", fontFamily: "monospace", fontSize: 9, fontWeight: "900", letterSpacing: .8 },
+  count: { color: "#D8C7D0", fontFamily: "monospace", fontSize: 9 },
+  chevron: { color: "#F7E6EE", fontSize: 16, fontWeight: "900" },
+  commentScroll: { maxHeight: 176 },
   list: { gap: 7 },
   comment: { borderLeftWidth: 3, paddingLeft: 9, gap: 2 },
   commentHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },

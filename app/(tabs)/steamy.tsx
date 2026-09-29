@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app-frame";
+import { PageContentReset } from "@/components/page-content-reset";
 import { PrivateGate } from "@/components/together-access";
 import { PrivateMediaComments } from "@/components/private-media-comments";
 import { COLORS, localDateKey, prettyDate } from "@/lib/together";
@@ -327,7 +328,7 @@ function SteamyContent() {
 
   if (!revealed)
     return (
-      <AppFrame>
+      <AppFrame showAutomaticPageReset={false}>
         <ScrollView
           contentContainerStyle={[
             styles.page,
@@ -365,7 +366,7 @@ function SteamyContent() {
     );
 
   return (
-    <AppFrame>
+    <AppFrame showAutomaticPageReset={false}>
       <ScrollView
         contentContainerStyle={[
           styles.page,
@@ -443,6 +444,7 @@ function SteamyContent() {
             or “not today” immediately.
           </Text>
         </View>
+        {isToday ? <PageContentReset pageId="steamy" /> : null}
 
         <View style={[styles.cumCard, gradientCard]}>
           <Text style={styles.cardKicker}>PRIVATE INTIMATE CHAT</Text>
@@ -452,7 +454,13 @@ function SteamyContent() {
               ? "Chat privately together. Messages stay in today’s conversation, then remain in this dated history."
               : `Archived conversation from ${prettyDate(date)}.`}
           </Text>
-          <View style={styles.chatList}>
+          <ScrollView
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+            persistentScrollbar={Platform.OS === "android"}
+            style={styles.chatScroll}
+            contentContainerStyle={styles.chatList}
+          >
             {chatEntries.length ? (
               chatEntries.map((record) => {
                 const author = PARTNERS[record.authorId];
@@ -503,7 +511,7 @@ function SteamyContent() {
                 </Text>
               </View>
             )}
-          </View>
+          </ScrollView>
           {isToday ? (
             <View style={styles.chatComposer}>
               <TextInput
@@ -995,7 +1003,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
-  chatList: { gap: 8, marginTop: 14 },
+  chatScroll: { maxHeight: 280, marginTop: 14 },
+  chatList: { gap: 8, paddingRight: 5 },
   chatBubbleWrap: { width: "100%" },
   chatMine: { alignItems: "flex-end" },
   chatPartner: { alignItems: "flex-start" },
@@ -1023,9 +1032,10 @@ const styles = StyleSheet.create({
     fontSize: 8,
     marginTop: 6,
   },
-  chatComposer: { marginTop: 12 },
+  chatComposer: { marginTop: 10 },
   textArea: {
-    minHeight: 76,
+    minHeight: 54,
+    maxHeight: 92,
     marginTop: 0,
     backgroundColor: "#120B0F",
     borderWidth: 1,

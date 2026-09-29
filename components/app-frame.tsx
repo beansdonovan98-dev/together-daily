@@ -145,7 +145,7 @@ function appendPageContentReset(node: ReactNode, pageId: string): ReactNode {
   });
 }
 
-export function AppFrame({ children }: { children: ReactNode }) {
+export function AppFrame({ children, showAutomaticPageReset = true }: { children: ReactNode; showAutomaticPageReset?: boolean }) {
   const pathname = usePathname();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -269,10 +269,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: appendPageContentReset(
-            revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
-            currentPage.id,
-          ),
+          children: showAutomaticPageReset
+            ? appendPageContentReset(
+                revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
+                currentPage.id,
+              )
+            : revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
       })
     : children;
 
