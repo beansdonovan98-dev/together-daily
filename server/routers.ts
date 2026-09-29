@@ -220,6 +220,9 @@ export const appRouter = router({
     deletePrivateMediaComment: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120), commentId: z.string().trim().min(1).max(160) }))
       .mutation(({ input }) => db.deleteGuestRoomPrivateMediaComment(input)),
+    markPrivateMediaCommentsViewed: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120) }))
+      .mutation(({ input }) => db.markGuestRoomPrivateMediaCommentsViewed(input)),
     addWeeklyCleaningTask: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, weekStart: dateSchema, text: z.string().trim().min(1).max(240) }))
       .mutation(({ input }) => db.addGuestRoomWeeklyCleaningTask(input)),

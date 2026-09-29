@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { privateMediaCommentsFor } from "../lib/private-media-comments";
+import { privateMediaCommentsFor, unreadPrivateMediaCommentCount } from "../lib/private-media-comments";
 
 describe("private media comments", () => {
   it("keeps comments in conversation order and preserves a prior caption as a comment", () => {
@@ -30,5 +30,25 @@ describe("private media comments", () => {
     expect(component).toContain("commentScroll: { maxHeight: 176 }");
     expect(component).toContain("comments.map((comment)");
     expect(component).not.toContain("comments.slice(");
+  });
+
+  it("counts only unread partner replies until the comment drawer is opened", () => {
+    const comments = [
+      { id: "mine", authorId: "beans" as const, text: "Mine", createdAt: "2026-09-29T10:00:00.000Z" },
+      { id: "old", authorId: "princess" as const, text: "Old", createdAt: "2026-09-29T10:01:00.000Z" },
+      { id: "new", authorId: "princess" as const, text: "New", createdAt: "2026-09-29T10:03:00.000Z" },
+    ];
+
+    expect(unreadPrivateMediaCommentCount(comments, "beans", "2026-09-29T10:02:00.000Z")).toBe(1);
+    expect(unreadPrivateMediaCommentCount(comments, "beans", "2026-09-29T10:04:00.000Z")).toBe(0);
+    expect(unreadPrivateMediaCommentCount(comments, "beans")).toBe(2);
+
+    const component = readFileSync(resolve(process.cwd(), "components/private-media-comments.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
+    const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    expect(component).toContain("NEW");
+    expect(component).toContain("onOpen();");
+    expect(journal).toContain("markPrivateMediaCommentsViewed");
+    expect(router).toContain("markPrivateMediaCommentsViewed");
   });
 });

@@ -21,7 +21,7 @@ import {
   intimateEntryReadByPartner,
   privateMediaForDate,
 } from "@/lib/steamy-history";
-import { privateMediaCommentsFor } from "@/lib/private-media-comments";
+import { privateMediaCommentsFor, unreadPrivateMediaCommentCount } from "@/lib/private-media-comments";
 import { gifFrameHeight } from "@/lib/gif-frame";
 import { Image as ExpoImage } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -58,6 +58,7 @@ function SteamyContent() {
     deletePrivateMedia,
     addPrivateMediaComment,
     deletePrivateMediaComment,
+    markPrivateMediaCommentsViewed,
     theme,
   } = useLocalJournal();
   const [revealed, setRevealed] = useState(false);
@@ -644,6 +645,12 @@ function SteamyContent() {
                   item.width && item.height
                     ? { width: item.width, height: item.height }
                     : gifDimensions[item.id];
+                const comments = privateMediaCommentsFor(item);
+                const unreadComments = unreadPrivateMediaCommentCount(
+                  comments,
+                  memberId,
+                  item.commentViewedAt?.[memberId ?? "beans"],
+                );
                 return (
                   <View key={item.id} style={styles.photoCard}>
                     <ExpoImage
@@ -672,7 +679,8 @@ function SteamyContent() {
                       ]}
                     />
                     <PrivateMediaComments
-                      comments={privateMediaCommentsFor(item)}
+                      comments={comments}
+                      unreadCount={unreadComments}
                       draft={commentDrafts[item.id] ?? ""}
                       isToday={isToday}
                       saving={savingCommentId === item.id}
@@ -689,6 +697,9 @@ function SteamyContent() {
                       }}
                       onDelete={(commentId) => {
                         void removePrivateComment(item.id, commentId);
+                      }}
+                      onOpen={() => {
+                        void markPrivateMediaCommentsViewed(item.id);
                       }}
                     />
                     <View style={styles.photoFooter}>

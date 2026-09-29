@@ -7,6 +7,20 @@ export type PrivateMediaComment = {
   createdAt: string;
 };
 
+export function unreadPrivateMediaCommentCount(
+  comments: PrivateMediaComment[],
+  viewerId: PartnerId | null,
+  viewedAt?: string,
+) {
+  if (!viewerId) return 0;
+  const viewedTime = viewedAt ? Date.parse(viewedAt) : Number.NaN;
+  return comments.filter((comment) => {
+    if (comment.authorId === viewerId) return false;
+    const commentTime = Date.parse(comment.createdAt);
+    return !Number.isFinite(viewedTime) || !Number.isFinite(commentTime) || commentTime > viewedTime;
+  }).length;
+}
+
 type CommentablePrivateMedia = {
   id: string;
   uploadedBy?: PartnerId;

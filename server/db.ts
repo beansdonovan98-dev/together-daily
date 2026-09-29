@@ -762,3 +762,32 @@ export async function deleteGuestRoomPrivateMediaComment(input: { roomCode: stri
   await notifyGuestRoomPartner(roomCode, input.partnerId, "steamy-update");
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
 }
+
+/** Records when one partner opened a private media comment drawer without altering its comments. */
+export async function markGuestRoomPrivateMediaCommentsViewed(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before opening private comments.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const media = Array.isArray(journalState.media) ? journalState.media : [];
+  let found = false;
+  const viewedAt = new Date().toISOString();
+  const nextMedia = media.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const current = item as Record<string, unknown>;
+    if (current.id !== input.mediaId || current.kind !== "private") return item;
+    found = true;
+    const viewedBy = current.commentViewedAt && typeof current.commentViewedAt === "object" && !Array.isArray(current.commentViewedAt)
+      ? current.commentViewedAt as Record<string, unknown>
+      : {};
+    return { ...current, commentViewedAt: { ...viewedBy, [input.partnerId]: viewedAt } };
+  });
+  if (!found) throw new Error("That private photo or GIF is no longer available.");
+  const nextState = { ...journalState, media: nextMedia };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
+}

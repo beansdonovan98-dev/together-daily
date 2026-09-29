@@ -6,6 +6,7 @@ import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacit
 
 type PrivateMediaCommentsProps = {
   comments: PrivateMediaComment[];
+  unreadCount: number;
   draft: string;
   isToday: boolean;
   saving: boolean;
@@ -14,18 +15,23 @@ type PrivateMediaCommentsProps = {
   onChangeDraft: (text: string) => void;
   onSubmit: () => void;
   onDelete: (commentId: string) => void;
+  onOpen: () => void;
 };
 
 function canDeleteComment(comment: PrivateMediaComment, currentMemberId: PartnerId | null) {
   return currentMemberId === comment.authorId && !comment.id.endsWith("-legacy-caption");
 }
 
-export function PrivateMediaComments({ comments, draft, isToday, saving, deletingCommentId, currentMemberId, onChangeDraft, onSubmit, onDelete }: PrivateMediaCommentsProps) {
+export function PrivateMediaComments({ comments, unreadCount, draft, isToday, saving, deletingCommentId, currentMemberId, onChangeDraft, onSubmit, onDelete, onOpen }: PrivateMediaCommentsProps) {
   const [expanded, setExpanded] = useState(false);
   const commentCount = comments.length;
+  const openComments = () => {
+    if (!expanded && unreadCount) onOpen();
+    setExpanded((value) => !value);
+  };
   return <View style={styles.section}>
-    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle private media comments" accessibilityState={{ expanded }} onPress={() => setExpanded((value) => !value)} style={styles.toggle}>
-      <View style={styles.toggleLead}><Text style={styles.kicker}>PRIVATE COMMENTS</Text><Text style={styles.count}>{commentCount ? `${commentCount} saved` : "Add a note"}</Text></View>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Toggle private media comments" accessibilityState={{ expanded }} onPress={openComments} style={styles.toggle}>
+      <View style={styles.toggleLead}><Text style={styles.kicker}>PRIVATE COMMENTS</Text><Text style={styles.count}>{commentCount ? `${commentCount} saved` : "Add a note"}</Text>{!expanded && unreadCount ? <View style={styles.unreadBadge}><Text style={styles.unreadText}>{unreadCount > 9 ? "9+" : unreadCount} NEW</Text></View> : null}</View>
       <Text style={styles.chevron}>{expanded ? "⌃" : "⌄"}</Text>
     </TouchableOpacity>
     {expanded && (comments.length ? <ScrollView nestedScrollEnabled showsVerticalScrollIndicator style={styles.commentScroll} contentContainerStyle={styles.list}>{comments.map((comment) => {
@@ -52,6 +58,8 @@ const styles = StyleSheet.create({
   toggleLead: { flexDirection: "row", alignItems: "baseline", gap: 7, flex: 1 },
   kicker: { color: "#A89AA1", fontFamily: "monospace", fontSize: 9, fontWeight: "900", letterSpacing: .8 },
   count: { color: "#D8C7D0", fontFamily: "monospace", fontSize: 9 },
+  unreadBadge: { borderRadius: 9, backgroundColor: "#D56B88", paddingHorizontal: 6, paddingVertical: 2 },
+  unreadText: { color: "#FFFFFF", fontSize: 8, fontWeight: "900", letterSpacing: .5 },
   chevron: { color: "#F7E6EE", fontSize: 16, fontWeight: "900" },
   commentScroll: { maxHeight: 176 },
   list: { gap: 7 },
