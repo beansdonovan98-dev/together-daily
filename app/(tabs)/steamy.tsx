@@ -653,6 +653,18 @@ function SteamyContent() {
                 );
                 return (
                   <View key={item.id} style={styles.photoCard}>
+                    {unreadComments ? (
+                      <View
+                        accessibilityRole="image"
+                        accessibilityLabel={`${unreadComments} unread private ${unreadComments === 1 ? "comment" : "comments"}`}
+                        style={styles.unreadPhotoHeart}
+                      >
+                        <Text style={styles.unreadPhotoHeartText}>♥</Text>
+                        <Text style={styles.unreadPhotoHeartCount}>
+                          {unreadComments > 9 ? "9+" : unreadComments}
+                        </Text>
+                      </View>
+                    ) : null}
                     <ExpoImage
                       recyclingKey={`${item.id}-${galleryWidth}-${dimensions?.width ?? "auto"}-${dimensions?.height ?? "auto"}`}
                       source={mediaUrl(item.url)}
@@ -950,11 +962,57 @@ const styles = StyleSheet.create({
   },
   gallery: { gap: 10, marginTop: 14 },
   photoCard: {
+    position: "relative",
     backgroundColor: "#211218",
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#49313B",
+  },
+  unreadPhotoHeart: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 3,
+    minWidth: 31,
+    height: 31,
+    paddingHorizontal: 5,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    backgroundColor: "#D56B88",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#120B0F",
+    shadowOpacity: 0.72,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
+  },
+  unreadPhotoHeartText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    lineHeight: 17,
+    fontWeight: "900",
+  },
+  unreadPhotoHeartCount: {
+    position: "absolute",
+    right: -5,
+    bottom: -5,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 3,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#1B0A12",
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
+    color: "#FFFFFF",
+    fontFamily: "monospace",
+    fontSize: 8,
+    lineHeight: 14,
+    textAlign: "center",
+    fontWeight: "900",
   },
   pendingPhotoCard: { borderColor: "#8A6030" },
   photo: { width: "100%", aspectRatio: 1.1, backgroundColor: "#120B0F" },

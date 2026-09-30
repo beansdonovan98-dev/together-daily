@@ -32,6 +32,18 @@ describe("private media comments", () => {
     expect(component).not.toContain("comments.slice(");
   });
 
+  it("opens an expanded drawer at the newest comment and puts an unread heart on its photo", () => {
+    const component = readFileSync(resolve(process.cwd(), "components/private-media-comments.tsx"), "utf8");
+    const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
+
+    expect(component).toContain("commentScrollRef.current?.scrollToEnd({ animated: false })");
+    expect(component).toContain("onContentSizeChange={jumpToNewestComment}");
+    expect(component).toContain("setExpanded(true)");
+    expect(steamy).toContain("unreadComments ? (");
+    expect(steamy).toContain("styles.unreadPhotoHeart");
+    expect(steamy).toContain("unread private");
+  });
+
   it("counts only unread partner replies until the comment drawer is opened", () => {
     const comments = [
       { id: "mine", authorId: "beans" as const, text: "Mine", createdAt: "2026-09-29T10:00:00.000Z" },
