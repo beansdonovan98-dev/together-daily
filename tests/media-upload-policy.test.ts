@@ -28,11 +28,15 @@ describe("GIF media upload policy", () => {
   it("uses the animation-safe picker and full-fit renderer for GIF cover photos and private media", () => {
     const today = readFileSync(resolve(process.cwd(), "app/(tabs)/index.tsx"), "utf8");
     const steamy = readFileSync(resolve(process.cwd(), "app/(tabs)/steamy.tsx"), "utf8");
+    const journal = readFileSync(resolve(process.cwd(), "lib/local-journal.tsx"), "utf8");
     const server = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
 
     expect(today).toContain("allowsEditing: false");
     expect(today).toContain("<ExpoImage source={mediaUrl(String(coverSlot.url))}");
-    expect(today).toContain("maxBase64LengthForMedia(prepared.mimeType, \"cover\")");
+    expect(today).toContain("uploadDailyCoverDirect");
+    expect(today).toContain("base64: false");
+    expect(today).toContain("pickedImageByteSize(asset.uri, asset.fileSize)");
+    expect(today).not.toContain("preparePickedImageForUpload");
     expect(steamy).toContain("isAnimatedGif(asset.mimeType, asset.fileName, asset.uri)");
     expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
     expect(steamy).toContain('contentFit={pendingPreview.isGif ? "contain" : "cover"}');
@@ -43,6 +47,10 @@ describe("GIF media upload policy", () => {
     expect(server).toContain("maxStoredBytesForMedia(input.mimeType, \"cover\")");
     expect(server).toContain("maxBase64LengthForMedia(input.mimeType, \"private\")");
     expect(server).toContain(".max(84_000_000)");
+    expect(server).toContain("requestDailyCoverDirectUpload");
+    expect(server).toContain("confirmDailyCoverDirectUpload");
+    expect(journal).toContain("uploadDailyCoverDirect:async");
+    expect(journal).toContain("dailyCoverDirectRequest");
   });
 
   it("uses direct signed storage for private GIFs instead of sending them inside JSON", () => {

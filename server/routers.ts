@@ -205,6 +205,34 @@ export const appRouter = router({
         };
         return db.addGuestRoomDailyCover({ roomCode: input.roomCode, partnerId: input.partnerId, dailyDate: input.dailyDate, slot: input.slot, media });
       }),
+    requestDailyCoverDirectUpload: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, byteSize: z.number().int().positive().max(60 * 1024 * 1024) }))
+      .mutation(async ({ input }) => {
+        const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
+        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a cover photo smaller than 2.5 MB.");
+        return storageCreateDirectUpload(`guest-rooms/${roomCode}/covers/${input.dailyDate}/${Date.now()}-${safeFileName(input.fileName)}`);
+      }),
+    confirmDailyCoverDirectUpload: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, storageKey: z.string().min(1).max(600), caption: z.string().max(500).optional() }))
+      .mutation(async ({ input }) => {
+        const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
+        const coverPrefix = `guest-rooms/${roomCode}/covers/${input.dailyDate}/`;
+        if (!input.storageKey.startsWith(coverPrefix)) throw new Error("This cover upload does not belong to your shared room.");
+        const stored = await storageGet(input.storageKey);
+        const media = {
+          id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          kind: "cover",
+          url: stored.url,
+          storageKey: stored.key,
+          fileName: safeFileName(input.fileName),
+          mimeType: input.mimeType,
+          caption: input.caption ?? "",
+          createdAt: new Date().toISOString(),
+          dailyDate: input.dailyDate,
+          uploadedBy: input.partnerId,
+        };
+        return db.addGuestRoomDailyCover({ roomCode, partnerId: input.partnerId, dailyDate: input.dailyDate, slot: input.slot, media });
+      }),
     deleteDailyCover: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]) }))
       .mutation(({ input }) => db.deleteGuestRoomDailyCover(input)),

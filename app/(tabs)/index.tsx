@@ -7,11 +7,11 @@ import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prett
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import { preparePickedImageForUpload } from "@/lib/media-base64";
-import { imageMimeFromAsset, isAnimatedGif, maxBase64LengthForMedia } from "@/lib/media-upload-policy";
+import { pickedImageByteSize } from "@/lib/media-base64";
+import { imageMimeFromAsset, isAnimatedGif, maxStoredBytesForMedia } from "@/lib/media-upload-policy";
 import { Image as ExpoImage } from "expo-image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { Platform, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
@@ -43,7 +43,7 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCover, deleteDailyCover, customSubheadings, theme } = useLocalJournal();
+  const { ready, getDay, updateDay, uploadDailyCoverDirect, deleteDailyCover, customSubheadings, theme } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -83,22 +83,21 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     setUploading(true);
     setUploadError("");
     try {
-      const selectedMimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
-      const prepared = await preparePickedImageForUpload({ uri: asset.uri, base64: asset.base64, mimeType: selectedMimeType });
-      if (!prepared.base64) throw new Error("The selected image could not be read.");
-      if (prepared.base64.length > maxBase64LengthForMedia(prepared.mimeType, "cover")) throw new Error(prepared.mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under about 5 MB." : "This cover photo is still too large. Please choose a smaller image.");
-      await uploadDailyCover({ dailyDate: date, slot, fileName: asset.fileName ?? `cover-${slot}-${date}.${prepared.mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType: prepared.mimeType, base64: prepared.base64, caption: "" });
+      const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
+      const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
+      if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 2.5 MB.");
+      await uploadDailyCoverDirect({ dailyDate: date, slot, fileName: asset.fileName ?? `cover-${slot}-${date}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize, caption: "" });
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "The cover photo could not be saved. Please try again.");
     } finally {
       setUploading(false);
       await AsyncStorage.removeItem("together-daily-pending-cover-slot");
     }
-  }, [date, uploadDailyCover]);
+  }, [date, uploadDailyCoverDirect]);
 
   const selectCover = async (slot: "first" | "second") => {
     await AsyncStorage.setItem("together-daily-pending-cover-slot", slot);
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 1, base64: true });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 1, base64: false, preferredAssetRepresentationMode: Platform.OS === "ios" ? ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current : undefined });
     if (result.canceled || !result.assets[0]) {
       await AsyncStorage.removeItem("together-daily-pending-cover-slot");
       return;
