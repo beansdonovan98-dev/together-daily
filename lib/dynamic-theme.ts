@@ -4,11 +4,24 @@ export type DynamicThemeSettings = {
   accentColor?: string;
   backgroundColor?: string;
   backgroundGradient?: string[];
+  fontColor?: string;
+  borderColor?: string;
   animatedGradient?: boolean;
   dailyGradientRotation?: boolean;
 };
 
 const ROTATING_THEMES: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_THEMES];
+
+/** A shared seasonal look that automatically surrounds every page during October. */
+export const HALLOWEEN_MONTH_THEME = {
+  name: "Haunted Together",
+  accentColor: "#FF9D1C",
+  backgroundColor: "#19051F",
+  backgroundGradient: ["#16051F", "#4A093B", "#C34716", "#F49A1D"],
+  fontColor: "#FFF4D8",
+  borderColor: "#FF9D1C",
+  animatedGradient: true,
+} as const;
 
 /** Deliberately visible motion while keeping the backdrop comfortably behind journal content. */
 export const DYNAMIC_GRADIENT_MOTION = {
@@ -25,6 +38,12 @@ function utcDayNumber(dateKey: string) {
   return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
 }
 
+/** Uses the phone's local calendar key, so both partners see the seasonal look throughout October. */
+export function isHalloweenMonth(dateKey: string) {
+  const [, month] = dateKey.split("-").map(Number);
+  return month === 10;
+}
+
 /** Picks one deterministic shared preset for a calendar date, without saving a daily mutation. */
 export function dailyThemePreset(dateKey: string): ReadyMadeTheme {
   return ROTATING_THEMES[Math.abs(utcDayNumber(dateKey)) % ROTATING_THEMES.length] ?? ROTATING_THEMES[0];
@@ -35,6 +54,13 @@ export function dailyThemePreset(dateKey: string): ReadyMadeTheme {
  * Both partners calculate the same preset locally from the same date and shared setting.
  */
 export function dynamicThemeForDate<T extends DynamicThemeSettings>(theme: T, dateKey: string): T {
+  if (isHalloweenMonth(dateKey)) {
+    return {
+      ...theme,
+      ...HALLOWEEN_MONTH_THEME,
+      backgroundGradient: [...HALLOWEEN_MONTH_THEME.backgroundGradient],
+    } as T;
+  }
   if (!theme.dailyGradientRotation) return theme;
   const preset = dailyThemePreset(dateKey);
   return {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DYNAMIC_GRADIENT_MOTION, dailyThemePreset, dynamicThemeForDate, isAnimatedTheme } from "../lib/dynamic-theme";
+import { DYNAMIC_GRADIENT_MOTION, dailyThemePreset, dynamicThemeForDate, HALLOWEEN_MONTH_THEME, isAnimatedTheme, isHalloweenMonth } from "../lib/dynamic-theme";
 
 const sharedTheme = {
   accentColor: "#A421FF",
@@ -24,6 +24,20 @@ describe("shared dynamic themes", () => {
     expect(next.fontColor).toBe("#FFFFFF");
     expect(next.borderColor).toBe("#000000");
     expect(next.fontId).toBe("handwritten");
+  });
+
+  it("uses Haunted Together across every page through October, then restores the shared selection", () => {
+    const october = dynamicThemeForDate({ ...sharedTheme, dailyGradientRotation: true, animatedGradient: false }, "2026-10-01");
+
+    expect(isHalloweenMonth("2026-10-31")).toBe(true);
+    expect(isHalloweenMonth("2026-11-01")).toBe(false);
+    expect(october.backgroundGradient).toEqual(HALLOWEEN_MONTH_THEME.backgroundGradient);
+    expect(october.backgroundColor).toBe(HALLOWEEN_MONTH_THEME.backgroundColor);
+    expect(october.accentColor).toBe(HALLOWEEN_MONTH_THEME.accentColor);
+    expect(october.fontColor).toBe(HALLOWEEN_MONTH_THEME.fontColor);
+    expect(october.borderColor).toBe(HALLOWEEN_MONTH_THEME.borderColor);
+    expect(october.animatedGradient).toBe(true);
+    expect(dynamicThemeForDate(sharedTheme, "2026-11-01")).toBe(sharedTheme);
   });
 
   it("leaves a manually selected shared theme unchanged when daily rotation is off", () => {

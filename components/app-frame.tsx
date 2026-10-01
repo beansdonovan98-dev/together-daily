@@ -33,7 +33,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { registerForPartnerPushNotifications } from "@/lib/push-notifications";
 import { resolveThemeBackdrop } from "@/lib/theme-gradients";
-import { DYNAMIC_GRADIENT_MOTION, dynamicThemeForDate, isAnimatedTheme } from "@/lib/dynamic-theme";
+import { DYNAMIC_GRADIENT_MOTION, dynamicThemeForDate, isAnimatedTheme, isHalloweenMonth } from "@/lib/dynamic-theme";
 import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 import { PageContentReset } from "@/components/page-content-reset";
 
@@ -205,6 +205,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
         pathname === item.href || (item.href === "/" && pathname === "/index"),
     ) ?? NAVIGATION[0];
   const renderedTheme = dynamicThemeForDate(theme, themeDate);
+  const halloweenMonth = isHalloweenMonth(themeDate);
   const accentColor = renderedTheme.accentColor ?? COLORS.orchid;
   const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(renderedTheme, undefined, COLORS.blush);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
@@ -404,6 +405,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
+        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}><Text style={styles.halloweenMoon}>☾</Text><Text style={styles.halloweenStarOne}>✦</Text><Text style={styles.halloweenStarTwo}>✦</Text><View style={styles.halloweenFog} /></View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
@@ -639,6 +641,11 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
 const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
   animatedGradient: { ...StyleSheet.absoluteFillObject, left: -112, right: -112, top: -82, bottom: -82 },
+  halloweenAtmosphere: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
+  halloweenMoon: { position: "absolute", top: 30, right: -10, color: "rgba(255, 241, 198, 0.28)", fontSize: 104, lineHeight: 112, fontWeight: "300" },
+  halloweenStarOne: { position: "absolute", top: 88, right: 102, color: "rgba(255, 220, 143, 0.8)", fontSize: 15, lineHeight: 17 },
+  halloweenStarTwo: { position: "absolute", top: 148, left: 26, color: "rgba(255, 193, 102, 0.56)", fontSize: 11, lineHeight: 13 },
+  halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(255, 180, 58, 0.13)", transform: [{ rotate: "-8deg" }] },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
     paddingHorizontal: 20,
