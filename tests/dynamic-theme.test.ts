@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { DYNAMIC_GRADIENT_MOTION, dailyThemePreset, dynamicThemeForDate, HALLOWEEN_MONTH_THEME, isAnimatedTheme, isHalloweenMonth } from "../lib/dynamic-theme";
@@ -38,6 +40,18 @@ describe("shared dynamic themes", () => {
     expect(october.borderColor).toBe(HALLOWEEN_MONTH_THEME.borderColor);
     expect(october.animatedGradient).toBe(true);
     expect(dynamicThemeForDate(sharedTheme, "2026-11-01")).toBe(sharedTheme);
+  });
+
+  it("renders the seasonal Halloween characters and palette from the shared global frame", () => {
+    const frame = readFileSync(resolve(process.cwd(), "components/app-frame.tsx"), "utf8");
+
+    expect(frame).toContain("testID=\"halloween-month-atmosphere\"");
+    expect(frame).toContain("👻");
+    expect(frame).toContain("🦇");
+    expect(frame).toContain("🐺");
+    expect(frame).toContain("🧛");
+    expect(frame).toContain("normalizeGlobalTextColor(renderedTheme.fontColor)");
+    expect(frame).toContain("normalizeGlobalBorderColor(renderedTheme.borderColor)");
   });
 
   it("leaves a manually selected shared theme unchanged when daily rotation is off", () => {

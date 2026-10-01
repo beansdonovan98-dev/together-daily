@@ -128,7 +128,7 @@ describe("theme gradients", () => {
     expect(appFrame).toContain("const hasRoundedOutline =");
     expect(appFrame).toContain("Number(flatStyle.borderWidth ?? 0) > 0");
     expect(appFrame).toContain("isCardSurface || hasRoundedOutline");
-    expect(appFrame).toContain("const borderColor = normalizeGlobalBorderColor(theme.borderColor)");
+    expect(appFrame).toContain("const borderColor = normalizeGlobalBorderColor(renderedTheme.borderColor)");
     expect(appFrame).toContain("borderColor,");
     expect(tabManager).toContain("const textColor = normalizeGlobalTextColor(theme.fontColor)");
     expect(tabManager).toContain("const borderColor = normalizeGlobalBorderColor(theme.borderColor)");

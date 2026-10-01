@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { gifFrameHeight } from "../lib/gif-frame";
+import { gifFrameHeight, mediaFrameHeight } from "../lib/gif-frame";
 import { monthCells, shiftMonth } from "../lib/shared-calendar";
 import { medicineReminderTime, reminderScheduleTime } from "../lib/medicine-reminder-time";
 
@@ -8,6 +8,11 @@ describe("responsive GIF frames", () => {
   it("keeps both wide and tall GIFs fully within the gallery’s bounded frame", () => {
     expect(gifFrameHeight(320, { width: 1600, height: 800 })).toBe(180);
     expect(gifFrameHeight(320, { width: 800, height: 1600 })).toBe(640);
+  });
+
+  it("lets daily covers grow for portrait photos while keeping every pixel visible", () => {
+    expect(mediaFrameHeight(320, { width: 1600, height: 800 }, 155, 560)).toBe(160);
+    expect(mediaFrameHeight(320, { width: 800, height: 1600 }, 155, 560)).toBe(560);
   });
 });
 

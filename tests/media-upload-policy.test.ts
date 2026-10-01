@@ -36,6 +36,9 @@ describe("GIF media upload policy", () => {
     expect(today).toContain("uploadDailyCoverDirect");
     expect(today).toContain("base64: false");
     expect(today).toContain("pickedImageByteSize(asset.uri, asset.fileSize)");
+    expect(today).toContain('contentFit="contain" contentPosition="center"');
+    expect(today).toContain("mediaFrameHeight(coverFrameWidths[key], coverDimensions[key], 155, 560)");
+    expect(today).toContain("onLoad={({ source }) =>");
     expect(today).not.toContain("preparePickedImageForUpload");
     expect(steamy).toContain("isAnimatedGif(asset.mimeType, asset.fileName, asset.uri)");
     expect(steamy).toContain('contentFit={isGif ? "contain" : "cover"}');
