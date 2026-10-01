@@ -79,6 +79,7 @@ describe("global typography", () => {
     expect(frame).toContain('styles.brand, { fontFamily, color: textColor }');
     expect(frame).toContain('styles.pageMenuCurrent, { fontFamily, color: textColor }');
     expect(frame).toContain('styles.pageMenuItemGlyph, { color: textColor }');
+    expect(frame).toContain('normalizeGlobalFont(renderedTheme.fontId ?? theme.fontId ?? customSubheadings.globalFont)');
   });
 
   it("updates the native root typography bridge from the current shared journal state", () => {

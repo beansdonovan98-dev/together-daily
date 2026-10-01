@@ -6,6 +6,7 @@ export type DynamicThemeSettings = {
   backgroundGradient?: string[];
   fontColor?: string;
   borderColor?: string;
+  fontId?: string;
   animatedGradient?: boolean;
   dailyGradientRotation?: boolean;
 };
@@ -16,10 +17,11 @@ const ROTATING_THEMES: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_T
 export const HALLOWEEN_MONTH_THEME = {
   name: "Haunted Together",
   accentColor: "#FF9D1C",
-  backgroundColor: "#19051F",
-  backgroundGradient: ["#16051F", "#4A093B", "#C34716", "#F49A1D"],
+  backgroundColor: "#0B0612",
+  backgroundGradient: ["#08040E", "#2A0B3E", "#6E153E", "#D6521D", "#FFC13C"],
   fontColor: "#FFF4D8",
   borderColor: "#FF9D1C",
+  fontId: "serif",
   animatedGradient: true,
 } as const;
 

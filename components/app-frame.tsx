@@ -175,6 +175,8 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const [pagesOpen, setPagesOpen] = useState(false);
   const [themeDate, setThemeDate] = useState(() => localDateKey());
   const gradientMotion = useRef(new Animated.Value(0)).current;
+  const halloweenDrift = useRef(new Animated.Value(0)).current;
+  const halloweenFlight = useRef(new Animated.Value(0)).current;
   const automaticPushRegistration = useRef<string | null>(null);
   const [pushStatus, setPushStatus] = useState<
     "idle" | "setting-up" | "enabled" | "testing"
@@ -209,7 +211,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const accentColor = renderedTheme.accentColor ?? COLORS.orchid;
   const { backgroundColor, gradient: backgroundGradient } = resolveThemeBackdrop(renderedTheme, undefined, COLORS.blush);
   const scrollBackgroundColor = backgroundGradient ? "transparent" : backgroundColor;
-  const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
+  const selectedFont = normalizeGlobalFont(renderedTheme.fontId ?? theme.fontId ?? customSubheadings.globalFont);
   const fontFamily = fontFamilyFor(selectedFont, Platform.OS as FontPlatform);
   const textColor = normalizeGlobalTextColor(renderedTheme.fontColor);
   const borderColor = normalizeGlobalBorderColor(renderedTheme.borderColor);
@@ -244,6 +246,28 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const gradientShiftX = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [-DYNAMIC_GRADIENT_MOTION.horizontalTravel, DYNAMIC_GRADIENT_MOTION.horizontalTravel] });
   const gradientShiftY = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [DYNAMIC_GRADIENT_MOTION.verticalTravel, -DYNAMIC_GRADIENT_MOTION.verticalTravel] });
   const gradientScale = gradientMotion.interpolate({ inputRange: [0, 1], outputRange: [DYNAMIC_GRADIENT_MOTION.baseScale, DYNAMIC_GRADIENT_MOTION.peakScale] });
+  useEffect(() => {
+    halloweenDrift.stopAnimation();
+    halloweenFlight.stopAnimation();
+    halloweenDrift.setValue(0);
+    halloweenFlight.setValue(0);
+    if (!halloweenMonth) return;
+    const drift = Animated.loop(Animated.sequence([
+      Animated.timing(halloweenDrift, { toValue: 1, duration: 3_100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(halloweenDrift, { toValue: 0, duration: 3_100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    const flight = Animated.loop(Animated.timing(halloweenFlight, { toValue: 1, duration: 8_200, easing: Easing.inOut(Easing.quad), useNativeDriver: true }));
+    drift.start();
+    flight.start();
+    return () => { drift.stop(); flight.stop(); };
+  }, [halloweenDrift, halloweenFlight, halloweenMonth]);
+  const ghostShiftY = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-8, 13] });
+  const ghostTilt = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: ["-4deg", "5deg"] });
+  const ghostGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.36, 0.86] });
+  const batShiftX = halloweenFlight.interpolate({ inputRange: [0, 1], outputRange: [-60, Math.max(220, width + 60)] });
+  const batShiftY = halloweenFlight.interpolate({ inputRange: [0, 0.32, 0.64, 1], outputRange: [0, -34, 12, -16] });
+  const mistShiftX = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-34, 34] });
+  const moonGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0.46] });
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -405,7 +429,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
-        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}><Text style={styles.halloweenMoon}>☾</Text><Text style={styles.halloweenGhost}>👻</Text><Text style={styles.halloweenBat}>🦇</Text><Text style={styles.halloweenWerewolf}>🐺</Text><Text style={styles.halloweenVampire}>🧛</Text><Text style={styles.halloweenStarOne}>✦</Text><Text style={styles.halloweenStarTwo}>✦</Text><View style={styles.halloweenFog} /></View> : null}
+        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}><Animated.Text style={[styles.halloweenMoon, { opacity: moonGlow, transform: [{ scale: halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.06] }) }] }]}>☾</Animated.Text><Animated.Text style={[styles.halloweenGhost, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text><Animated.Text style={[styles.halloweenBat, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-10deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Text style={styles.halloweenStarOne}>✦</Text><Text style={styles.halloweenStarTwo}>✦</Text><Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} /></View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
@@ -462,6 +486,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
             </Pressable>;
           })}</View> : null}
         </View>
+        {halloweenMonth ? <Animated.View testID="halloween-season-ribbon" style={[styles.halloweenRibbon, { borderColor, opacity: ghostGlow, transform: [{ translateY: ghostShiftY }] }]}><Text style={styles.halloweenRibbonText}>☾  SPOOKY SEASON  ·  WITCHY, WILD &amp; IN LOVE  ·  OCTOBER  👻</Text></Animated.View> : null}
         {currentPage.id === "themes" ? (
           <View style={styles.identityArea}>
             {roomCode ? (
@@ -712,6 +737,8 @@ const styles = StyleSheet.create({
   pageMenuItemGlyph: { fontSize: 15 },
   pageMenuItemLabel: { flex: 1, fontSize: 11, fontWeight: "900" },
   pageMenuPressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
+  halloweenRibbon: { marginHorizontal: 16, marginTop: 1, marginBottom: 6, minHeight: 30, borderWidth: 1, borderRadius: 11, backgroundColor: "rgba(40, 5, 38, 0.72)", alignItems: "center", justifyContent: "center", shadowColor: "#FF9D1C", shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
+  halloweenRibbonText: { color: "#FFF0CE", fontSize: 9, fontWeight: "900", letterSpacing: 0.75, textAlign: "center", paddingHorizontal: 8 },
   identityArea: {
     borderBottomWidth: 1,
     borderBottomColor: "#211C24",

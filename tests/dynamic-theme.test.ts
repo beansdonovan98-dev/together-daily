@@ -38,7 +38,9 @@ describe("shared dynamic themes", () => {
     expect(october.accentColor).toBe(HALLOWEEN_MONTH_THEME.accentColor);
     expect(october.fontColor).toBe(HALLOWEEN_MONTH_THEME.fontColor);
     expect(october.borderColor).toBe(HALLOWEEN_MONTH_THEME.borderColor);
+    expect(october.fontId).toBe("serif");
     expect(october.animatedGradient).toBe(true);
+    expect(HALLOWEEN_MONTH_THEME.backgroundGradient).toHaveLength(5);
     expect(dynamicThemeForDate(sharedTheme, "2026-11-01")).toBe(sharedTheme);
   });
 
@@ -50,6 +52,12 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("🦇");
     expect(frame).toContain("🐺");
     expect(frame).toContain("🧛");
+    expect(frame).toContain("testID=\"halloween-season-ribbon\"");
+    expect(frame).toContain("halloweenDrift");
+    expect(frame).toContain("halloweenFlight");
+    expect(frame).toContain("ghostShiftY");
+    expect(frame).toContain("batShiftX");
+    expect(frame).toContain("mistShiftX");
     expect(frame).toContain("normalizeGlobalTextColor(renderedTheme.fontColor)");
     expect(frame).toContain("normalizeGlobalBorderColor(renderedTheme.borderColor)");
   });
