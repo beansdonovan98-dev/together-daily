@@ -95,6 +95,8 @@ function withSharedTheme(state: JournalState, theme: SharedThemePreferences): Jo
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null);
   const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const weeklyCleaningTaskAdd = trpc.guestRoom.addWeeklyCleaningTask.useMutation(); const appUsageRecord = trpc.guestRoom.recordAppUsage.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDirectRequest = trpc.guestRoom.requestDailyCoverDirectUpload.useMutation(); const dailyCoverDirectConfirm = trpc.guestRoom.confirmDailyCoverDirectUpload.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDirectRequest = trpc.guestRoom.requestPrivateMediaDirectUpload.useMutation(); const privateMediaDirectConfirm = trpc.guestRoom.confirmPrivateMediaDirectUpload.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation(); const privateMediaCommentCreate = trpc.guestRoom.addPrivateMediaComment.useMutation(); const privateMediaCommentDelete = trpc.guestRoom.deletePrivateMediaComment.useMutation(); const privateMediaCommentViewed = trpc.guestRoom.markPrivateMediaCommentsViewed.useMutation(); const calendarBackgroundUpload = trpc.guestRoom.uploadCalendarBackground.useMutation(); const calendarBackgroundDelete = trpc.guestRoom.deleteCalendarBackground.useMutation();
+  const appUsageRecordRef = useRef(appUsageRecord.mutateAsync);
+  appUsageRecordRef.current = appUsageRecord.mutateAsync;
   const remote = trpc.guestRoom.get.useQuery({ roomCode:prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval:3_000, retry:1 });
   const partnerAlertReadiness = trpc.guestRoom.getPushStatus.useQuery({ roomCode:prefs.roomCode ?? "", partnerId:prefs.memberId ?? "beans" }, { enabled: ready && Boolean(prefs.roomCode) && Boolean(prefs.memberId), refetchInterval:8_000, retry:1 });
   const testPartnerAlert = trpc.guestRoom.sendTestPartnerAlert.useMutation();
@@ -111,22 +113,26 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
 
     let activeSince = AppState.currentState === "active" ? Date.now() : null;
     let disposed = false;
+    let flushing = false;
     const flushForegroundTime = async () => {
       const startedAt = activeSince;
-      if (!startedAt || disposed) return;
+      if (!startedAt || disposed || flushing) return;
+      flushing = true;
       const endedAt = Date.now();
       activeSince = endedAt;
       const entries = splitForegroundSession(startedAt, endedAt);
-      if (!entries.length) return;
+      if (!entries.length) { flushing = false; return; }
 
       try {
-        const result = await appUsageRecord.mutateAsync({ roomCode, partnerId, entries });
+        const result = await appUsageRecordRef.current({ roomCode, partnerId, entries });
         if (disposed) return;
         const next = normalizeJournalState(result.journalState);
         setState(next);
         AsyncStorage.setItem(STATE_KEY, JSON.stringify(next)).catch(() => undefined);
       } catch {
-        // Keep the current session anchor. The next 15-second active checkpoint will retry.
+        // Keep the next active checkpoint available without creating a render loop.
+      } finally {
+        flushing = false;
       }
     };
 
@@ -146,7 +152,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
       subscription.remove();
       clearInterval(checkpoint);
     };
-  }, [appUsageRecord, prefs.memberId, prefs.roomCode, ready, roomMembers]);
+  }, [prefs.memberId, prefs.roomCode, ready, roomMembers]);
   useEffect(()=>{if(!ready)return;const items=state.purchaseItems??[];const datedItems=items.map((item)=>item.category==="groceries"&&item.purchased&&!item.purchasedOn?{...item,purchasedOn:today}:item);const remaining=clearPurchasedGroceriesFromPreviousDays(datedItems,today);if(JSON.stringify(remaining)===JSON.stringify(items))return;persist({...state,purchaseItems:remaining});},[ready,state,today]);
   const ensureDay=(date:string)=>{if(!state.days[date])persist({...state,days:{...state.days,[date]:createDayWithCarriedHealthTasks(state.days,date)}});};
   const partnerNames: Record<PartnerId, string> = { beans: state.partnerNames?.beans?.trim() || DEFAULT_PARTNER_NAMES.beans, princess: state.partnerNames?.princess?.trim() || DEFAULT_PARTNER_NAMES.princess };

@@ -268,8 +268,6 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const batShiftY = halloweenFlight.interpolate({ inputRange: [0, 0.32, 0.64, 1], outputRange: [0, -34, 12, -16] });
   const mistShiftX = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-34, 34] });
   const moonGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0.46] });
-  const starGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.32, 0.92] });
-  const starScale = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.76, 1.22] });
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -296,25 +294,12 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
             { backgroundColor: scrollBackgroundColor },
           ],
           style: [child.props.style, { backgroundColor: scrollBackgroundColor }],
-          children: (() => {
-            const revealedContent = revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor);
-            const pageContent = showAutomaticPageReset
-              ? appendPageContentReset(revealedContent, currentPage.id)
-              : revealedContent;
-            if (!halloweenMonth) return pageContent;
-            return <View testID="halloween-full-page-sky" style={styles.halloweenPageLayer}>
-              <View pointerEvents="none" style={styles.halloweenPageAtmosphere}>
-                <Animated.Text style={[styles.halloweenPageMoon, { opacity: moonGlow, transform: [{ scale: starScale }] }]}>☾</Animated.Text>
-                <Animated.Text style={[styles.halloweenPageStar, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text>
-                <Animated.Text style={[styles.halloweenPageStarTwo, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text>
-                <Animated.Text style={[styles.halloweenPageStarThree, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text>
-                <Animated.Text style={[styles.halloweenPageGhost, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text>
-                <Animated.Text style={[styles.halloweenPageBat, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }]}>🦇</Animated.Text>
-                <Animated.View style={[styles.halloweenPageMist, { transform: [{ translateX: mistShiftX }, { rotate: "-7deg" }] }]} />
-              </View>
-              <View style={styles.halloweenPageContent}>{pageContent}</View>
-            </View>;
-          })(),
+          children: showAutomaticPageReset
+            ? appendPageContentReset(
+                revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
+                currentPage.id,
+              )
+            : revealGradientCardSurfaces(child.props.children, fontFamily, textColor, borderColor),
       })
     : children;
 
@@ -695,16 +680,6 @@ const styles = StyleSheet.create({
   halloweenStarOne: { position: "absolute", top: 88, right: 102, color: "rgba(255, 220, 143, 0.8)", fontSize: 15, lineHeight: 17 },
   halloweenStarTwo: { position: "absolute", top: 148, left: 26, color: "rgba(255, 193, 102, 0.56)", fontSize: 11, lineHeight: 13 },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(255, 180, 58, 0.13)", transform: [{ rotate: "-8deg" }] },
-  halloweenPageLayer: { position: "relative", minHeight: "100%", overflow: "hidden" },
-  halloweenPageAtmosphere: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
-  halloweenPageContent: { zIndex: 1 },
-  halloweenPageMoon: { position: "absolute", top: 80, right: -32, color: "rgba(255, 248, 210, 0.3)", fontSize: 142, lineHeight: 150, fontWeight: "300" },
-  halloweenPageStar: { position: "absolute", top: 64, left: "18%", color: "rgba(255, 239, 163, .8)", fontSize: 18, lineHeight: 21 },
-  halloweenPageStarTwo: { position: "absolute", top: "39%", right: "10%", color: "rgba(255, 227, 179, .72)", fontSize: 14, lineHeight: 17 },
-  halloweenPageStarThree: { position: "absolute", bottom: "19%", left: "11%", color: "rgba(255, 243, 189, .75)", fontSize: 17, lineHeight: 20 },
-  halloweenPageGhost: { position: "absolute", top: "57%", right: 18, fontSize: 34, opacity: 0.58 },
-  halloweenPageBat: { position: "absolute", top: "26%", left: -90, fontSize: 21, opacity: 0.46 },
-  halloweenPageMist: { position: "absolute", left: -96, right: -96, bottom: -130, height: 300, borderRadius: 180, backgroundColor: "rgba(255, 223, 158, .16)" },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
     paddingHorizontal: 20,

@@ -41,6 +41,8 @@ describe("foreground app activity tracking", () => {
     expect(journal).toContain('AppState.addEventListener("change"');
     expect(journal).toContain("setInterval(() => { void flushForegroundTime(); }, 15_000)");
     expect(journal).toContain("recordAppUsage.useMutation()");
+    expect(journal).toContain("appUsageRecordRef");
+    expect(journal).toContain("let flushing = false");
     expect(router).toContain("recordAppUsage");
     expect(database).toContain('for("update")');
     expect(database).toContain("mergeGuestRoomAppUsage");
