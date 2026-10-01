@@ -254,6 +254,9 @@ export const appRouter = router({
     addWeeklyCleaningTask: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, weekStart: dateSchema, text: z.string().trim().min(1).max(240) }))
       .mutation(({ input }) => db.addGuestRoomWeeklyCleaningTask(input)),
+    recordAppUsage: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, entries: z.array(z.object({ date: dateSchema, milliseconds: z.number().int().positive().max(90_000) })).min(1).max(3) }))
+      .mutation(({ input }) => db.recordGuestRoomAppUsage(input)),
     update: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),

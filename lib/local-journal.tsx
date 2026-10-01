@@ -10,6 +10,8 @@ import { clearPageContent as clearSavedPageContent, type ResettablePageId } from
 import { selectSharedTheme } from "@/lib/shared-theme-preferences";
 import { appendWeeklyCleaningTask } from "@/lib/weekly-cleaning";
 import { normalizeAffectionGoals, updateAffectionGoal as updateAffectionGoalDefinition, type AffectionGoal, type AffectionGoalKey } from "@/lib/affection-goals";
+import { splitForegroundSession } from "@/lib/app-usage";
+import { AppState, type AppStateStatus } from "react-native";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const STATE_KEY = "together-daily-journal-v2";
@@ -92,7 +94,7 @@ function withSharedTheme(state: JournalState, theme: SharedThemePreferences): Jo
 
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null);
-  const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const weeklyCleaningTaskAdd = trpc.guestRoom.addWeeklyCleaningTask.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDirectRequest = trpc.guestRoom.requestDailyCoverDirectUpload.useMutation(); const dailyCoverDirectConfirm = trpc.guestRoom.confirmDailyCoverDirectUpload.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDirectRequest = trpc.guestRoom.requestPrivateMediaDirectUpload.useMutation(); const privateMediaDirectConfirm = trpc.guestRoom.confirmPrivateMediaDirectUpload.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation(); const privateMediaCommentCreate = trpc.guestRoom.addPrivateMediaComment.useMutation(); const privateMediaCommentDelete = trpc.guestRoom.deletePrivateMediaComment.useMutation(); const privateMediaCommentViewed = trpc.guestRoom.markPrivateMediaCommentsViewed.useMutation(); const calendarBackgroundUpload = trpc.guestRoom.uploadCalendarBackground.useMutation(); const calendarBackgroundDelete = trpc.guestRoom.deleteCalendarBackground.useMutation();
+  const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const weeklyCleaningTaskAdd = trpc.guestRoom.addWeeklyCleaningTask.useMutation(); const appUsageRecord = trpc.guestRoom.recordAppUsage.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDirectRequest = trpc.guestRoom.requestDailyCoverDirectUpload.useMutation(); const dailyCoverDirectConfirm = trpc.guestRoom.confirmDailyCoverDirectUpload.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDirectRequest = trpc.guestRoom.requestPrivateMediaDirectUpload.useMutation(); const privateMediaDirectConfirm = trpc.guestRoom.confirmPrivateMediaDirectUpload.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation(); const privateMediaCommentCreate = trpc.guestRoom.addPrivateMediaComment.useMutation(); const privateMediaCommentDelete = trpc.guestRoom.deletePrivateMediaComment.useMutation(); const privateMediaCommentViewed = trpc.guestRoom.markPrivateMediaCommentsViewed.useMutation(); const calendarBackgroundUpload = trpc.guestRoom.uploadCalendarBackground.useMutation(); const calendarBackgroundDelete = trpc.guestRoom.deleteCalendarBackground.useMutation();
   const remote = trpc.guestRoom.get.useQuery({ roomCode:prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval:3_000, retry:1 });
   const partnerAlertReadiness = trpc.guestRoom.getPushStatus.useQuery({ roomCode:prefs.roomCode ?? "", partnerId:prefs.memberId ?? "beans" }, { enabled: ready && Boolean(prefs.roomCode) && Boolean(prefs.memberId), refetchInterval:8_000, retry:1 });
   const testPartnerAlert = trpc.guestRoom.sendTestPartnerAlert.useMutation();
@@ -102,6 +104,49 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{setState(next); const serialized=JSON.stringify(next); AsyncStorage.setItem(STATE_KEY,serialized).catch(()=>undefined); if(prefs.roomCode){pendingSharedState.current=serialized; sync.mutate({roomCode:prefs.roomCode,journalState:next,actorId:prefs.memberId??undefined,notificationType},{onSuccess:()=>{if(pendingSharedState.current===serialized)pendingSharedState.current=null;},onError:(error)=>{if(pendingSharedState.current===serialized)pendingSharedState.current=null;setSyncError(error.message);}});}};
   const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};
   useEffect(()=>{const timer=setInterval(()=>setToday(localDateKey()),60_000);return()=>clearInterval(timer);},[]);
+  useEffect(() => {
+    const roomCode = prefs.roomCode;
+    const partnerId = prefs.memberId;
+    if (!ready || !roomCode || !partnerId || !roomMembers.includes(partnerId)) return;
+
+    let activeSince = AppState.currentState === "active" ? Date.now() : null;
+    let disposed = false;
+    const flushForegroundTime = async () => {
+      const startedAt = activeSince;
+      if (!startedAt || disposed) return;
+      const endedAt = Date.now();
+      activeSince = endedAt;
+      const entries = splitForegroundSession(startedAt, endedAt);
+      if (!entries.length) return;
+
+      try {
+        const result = await appUsageRecord.mutateAsync({ roomCode, partnerId, entries });
+        if (disposed) return;
+        const next = normalizeJournalState(result.journalState);
+        setState(next);
+        AsyncStorage.setItem(STATE_KEY, JSON.stringify(next)).catch(() => undefined);
+      } catch {
+        // Keep the current session anchor. The next 15-second active checkpoint will retry.
+      }
+    };
+
+    const subscription = AppState.addEventListener("change", (nextState: AppStateStatus) => {
+      if (nextState === "active") {
+        activeSince = Date.now();
+        return;
+      }
+      void flushForegroundTime();
+      activeSince = null;
+    });
+    const checkpoint = setInterval(() => { void flushForegroundTime(); }, 15_000);
+
+    return () => {
+      void flushForegroundTime();
+      disposed = true;
+      subscription.remove();
+      clearInterval(checkpoint);
+    };
+  }, [appUsageRecord, prefs.memberId, prefs.roomCode, ready, roomMembers]);
   useEffect(()=>{if(!ready)return;const items=state.purchaseItems??[];const datedItems=items.map((item)=>item.category==="groceries"&&item.purchased&&!item.purchasedOn?{...item,purchasedOn:today}:item);const remaining=clearPurchasedGroceriesFromPreviousDays(datedItems,today);if(JSON.stringify(remaining)===JSON.stringify(items))return;persist({...state,purchaseItems:remaining});},[ready,state,today]);
   const ensureDay=(date:string)=>{if(!state.days[date])persist({...state,days:{...state.days,[date]:createDayWithCarriedHealthTasks(state.days,date)}});};
   const partnerNames: Record<PartnerId, string> = { beans: state.partnerNames?.beans?.trim() || DEFAULT_PARTNER_NAMES.beans, princess: state.partnerNames?.princess?.trim() || DEFAULT_PARTNER_NAMES.princess };

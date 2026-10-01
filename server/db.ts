@@ -538,13 +538,100 @@ export async function addGuestRoomWeeklyCleaningTask(input: { roomCode: string; 
   return { roomCode, journalState: nextState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
 }
 
+/**
+ * Adds short, measured foreground sessions without replacing either partner's
+ * journal snapshot. Each client sends at most a small active interval and the
+ * database merges it while holding the room row transaction open.
+ */
+export async function recordGuestRoomAppUsage(input: {
+  roomCode: string;
+  partnerId: GuestRoomMemberId;
+  entries: { date: string; milliseconds: number }[];
+}) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+
+  return db.transaction(async (tx) => {
+    const existing = await tx.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1).for("update");
+    if (!existing[0]) throw new Error("That shared room code was not found.");
+    const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+    if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before recording app activity.");
+
+    const state = parseObject(existing[0].journalState);
+    const days = state.days && typeof state.days === "object" && !Array.isArray(state.days) ? state.days as JsonObject : {};
+    const nextDays: JsonObject = { ...days };
+
+    for (const entry of input.entries) {
+      const currentDay = nextDays[entry.date] && typeof nextDays[entry.date] === "object" && !Array.isArray(nextDays[entry.date])
+        ? nextDays[entry.date] as JsonObject
+        : { date: entry.date };
+      const currentUsage = currentDay.appUsage && typeof currentDay.appUsage === "object" && !Array.isArray(currentDay.appUsage)
+        ? currentDay.appUsage as JsonObject
+        : {};
+      const boundedMilliseconds = Math.min(90_000, Math.max(1, Math.round(entry.milliseconds)));
+      const existingMilliseconds = Number(currentUsage[input.partnerId] ?? 0);
+
+      nextDays[entry.date] = {
+        ...currentDay,
+        date: entry.date,
+        appUsage: {
+          ...currentUsage,
+          [input.partnerId]: Math.max(0, Number.isFinite(existingMilliseconds) ? existingMilliseconds : 0) + boundedMilliseconds,
+        },
+      };
+    }
+
+    const journalState = { ...state, days: nextDays };
+    await tx.update(guestRooms).set({ journalState: JSON.stringify(journalState) }).where(eq(guestRooms.roomCode, roomCode));
+    return { roomCode, journalState, memberIds, updatedAt: new Date() };
+  });
+}
+
+/** Keeps independently measured activity totals when an older full room snapshot arrives. */
+export function mergeGuestRoomAppUsage(currentState: JsonObject, incomingState: JsonObject): JsonObject {
+  const currentDays = currentState.days && typeof currentState.days === "object" && !Array.isArray(currentState.days)
+    ? currentState.days as JsonObject
+    : {};
+  const incomingDays = incomingState.days && typeof incomingState.days === "object" && !Array.isArray(incomingState.days)
+    ? incomingState.days as JsonObject
+    : {};
+  const nextDays: JsonObject = { ...incomingDays };
+
+  for (const [date, currentValue] of Object.entries(currentDays)) {
+    if (!currentValue || typeof currentValue !== "object" || Array.isArray(currentValue)) continue;
+    const currentDay = currentValue as JsonObject;
+    const currentUsage = currentDay.appUsage && typeof currentDay.appUsage === "object" && !Array.isArray(currentDay.appUsage)
+      ? currentDay.appUsage as JsonObject
+      : null;
+    if (!currentUsage) continue;
+
+    const incomingValue = nextDays[date] && typeof nextDays[date] === "object" && !Array.isArray(nextDays[date])
+      ? nextDays[date] as JsonObject
+      : { date };
+    const incomingUsage = incomingValue.appUsage && typeof incomingValue.appUsage === "object" && !Array.isArray(incomingValue.appUsage)
+      ? incomingValue.appUsage as JsonObject
+      : {};
+
+    nextDays[date] = {
+      ...incomingValue,
+      date,
+      appUsage: {
+        beans: Math.max(0, Number(currentUsage.beans ?? 0), Number(incomingUsage.beans ?? 0)),
+        princess: Math.max(0, Number(currentUsage.princess ?? 0), Number(incomingUsage.princess ?? 0)),
+      },
+    };
+  }
+
+  return { ...incomingState, days: nextDays };
+}
+
 export async function updateGuestRoom(roomCode: string, journalState: JsonObject, actorId?: GuestRoomMemberId, notificationType?: PartnerNotificationEvent) {
   const db = requireDb(await getDb());
   const normalizedCode = roomCode.trim().toUpperCase();
   const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, normalizedCode)).limit(1);
   if (!existing[0]) throw new Error("That shared room code was not found.");
   const currentState = parseObject(existing[0].journalState);
-  const nextState = mergeSharedThemeRevision(currentState, journalState);
+  const nextState = mergeGuestRoomAppUsage(currentState, mergeSharedThemeRevision(currentState, journalState));
   await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, normalizedCode));
   if (actorId && notificationType) await notifyGuestRoomPartner(normalizedCode, actorId, notificationType);
   return { roomCode: normalizedCode, journalState: nextState, memberIds: parseGuestRoomMembers(existing[0].memberIds), updatedAt: new Date() };
