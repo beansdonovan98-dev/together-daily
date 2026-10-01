@@ -17,8 +17,8 @@ const ROTATING_THEMES: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_T
 export const HALLOWEEN_MONTH_THEME = {
   name: "Haunted Together",
   accentColor: "#FF9D1C",
-  backgroundColor: "#431C62",
-  backgroundGradient: ["#431C62", "#6E285C", "#AF3F4C", "#EC792C", "#FFD15A"],
+  backgroundColor: "#243A7A",
+  backgroundGradient: ["#1E356C", "#3A529B", "#704A9C", "#C05774", "#FF9D45"],
   fontColor: "#FFF4D8",
   borderColor: "#FF9D1C",
   fontId: "serif",
