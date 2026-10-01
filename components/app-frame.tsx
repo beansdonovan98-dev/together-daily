@@ -273,6 +273,8 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const moonGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0.46] });
   const starGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.9] });
   const starScale = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.74, 1.2] });
+  const graveyardShiftX = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-7, 7] });
+  const graveyardOpacity = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.32, 0.54] });
   const spookyCreatureScale = spookyCreaturePop.interpolate({ inputRange: [0, 0.45, 1], outputRange: [1, 1.34, 1] });
   const triggerSpookyCreature = (creature: "ghost" | "bat") => {
     setSpookyCreatureMessage(creature === "ghost" ? "BOO!" : "FLUTTER!");
@@ -454,6 +456,17 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
           <Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenWitch, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧙‍♀️</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Animated.Text style={[styles.halloweenVampireTwo, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text>
           <Animated.Text style={[styles.halloweenStarOne, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarTwo, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarThree, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarFour, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarFive, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarSix, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarSeven, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarEight, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text>
           <Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} />
+          <Animated.View testID="halloween-graveyard-silhouette" pointerEvents="none" style={[styles.halloweenGraveyard, { opacity: graveyardOpacity, transform: [{ translateX: graveyardShiftX }] }]}>
+            <View style={styles.halloweenGraveyardGround} />
+            <View style={styles.halloweenGraveyardHaze} />
+            <View style={styles.halloweenGraveyardFenceRail} />
+            {[12, 38, 64, 92, 119, 148, 176, 205, 234, 262, 291, 320, 350, 380, 410].map((left) => <View key={left} style={[styles.halloweenGraveyardFencePost, { left }]} />)}
+            <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneOne]}>✝</Text>
+            <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneTwo]}>✝</Text>
+            <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneThree]}>✝</Text>
+            <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneFour]}>♱</Text>
+            <Text style={styles.halloweenGraveyardPumpkin}>☠</Text>
+          </Animated.View>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the second floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostTwoHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenCreatureGlyphSmall, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the flying bats" onPress={() => triggerSpookyCreature("bat")} style={({ pressed }) => [styles.halloweenBatHitArea, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenBatGlyph, { transform: [{ rotate: "-10deg" }, { scale: spookyCreatureScale }] }]}>🦇</Animated.Text></Pressable>
@@ -724,6 +737,17 @@ const styles = StyleSheet.create({
   halloweenStarSeven: { position: "absolute", top: "71%", right: "19%", color: "rgba(255, 213, 132, 0.7)", fontSize: 18, lineHeight: 21 },
   halloweenStarEight: { position: "absolute", bottom: "11%", left: "45%", color: "rgba(255, 248, 205, 0.72)", fontSize: 14, lineHeight: 17 },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(255, 180, 58, 0.13)", transform: [{ rotate: "-8deg" }] },
+  halloweenGraveyard: { position: "absolute", left: -18, right: -18, bottom: -2, height: 138, overflow: "hidden" },
+  halloweenGraveyardGround: { position: "absolute", left: 0, right: 0, bottom: 0, height: 70, borderTopLeftRadius: "52%", borderTopRightRadius: "48%", backgroundColor: "rgba(14, 8, 29, 0.7)" },
+  halloweenGraveyardHaze: { position: "absolute", left: -34, right: -34, bottom: 46, height: 58, borderRadius: 50, backgroundColor: "rgba(184, 151, 228, 0.15)" },
+  halloweenGraveyardFenceRail: { position: "absolute", left: 0, right: 0, bottom: 51, height: 3, borderRadius: 3, backgroundColor: "rgba(7, 4, 18, 0.76)" },
+  halloweenGraveyardFencePost: { position: "absolute", bottom: 35, width: 3, height: 45, borderRadius: 2, backgroundColor: "rgba(7, 4, 18, 0.76)" },
+  halloweenHeadstone: { position: "absolute", bottom: 43, color: "rgba(8, 4, 20, 0.82)", fontSize: 28, lineHeight: 32, fontWeight: "900" },
+  halloweenHeadstoneOne: { left: "16%", transform: [{ scaleY: 1.22 }] },
+  halloweenHeadstoneTwo: { left: "39%", transform: [{ scaleY: 0.95 }] },
+  halloweenHeadstoneThree: { left: "64%", transform: [{ scaleY: 1.15 }] },
+  halloweenHeadstoneFour: { left: "82%", transform: [{ scaleY: 0.87 }] },
+  halloweenGraveyardPumpkin: { position: "absolute", right: "27%", bottom: 42, color: "rgba(8, 4, 20, 0.78)", fontSize: 19, lineHeight: 24 },
   halloweenGhostHitArea: { position: "absolute", top: 180, right: 17, width: 58, height: 58, alignItems: "center", justifyContent: "center" },
   halloweenGhostTwoHitArea: { position: "absolute", top: 298, left: 8, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
   halloweenGhostThreeHitArea: { position: "absolute", top: "49%", right: 24, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
