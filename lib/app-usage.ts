@@ -79,3 +79,12 @@ export function formatActivityMinutes(milliseconds: number | undefined) {
   const remainingMinutes = minutes % 60;
   return hours ? `${hours}h ${remainingMinutes}m` : `${minutes} min`;
 }
+
+/** Formats exact foreground duration for the live app-time display. */
+export function formatActivityDuration(milliseconds: number | undefined) {
+  const totalSeconds = Math.max(0, Math.floor(Number(milliseconds ?? 0) / 1_000));
+  const hours = Math.floor(totalSeconds / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+}

@@ -66,6 +66,11 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("halloweenSkyGlow");
     expect(frame).toContain("halloweenStarFive");
     expect(frame).toContain("starGlow");
+    expect(frame).toContain("triggerSpookyCreature");
+    expect(frame).toContain('accessibilityLabel="Play with the floating ghost"');
+    expect(frame).toContain('accessibilityLabel="Play with the flying bats"');
+    expect(frame).toContain("halloweenCreatureMessage");
+    expect(frame).toContain("ImpactFeedbackStyle.Light");
     expect(frame).not.toContain("halloween-full-page-sky");
     expect(frame).toContain("normalizeGlobalTextColor(renderedTheme.fontColor)");
     expect(frame).toContain("normalizeGlobalBorderColor(renderedTheme.borderColor)");

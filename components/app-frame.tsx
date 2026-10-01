@@ -3,6 +3,7 @@ import { COLORS, localDateKey } from "@/lib/together";
 import { PARTNERS, useLocalJournal } from "@/lib/local-journal";
 import { router, usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import QRCode from "react-native-qrcode-svg";
 import {
@@ -177,7 +178,9 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const gradientMotion = useRef(new Animated.Value(0)).current;
   const halloweenDrift = useRef(new Animated.Value(0)).current;
   const halloweenFlight = useRef(new Animated.Value(0)).current;
+  const spookyCreaturePop = useRef(new Animated.Value(0)).current;
   const automaticPushRegistration = useRef<string | null>(null);
+  const [spookyCreatureMessage, setSpookyCreatureMessage] = useState("");
   const [pushStatus, setPushStatus] = useState<
     "idle" | "setting-up" | "enabled" | "testing"
   >("idle");
@@ -270,6 +273,17 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const moonGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0.46] });
   const starGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.9] });
   const starScale = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.74, 1.2] });
+  const spookyCreatureScale = spookyCreaturePop.interpolate({ inputRange: [0, 0.45, 1], outputRange: [1, 1.34, 1] });
+  const triggerSpookyCreature = (creature: "ghost" | "bat") => {
+    setSpookyCreatureMessage(creature === "ghost" ? "BOO!" : "FLUTTER!");
+    if (Platform.OS !== "web") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    spookyCreaturePop.stopAnimation();
+    spookyCreaturePop.setValue(0);
+    Animated.sequence([
+      Animated.timing(spookyCreaturePop, { toValue: 0.45, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(spookyCreaturePop, { toValue: 1, duration: 290, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+    ]).start();
+  };
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -431,14 +445,18 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
-        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}>
+        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="box-none" style={styles.halloweenAtmosphere}>
           <Animated.View style={[styles.halloweenSkyGlow, { opacity: starGlow, transform: [{ translateX: mistShiftX }, { scale: starScale }] }]} />
           <Animated.Text style={[styles.halloweenMoon, { opacity: moonGlow, transform: [{ scale: halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.06] }) }] }]}>☾</Animated.Text>
-          <Animated.Text style={[styles.halloweenGhost, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text><Animated.Text style={[styles.halloweenGhostTwo, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text>
-          <Animated.Text style={[styles.halloweenBat, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-10deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatTwo, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "7deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatThree, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-5deg" }] }]}>🦇</Animated.Text>
           <Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenWitch, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧙‍♀️</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Animated.Text style={[styles.halloweenVampireTwo, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text>
           <Animated.Text style={[styles.halloweenStarOne, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarTwo, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarThree, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarFour, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarFive, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text>
           <Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Play with the floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Play with the second floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostTwoHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenCreatureGlyphSmall, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Play with the flying bats" onPress={() => triggerSpookyCreature("bat")} style={({ pressed }) => [styles.halloweenBatHitArea, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenBatGlyph, { transform: [{ rotate: "-10deg" }, { scale: spookyCreatureScale }] }]}>🦇</Animated.Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Play with the second flying bat" onPress={() => triggerSpookyCreature("bat")} style={({ pressed }) => [styles.halloweenBatTwoHitArea, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenBatGlyphSmall, { transform: [{ rotate: "7deg" }, { scale: spookyCreatureScale }] }]}>🦇</Animated.Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Play with the third flying bat" onPress={() => triggerSpookyCreature("bat")} style={({ pressed }) => [styles.halloweenBatThreeHitArea, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenBatGlyphTiny, { transform: [{ rotate: "-5deg" }, { scale: spookyCreatureScale }] }]}>🦇</Animated.Text></Pressable>
+          {spookyCreatureMessage ? <Animated.View pointerEvents="none" style={[styles.halloweenCreatureMessage, { opacity: spookyCreaturePop, transform: [{ scale: spookyCreatureScale }] }]}><Text style={styles.halloweenCreatureMessageText}>{spookyCreatureMessage}</Text></Animated.View> : null}
         </View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
@@ -694,6 +712,19 @@ const styles = StyleSheet.create({
   halloweenStarFour: { position: "absolute", top: "63%", left: 38, color: "rgba(255, 224, 150, 0.68)", fontSize: 14, lineHeight: 17 },
   halloweenStarFive: { position: "absolute", bottom: 76, right: "34%", color: "rgba(255, 244, 197, 0.76)", fontSize: 16, lineHeight: 19 },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(255, 180, 58, 0.13)", transform: [{ rotate: "-8deg" }] },
+  halloweenGhostHitArea: { position: "absolute", top: 180, right: 17, width: 58, height: 58, alignItems: "center", justifyContent: "center" },
+  halloweenGhostTwoHitArea: { position: "absolute", top: 298, left: 8, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
+  halloweenBatHitArea: { position: "absolute", top: 102, left: 47, width: 48, height: 44, alignItems: "center", justifyContent: "center" },
+  halloweenBatTwoHitArea: { position: "absolute", top: 150, left: -94, width: 48, height: 44, alignItems: "center", justifyContent: "center" },
+  halloweenBatThreeHitArea: { position: "absolute", top: 70, left: -154, width: 44, height: 40, alignItems: "center", justifyContent: "center" },
+  halloweenCreatureGlyph: { fontSize: 28, lineHeight: 35, opacity: 0.68 },
+  halloweenCreatureGlyphSmall: { fontSize: 25, lineHeight: 31 },
+  halloweenBatGlyph: { fontSize: 22, lineHeight: 28, opacity: 0.62 },
+  halloweenBatGlyphSmall: { fontSize: 20, lineHeight: 26, opacity: 0.68 },
+  halloweenBatGlyphTiny: { fontSize: 17, lineHeight: 23, opacity: 0.62 },
+  halloweenCreaturePressed: { opacity: 0.72, transform: [{ scale: 0.94 }] },
+  halloweenCreatureMessage: { position: "absolute", top: 238, right: 45, minWidth: 64, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(28, 11, 36, 0.86)", borderWidth: 1, borderColor: "#F6C261", alignItems: "center" },
+  halloweenCreatureMessageText: { color: "#FFF0CE", fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
     paddingHorizontal: 20,

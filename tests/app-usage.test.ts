@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { activityMinutes, addForegroundUsage, formatActivityMinutes, mergeUsageTotals, splitForegroundSession } from "../lib/app-usage";
+import { activityMinutes, addForegroundUsage, formatActivityDuration, formatActivityMinutes, mergeUsageTotals, splitForegroundSession } from "../lib/app-usage";
 
 describe("foreground app activity tracking", () => {
   it("records only the measured active interval and splits a session at midnight", () => {
@@ -23,6 +23,8 @@ describe("foreground app activity tracking", () => {
     expect(both["2026-10-01"]).toEqual({ beans: 61_000, princess: 125_000 });
     expect(formatActivityMinutes(125_000)).toBe("2 min");
     expect(activityMinutes(3_660_000)).toBe(61);
+    expect(formatActivityDuration(3_661_000)).toBe("01h 01m 01s");
+    expect(formatActivityDuration(8_000)).toBe("00h 00m 08s");
   });
 
   it("does not let a stale shared snapshot reduce tracked activity", () => {
@@ -47,11 +49,14 @@ describe("foreground app activity tracking", () => {
     expect(database).toContain('for("update")');
     expect(database).toContain("mergeGuestRoomAppUsage");
     expect(today).toContain("TODAY’S APP TIME");
-    expect(today).toContain("Only counts while Together Daily is open and active");
-    expect(today).toContain("formatActivityMinutes");
+    expect(today).toContain("Seconds update live on the active phone");
+    expect(today).toContain("formatActivityDuration");
+    expect(today).toContain("AppState.addEventListener");
     expect(today).toContain('testID="shared-app-time-card"');
     expect(today).toContain("SHARED ACTIVE TIME");
     expect(today).toContain("appActivityTrack");
     expect(today).toContain("appActivityFill");
+    expect(today).toContain("useLiveForegroundActivity");
+    expect(today).toContain("formatActivityDuration");
   });
 });
