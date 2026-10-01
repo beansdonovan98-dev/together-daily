@@ -51,7 +51,12 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("👻");
     expect(frame).toContain("🦇");
     expect(frame).toContain("🐺");
+    expect(frame).toContain("🧙‍♀️");
     expect(frame).toContain("🧛");
+    expect(frame).toContain("halloweenGhostTwo");
+    expect(frame).toContain("halloweenBatTwo");
+    expect(frame).toContain("halloweenBatThree");
+    expect(frame).toContain("halloweenVampireTwo");
     expect(frame).toContain("testID=\"halloween-season-ribbon\"");
     expect(frame).toContain("halloweenDrift");
     expect(frame).toContain("halloweenFlight");
