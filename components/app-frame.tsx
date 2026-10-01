@@ -268,6 +268,8 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const batShiftY = halloweenFlight.interpolate({ inputRange: [0, 0.32, 0.64, 1], outputRange: [0, -34, 12, -16] });
   const mistShiftX = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-34, 34] });
   const moonGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0.46] });
+  const starGlow = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.9] });
+  const starScale = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.74, 1.2] });
   const pageSurfaceStyle = {
     marginHorizontal: 8,
     marginTop: 8,
@@ -429,7 +431,15 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
-        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}><Animated.Text style={[styles.halloweenMoon, { opacity: moonGlow, transform: [{ scale: halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.06] }) }] }]}>☾</Animated.Text><Animated.Text style={[styles.halloweenGhost, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text><Animated.Text style={[styles.halloweenGhostTwo, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text><Animated.Text style={[styles.halloweenBat, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-10deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatTwo, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "7deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatThree, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-5deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenWitch, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧙‍♀️</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Animated.Text style={[styles.halloweenVampireTwo, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Text style={styles.halloweenStarOne}>✦</Text><Text style={styles.halloweenStarTwo}>✦</Text><Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} /></View> : null}
+        {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="none" style={styles.halloweenAtmosphere}>
+          <Animated.View style={[styles.halloweenSkyGlow, { opacity: starGlow, transform: [{ translateX: mistShiftX }, { scale: starScale }] }]} />
+          <Animated.Text style={[styles.halloweenMoon, { opacity: moonGlow, transform: [{ scale: halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.06] }) }] }]}>☾</Animated.Text>
+          <Animated.Text style={[styles.halloweenGhost, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text><Animated.Text style={[styles.halloweenGhostTwo, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text>
+          <Animated.Text style={[styles.halloweenBat, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-10deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatTwo, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "7deg" }] }]}>🦇</Animated.Text><Animated.Text style={[styles.halloweenBatThree, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-5deg" }] }]}>🦇</Animated.Text>
+          <Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenWitch, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧙‍♀️</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Animated.Text style={[styles.halloweenVampireTwo, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text>
+          <Animated.Text style={[styles.halloweenStarOne, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarTwo, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarThree, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarFour, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarFive, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text>
+          <Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} />
+        </View> : null}
           <View style={[styles.topbar, isLaptopLayout && styles.topbarLaptop]}>
             <View style={styles.brandRow}>
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
@@ -667,6 +677,7 @@ const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
   animatedGradient: { ...StyleSheet.absoluteFillObject, left: -112, right: -112, top: -82, bottom: -82 },
   halloweenAtmosphere: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
+  halloweenSkyGlow: { position: "absolute", left: -150, right: -150, top: "28%", height: 440, borderRadius: 240, backgroundColor: "rgba(255, 190, 112, 0.12)" },
   halloweenMoon: { position: "absolute", top: 30, right: -10, color: "rgba(255, 241, 198, 0.28)", fontSize: 104, lineHeight: 112, fontWeight: "300" },
   halloweenGhost: { position: "absolute", top: 192, right: 30, fontSize: 28, opacity: 0.56 },
   halloweenGhostTwo: { position: "absolute", top: 310, left: 22, fontSize: 25, opacity: 0.52 },
@@ -679,6 +690,9 @@ const styles = StyleSheet.create({
   halloweenVampireTwo: { position: "absolute", bottom: 210, left: 15, fontSize: 21, opacity: 0.4 },
   halloweenStarOne: { position: "absolute", top: 88, right: 102, color: "rgba(255, 220, 143, 0.8)", fontSize: 15, lineHeight: 17 },
   halloweenStarTwo: { position: "absolute", top: 148, left: 26, color: "rgba(255, 193, 102, 0.56)", fontSize: 11, lineHeight: 13 },
+  halloweenStarThree: { position: "absolute", top: "41%", right: 24, color: "rgba(255, 240, 183, 0.75)", fontSize: 17, lineHeight: 20 },
+  halloweenStarFour: { position: "absolute", top: "63%", left: 38, color: "rgba(255, 224, 150, 0.68)", fontSize: 14, lineHeight: 17 },
+  halloweenStarFive: { position: "absolute", bottom: 76, right: "34%", color: "rgba(255, 244, 197, 0.76)", fontSize: 16, lineHeight: 19 },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(255, 180, 58, 0.13)", transform: [{ rotate: "-8deg" }] },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {

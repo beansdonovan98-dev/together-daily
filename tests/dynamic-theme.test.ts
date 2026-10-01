@@ -63,6 +63,10 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("ghostShiftY");
     expect(frame).toContain("batShiftX");
     expect(frame).toContain("mistShiftX");
+    expect(frame).toContain("halloweenSkyGlow");
+    expect(frame).toContain("halloweenStarFive");
+    expect(frame).toContain("starGlow");
+    expect(frame).not.toContain("halloween-full-page-sky");
     expect(frame).toContain("normalizeGlobalTextColor(renderedTheme.fontColor)");
     expect(frame).toContain("normalizeGlobalBorderColor(renderedTheme.borderColor)");
   });

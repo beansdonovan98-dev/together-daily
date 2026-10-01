@@ -47,7 +47,11 @@ describe("foreground app activity tracking", () => {
     expect(database).toContain('for("update")');
     expect(database).toContain("mergeGuestRoomAppUsage");
     expect(today).toContain("TODAY’S APP TIME");
-    expect(today).toContain("Counts only while Together Daily is open and active");
+    expect(today).toContain("Only counts while Together Daily is open and active");
     expect(today).toContain("formatActivityMinutes");
+    expect(today).toContain('testID="shared-app-time-card"');
+    expect(today).toContain("SHARED ACTIVE TIME");
+    expect(today).toContain("appActivityTrack");
+    expect(today).toContain("appActivityFill");
   });
 });
