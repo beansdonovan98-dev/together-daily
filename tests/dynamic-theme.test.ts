@@ -75,6 +75,12 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("halloweenGraveyardFencePost");
     expect(frame).toContain("halloweenHeadstoneFour");
     expect(frame).toContain("graveyardShiftX");
+    expect(frame).toContain('testID="halloween-full-page-creatures"');
+    expect(frame).toContain('testID="halloween-full-page-graveyard"');
+    expect(frame).toContain("halloweenContentOverlay");
+    expect(frame).toContain("halloweenOverlayVampireTwo");
+    expect(frame).toContain("halloweenOverlayBatThree");
+    expect(frame).toContain("fullPageCreatureOpacity");
     expect(frame).toContain("starGlow");
     expect(frame).toContain("triggerSpookyCreature");
     expect(frame).toContain('accessibilityLabel="Play with the floating ghost"');
