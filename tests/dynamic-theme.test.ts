@@ -71,9 +71,9 @@ describe("shared dynamic themes", () => {
     expect(frame).toContain("halloweenStarEight");
     expect(frame).toContain("halloweenGhostThreeHitArea");
     expect(frame).toContain("halloweenBatFiveHitArea");
-    expect(frame).toContain('testID="halloween-graveyard-silhouette"');
-    expect(frame).toContain("halloweenGraveyardFencePost");
-    expect(frame).toContain("halloweenHeadstoneFour");
+    expect(frame).toContain('testID="halloween-black-rose-row"');
+    expect(frame).toContain("halloweenRoseRow");
+    expect(frame).toContain("halloweenRoseBloom");
     expect(frame).toContain("graveyardShiftX");
     expect(frame).toContain("starGlow");
     expect(frame).toContain("triggerSpookyCreature");
