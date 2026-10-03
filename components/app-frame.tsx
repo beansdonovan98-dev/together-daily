@@ -275,8 +275,6 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
   const starScale = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.74, 1.2] });
   const graveyardShiftX = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [-7, 7] });
   const graveyardOpacity = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.32, 0.54] });
-  const fullPageCreatureOpacity = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.56, 0.92] });
-  const fullPageGraveyardOpacity = halloweenDrift.interpolate({ inputRange: [0, 1], outputRange: [0.66, 0.94] });
   const spookyCreatureScale = spookyCreaturePop.interpolate({ inputRange: [0, 0.45, 1], outputRange: [1, 1.34, 1] });
   const triggerSpookyCreature = (creature: "ghost" | "bat") => {
     setSpookyCreatureMessage(creature === "ghost" ? "BOO!" : "FLUTTER!");
@@ -706,27 +704,6 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
         ) : null}
         <View style={[styles.content, pageSurfaceStyle, { paddingBottom: Math.max(insets.bottom, 12) }, isLaptopLayout && styles.contentLaptop]}>
           {styledChildren}
-          {halloweenMonth ? <View testID="halloween-full-page-creatures" pointerEvents="none" style={styles.halloweenContentOverlay}>
-            <Animated.Text style={[styles.halloweenOverlayGhostOne, { opacity: fullPageCreatureOpacity, transform: [{ translateX: mistShiftX }, { translateY: ghostShiftY }] }]}>👻</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayGhostTwo, { opacity: fullPageCreatureOpacity, transform: [{ translateX: graveyardShiftX }, { translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>👻</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayGhostThree, { opacity: fullPageCreatureOpacity, transform: [{ translateX: mistShiftX }, { translateY: ghostShiftY }] }]}>👻</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayVampireOne, { opacity: fullPageCreatureOpacity, transform: [{ translateX: graveyardShiftX }, { translateY: ghostShiftY }] }]}>🧛</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayVampireTwo, { opacity: fullPageCreatureOpacity, transform: [{ translateX: mistShiftX }, { translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayBatOne, { opacity: fullPageCreatureOpacity, transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }]}>🦇</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayBatTwo, { opacity: fullPageCreatureOpacity, transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "-8deg" }] }]}>🦇</Animated.Text>
-            <Animated.Text style={[styles.halloweenOverlayBatThree, { opacity: fullPageCreatureOpacity, transform: [{ translateX: batShiftX }, { translateY: batShiftY }, { rotate: "7deg" }] }]}>🦇</Animated.Text>
-            <Animated.View testID="halloween-full-page-graveyard" style={[styles.halloweenGraveyard, styles.halloweenContentGraveyard, { opacity: fullPageGraveyardOpacity, transform: [{ translateX: graveyardShiftX }] }]}>
-              <View style={styles.halloweenGraveyardGround} />
-              <View style={styles.halloweenGraveyardHaze} />
-              <View style={styles.halloweenGraveyardFenceRail} />
-              {[12, 38, 64, 92, 119, 148, 176, 205, 234, 262, 291, 320, 350, 380, 410].map((left) => <View key={left} style={[styles.halloweenGraveyardFencePost, { left }]} />)}
-              <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneOne]}>✝</Text>
-              <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneTwo]}>✝</Text>
-              <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneThree]}>✝</Text>
-              <Text style={[styles.halloweenHeadstone, styles.halloweenHeadstoneFour]}>♱</Text>
-              <Text style={styles.halloweenGraveyardPumpkin}>☠</Text>
-            </Animated.View>
-          </View> : null}
         </View>
       </View>
     </ScreenContainer>
@@ -771,16 +748,6 @@ const styles = StyleSheet.create({
   halloweenHeadstoneThree: { left: "64%", transform: [{ scaleY: 1.15 }] },
   halloweenHeadstoneFour: { left: "82%", transform: [{ scaleY: 0.87 }] },
   halloweenGraveyardPumpkin: { position: "absolute", right: "27%", bottom: 42, color: "rgba(8, 4, 20, 0.78)", fontSize: 19, lineHeight: 24 },
-  halloweenContentOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 20, overflow: "hidden" },
-  halloweenContentGraveyard: { left: -18, right: -18, bottom: 0, height: 164 },
-  halloweenOverlayGhostOne: { position: "absolute", top: "13%", left: "8%", fontSize: 30, lineHeight: 38 },
-  halloweenOverlayGhostTwo: { position: "absolute", top: "38%", right: "7%", fontSize: 32, lineHeight: 40 },
-  halloweenOverlayGhostThree: { position: "absolute", top: "65%", left: "22%", fontSize: 28, lineHeight: 35 },
-  halloweenOverlayVampireOne: { position: "absolute", top: "27%", right: "14%", fontSize: 28, lineHeight: 35 },
-  halloweenOverlayVampireTwo: { position: "absolute", top: "57%", left: "6%", fontSize: 26, lineHeight: 33 },
-  halloweenOverlayBatOne: { position: "absolute", top: "20%", left: -74, fontSize: 26, lineHeight: 33 },
-  halloweenOverlayBatTwo: { position: "absolute", top: "47%", left: -116, fontSize: 23, lineHeight: 30 },
-  halloweenOverlayBatThree: { position: "absolute", top: "76%", left: -150, fontSize: 20, lineHeight: 27 },
   halloweenGhostHitArea: { position: "absolute", top: 180, right: 17, width: 58, height: 58, alignItems: "center", justifyContent: "center" },
   halloweenGhostTwoHitArea: { position: "absolute", top: 298, left: 8, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
   halloweenGhostThreeHitArea: { position: "absolute", top: "49%", right: 24, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
