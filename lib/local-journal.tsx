@@ -8,6 +8,7 @@ import { carryDailyHabitList } from "@/lib/daily-habits-rollover";
 import { recolorSavedLogStyle } from "@/lib/log-style-utils";
 import { clearPageContent as clearSavedPageContent, type ResettablePageId } from "@/lib/page-content-reset";
 import { selectSharedTheme } from "@/lib/shared-theme-preferences";
+import { mergeForegroundUsageIntoJournal, shouldApplySharedRoomSnapshot } from "@/lib/shared-journal-sync";
 import { appendWeeklyCleaningTask } from "@/lib/weekly-cleaning";
 import { normalizeAffectionGoals, updateAffectionGoal as updateAffectionGoalDefinition, type AffectionGoal, type AffectionGoalKey } from "@/lib/affection-goals";
 import { splitForegroundSession } from "@/lib/app-usage";
@@ -93,17 +94,42 @@ function withSharedTheme(state: JournalState, theme: SharedThemePreferences): Jo
 }
 
 export function LocalJournalProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null);
+  const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null); const stateRef = useRef(state); const prefsRef = useRef(prefs); const localWriteAtRef = useRef(0); const syncInFlightRef = useRef(false); const queuedSharedStateRef = useRef<{ state: JournalState; serialized: string; notificationType?: PartnerNotificationType } | null>(null);
+  stateRef.current = state; prefsRef.current = prefs;
   const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const weeklyCleaningTaskAdd = trpc.guestRoom.addWeeklyCleaningTask.useMutation(); const appUsageRecord = trpc.guestRoom.recordAppUsage.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDirectRequest = trpc.guestRoom.requestDailyCoverDirectUpload.useMutation(); const dailyCoverDirectConfirm = trpc.guestRoom.confirmDailyCoverDirectUpload.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDirectRequest = trpc.guestRoom.requestPrivateMediaDirectUpload.useMutation(); const privateMediaDirectConfirm = trpc.guestRoom.confirmPrivateMediaDirectUpload.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation(); const privateMediaCommentCreate = trpc.guestRoom.addPrivateMediaComment.useMutation(); const privateMediaCommentDelete = trpc.guestRoom.deletePrivateMediaComment.useMutation(); const privateMediaCommentViewed = trpc.guestRoom.markPrivateMediaCommentsViewed.useMutation(); const calendarBackgroundUpload = trpc.guestRoom.uploadCalendarBackground.useMutation(); const calendarBackgroundDelete = trpc.guestRoom.deleteCalendarBackground.useMutation();
+  const syncMutationRef = useRef(sync.mutateAsync); syncMutationRef.current = sync.mutateAsync;
   const appUsageRecordRef = useRef(appUsageRecord.mutateAsync);
   appUsageRecordRef.current = appUsageRecord.mutateAsync;
   const remote = trpc.guestRoom.get.useQuery({ roomCode:prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval:3_000, retry:1 });
   const partnerAlertReadiness = trpc.guestRoom.getPushStatus.useQuery({ roomCode:prefs.roomCode ?? "", partnerId:prefs.memberId ?? "beans" }, { enabled: ready && Boolean(prefs.roomCode) && Boolean(prefs.memberId), refetchInterval:8_000, retry:1 });
   const testPartnerAlert = trpc.guestRoom.sendTestPartnerAlert.useMutation();
+  const saveLocalState = (next: JournalState) => { stateRef.current = next; setState(next); AsyncStorage.setItem(STATE_KEY, JSON.stringify(next)).catch(() => undefined); };
+  const flushSharedState = () => {
+    if (syncInFlightRef.current || !queuedSharedStateRef.current) return;
+    const roomCode = prefsRef.current.roomCode;
+    if (!roomCode) return;
+    const queued = queuedSharedStateRef.current;
+    syncInFlightRef.current = true;
+    void syncMutationRef.current({ roomCode, journalState: queued.state, actorId: prefsRef.current.memberId ?? undefined, notificationType: queued.notificationType })
+      .then(() => {
+        if (queuedSharedStateRef.current?.serialized === queued.serialized) {
+          queuedSharedStateRef.current = null;
+          if (pendingSharedState.current === queued.serialized) pendingSharedState.current = null;
+        }
+      })
+      .catch((error: Error) => {
+        if (queuedSharedStateRef.current?.serialized === queued.serialized) {
+          queuedSharedStateRef.current = null;
+          if (pendingSharedState.current === queued.serialized) pendingSharedState.current = null;
+        }
+        setSyncError(error.message);
+      })
+      .finally(() => { syncInFlightRef.current = false; flushSharedState(); });
+  };
   useEffect(()=>{Promise.all([AsyncStorage.getItem(STATE_KEY),AsyncStorage.getItem(ROOM_KEY)]).then(([storedState,storedPrefs])=>{if(storedState){try{setState(normalizeJournalState(JSON.parse(storedState)))}catch{}} if(storedPrefs){try{const parsed=JSON.parse(storedPrefs);setPrefs({roomCode:typeof parsed.roomCode==="string"?parsed.roomCode:null,memberId:parsed.memberId==="beans"||parsed.memberId==="princess"?parsed.memberId:null})}catch{}}}).finally(()=>setReady(true));},[]);
-  useEffect(()=>{if(!remote.data) return; const next=normalizeJournalState(remote.data.journalState); const current=JSON.stringify(state); const incoming=JSON.stringify(next); if(pendingSharedState.current===incoming) pendingSharedState.current=null; if(!pendingSharedState.current&&current!==incoming){setState(next); AsyncStorage.setItem(STATE_KEY,incoming).catch(()=>undefined);} const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
+  useEffect(()=>{if(!remote.data) return; const next=normalizeJournalState(remote.data.journalState); const current=JSON.stringify(stateRef.current); const incoming=JSON.stringify(next); if(pendingSharedState.current===incoming) pendingSharedState.current=null; if(shouldApplySharedRoomSnapshot({localSerialized:current,incomingSerialized:incoming,hasPendingLocalWrite:Boolean(pendingSharedState.current)||syncInFlightRef.current||Boolean(queuedSharedStateRef.current),lastLocalWriteAt:localWriteAtRef.current}))saveLocalState(next); const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
   const savePrefs=(next:RoomPrefs)=>{setPrefs(next); AsyncStorage.setItem(ROOM_KEY,JSON.stringify(next)).catch(()=>undefined);};
-  const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{setState(next); const serialized=JSON.stringify(next); AsyncStorage.setItem(STATE_KEY,serialized).catch(()=>undefined); if(prefs.roomCode){pendingSharedState.current=serialized; sync.mutate({roomCode:prefs.roomCode,journalState:next,actorId:prefs.memberId??undefined,notificationType},{onSuccess:()=>{if(pendingSharedState.current===serialized)pendingSharedState.current=null;},onError:(error)=>{if(pendingSharedState.current===serialized)pendingSharedState.current=null;setSyncError(error.message);}});}};
+  const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{saveLocalState(next); const serialized=JSON.stringify(next); localWriteAtRef.current=Date.now(); if(prefs.roomCode){pendingSharedState.current=serialized; queuedSharedStateRef.current={state:next,serialized,notificationType}; flushSharedState();}};
   const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};
   useEffect(()=>{const timer=setInterval(()=>setToday(localDateKey()),60_000);return()=>clearInterval(timer);},[]);
   useEffect(() => {
@@ -126,9 +152,8 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
       try {
         const result = await appUsageRecordRef.current({ roomCode, partnerId, entries });
         if (disposed) return;
-        const next = normalizeJournalState(result.journalState);
-        setState(next);
-        AsyncStorage.setItem(STATE_KEY, JSON.stringify(next)).catch(() => undefined);
+        const next = mergeForegroundUsageIntoJournal(stateRef.current, normalizeJournalState(result.journalState));
+        saveLocalState(next);
       } catch {
         // Keep the next active checkpoint available without creating a render loop.
       } finally {
