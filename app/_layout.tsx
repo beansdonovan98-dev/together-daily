@@ -22,6 +22,7 @@ import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { LocalJournalProvider, useLocalJournal } from "@/lib/local-journal";
 import { BUNDLED_FONT_RESOURCES } from "@/lib/font-resources";
+import { partnerNotificationPathFromData, type PartnerNotificationPath } from "@/lib/notification-navigation";
 import { activeGlobalFontFamily, activeGlobalTextColor, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor, type FontPlatform } from "@/lib/typography";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -48,19 +49,36 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-function usePartnerNotificationNavigation() {
+function usePartnerNotificationNavigation(navigationReady: boolean) {
+  const [pendingPath, setPendingPath] = useState<PartnerNotificationPath | null>(null);
+
   useEffect(() => {
     if (Platform.OS === "web") return;
-    const openNotificationPath = (notification: Notifications.Notification) => {
-      const path = notification.request.content.data?.path;
-      if (typeof path === "string" && path.startsWith("/")) router.push(path as never);
+    const queueNotificationPath = (notification: Notifications.Notification) => {
+      const path = partnerNotificationPathFromData(notification.request.content.data);
+      if (path) setPendingPath(path);
+      else void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
     };
 
     const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse?.notification) openNotificationPath(lastResponse.notification);
-    const subscription = Notifications.addNotificationResponseReceivedListener((response) => openNotificationPath(response.notification));
+    if (lastResponse?.notification) queueNotificationPath(lastResponse.notification);
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => queueNotificationPath(response.notification));
     return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    if (!navigationReady || !pendingPath) return;
+    try {
+      // The Stack exists once fonts have loaded, so this cannot run during the
+      // null-rendered launch frame that caused notification-tap crashes.
+      router.replace(pendingPath as never);
+      setPendingPath(null);
+      void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
+    } catch (error) {
+      // A failed notification route must never take down the whole app.
+      console.warn("[Notifications] Could not open notification route:", error);
+    }
+  }, [navigationReady, pendingPath]);
 }
 
 function JournalRoutes() {
@@ -73,7 +91,7 @@ function JournalRoutes() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(BUNDLED_FONT_RESOURCES);
-  usePartnerNotificationNavigation();
+  usePartnerNotificationNavigation(fontsLoaded || Boolean(fontError));
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 
