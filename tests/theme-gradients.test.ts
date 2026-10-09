@@ -293,6 +293,6 @@ describe("theme gradients", () => {
     expect(journal).toContain("setTabCustomizations:");
     expect(journal).toContain("tabLabels:nextLabels,tabGlyphs:nextGlyphs,tabOrder:order");
     expect(tabs).toContain("setTabCustomizations({ labels, glyphs, order })");
-    expect(today.indexOf("{loveNotesSection}")).toBeLessThan(today.indexOf("<View style={styles.coverGrid}"));
+    expect(today.indexOf("{loveNotesSection}")).toBeLessThan(today.indexOf("<View style={styles.coverCarousel}"));
   });
 });

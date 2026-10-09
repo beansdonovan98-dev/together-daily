@@ -2,11 +2,17 @@ import { AppFrame } from "@/components/app-frame";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getSubheading } from "@/components/personalization-editor";
 import { PrivateGate } from "@/components/together-access";
+import { getApiBaseUrl } from "@/constants/oauth";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, dateTimeLabel, localDateKey, prettyDate } from "@/lib/together";
 import { appendDailyLogTodo, dailyLogTodos, renameDailyLogTodo, toggleDailyLogTodo, type DailyLogTodo } from "@/lib/daily-log-todos";
+import { pickedImageByteSize } from "@/lib/media-base64";
+import { imageMimeFromAsset, isAnimatedGif, maxStoredBytesForMedia } from "@/lib/media-upload-policy";
+import { mediaFrameHeight } from "@/lib/gif-frame";
 import { sortTimelineEntriesOldestFirst } from "@/lib/timeline-utils";
 import { timestampForEditedTime } from "@/lib/timeline-time";
-import { PARTNERS, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
+import { PARTNERS, type LocalMedia, type PartnerId, type SavedLogStyle, useLocalJournal } from "@/lib/local-journal";
+import { Image as ExpoImage } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet } from "react-native";
@@ -80,7 +86,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const params = useLocalSearchParams<{ date?: string }>();
   const today = localDateKey();
   const date = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : today;
-  const { getDay, updateDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, updateLogStyleColor, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
+  const { getDay, updateDay, roomCode, isSyncing, ensureDay, savedLogStyles, addDailyLogEvent, updateDailyLogEvent, deleteDailyLogEvent, uploadDailyLogMediaDirect, deleteDailyLogMedia, media, updateLogStyleColor, deleteLogStyle, customSubheadings, theme } = useLocalJournal();
   const [draft, setDraft] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const [customEmoji, setCustomEmoji] = useState("✦");
@@ -94,6 +100,11 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
   const [editTimeValue, setEditTimeValue] = useState(new Date());
   const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
   const [editingSavedStyleId, setEditingSavedStyleId] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [mediaError, setMediaError] = useState("");
+  const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
+  const [mediaFrameWidth, setMediaFrameWidth] = useState(320);
+  const [mediaDimensions, setMediaDimensions] = useState<Record<string, { width: number; height: number }>>({});
 
   const content = asObject(getDay(date));
   const logTodos = dailyLogTodos(content.logTodos);
@@ -113,6 +124,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     () => sortTimelineEntriesOldestFirst(Array.isArray(content.timelineEvents) ? content.timelineEvents as TimelineEntry[] : []),
     [content.timelineEvents],
   );
+  const logMedia = useMemo(() => media.filter((item) => item.kind === "photo" && item.dailyDate === date).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()), [date, media]);
   const me = PARTNERS[userId];
   const activeStyle = { id: "custom", label: customLabel.trim() || "Custom moment", emoji: customEmoji.trim() || "✦", color: customColor };
 
@@ -122,6 +134,27 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
     addDailyLogEvent(date, { id: `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, authorId: userId, createdAt: new Date().toISOString() }, activeStyle);
     setDraft("");
   };
+
+  const mediaUrl = (url: string) => url.startsWith("/") ? `${getApiBaseUrl()}${url}` : url;
+  const addDailyLogMedia = async () => {
+    setUploadingMedia(true);
+    setMediaError("");
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, allowsMultipleSelection: true, selectionLimit: 0, quality: 1, base64: false, preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current });
+      if (result.canceled || !result.assets.length) return;
+      for (const asset of result.assets) {
+        const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
+        const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
+        if (byteSize > maxStoredBytesForMedia(mimeType, "private")) throw new Error(mimeType === "image/gif" ? "This Daily Log GIF is too large. Choose a GIF under 60 MB." : "This Daily Log photo is too large. Choose a photo under 5 MB.");
+        await uploadDailyLogMediaDirect({ dailyDate: date, fileName: asset.fileName ?? `daily-log-${Date.now()}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize, width: asset.width, height: asset.height });
+      }
+    } catch (error) {
+      setMediaError(error instanceof Error ? error.message : "The Daily Log media could not be saved. Please try again.");
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+  const confirmDeleteDailyLogMedia = (item: LocalMedia) => Alert.alert("Remove this media?", "This removes the photo or GIF from the shared Daily Log for both of you.", [{ text: "Keep", style: "cancel" }, { text: "Remove", style: "destructive", onPress: async () => { setDeletingMediaId(item.id); try { await deleteDailyLogMedia(item.id); } catch (error) { setMediaError(error instanceof Error ? error.message : "The Daily Log media could not be removed."); } finally { setDeletingMediaId(null); } } }]);
 
   const saveLogTodos = (nextTodos: DailyLogTodo[]) => updateDay(date, { logTodos: nextTodos }, "daily-log");
   const addLogTodo = () => { const text = todoDraft.trim(); if (!text) return; saveLogTodos(appendDailyLogTodo(logTodos, { id: `log-todo-${Date.now()}-${Math.random().toString(16).slice(2)}`, text, completed: false, createdBy: userId })); setTodoDraft(""); };
@@ -219,10 +252,12 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
           <Text style={styles.stylePrompt}>SAVED TYPES</Text>
           {savedLogStyles.length ? <View style={styles.typeRow}>{savedLogStyles.map((style) => <SavedStyleButton key={style.id} styleOption={style} isEditingColor={editingSavedStyleId === style.id} onPress={() => { setCustomLabel(style.label); setCustomEmoji(style.emoji); setCustomColor(style.color); }} onToggleColor={() => setEditingSavedStyleId((current) => current === style.id ? null : style.id)} onColor={(color) => { updateLogStyleColor(style.id, color); setCustomColor(color); setEditingSavedStyleId(null); }} onDelete={() => confirmDeleteSavedType(style)} />)}</View> : <Text style={styles.noSavedTypes}>Your types will appear here after you add your first event.</Text>}
           <TouchableOpacity onPress={addEvent} style={[styles.addButton, { backgroundColor: me.color }]}><Text style={styles.addButtonText}>+ Add {activeStyle.emoji} Event</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a photo or GIF to the Daily Log" onPress={addDailyLogMedia} disabled={uploadingMedia} style={styles.addMediaButton}><Text style={styles.addMediaButtonText}>{uploadingMedia ? "SAVING PHOTO OR GIF…" : "▣ ADD PHOTO OR GIF"}</Text></TouchableOpacity>
+          {mediaError ? <View style={styles.mediaError}><Text style={styles.mediaErrorText}>{mediaError}</Text></View> : null}
         </View>
       </View>
 
-      {entries.length ? <View style={styles.entries}>{entries.map((entry) => {
+      {entries.length || logMedia.length ? <View style={styles.entries}>{entries.map((entry) => {
         const author = PARTNERS[entry.authorId];
         const style = getEventStyle(entry);
         const editing = editingId === entry.id;
@@ -232,6 +267,7 @@ function TimelineScreen({ userId }: { userId: PartnerId }) {
           {editing ? <View style={styles.editPanel}><View style={styles.editTimeRow}><Text style={styles.editTimeLabel}>WHEN DID THIS HAPPEN?</Text><TextInput value={editTime} onChangeText={setEditTime} placeholder="8:30 AM" placeholderTextColor="#7F7582" keyboardType="numbers-and-punctuation" maxLength={8} style={styles.editTimeInput}/>{Platform.OS !== "web" ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Pick event time" onPress={() => setShowNativeTimePicker(true)} style={styles.pickTimeButton}><Text style={styles.pickTimeText}>PICK TIME</Text></TouchableOpacity> : null}</View>{showNativeTimePicker ? <View style={styles.nativePickerWrap}><DateTimePicker value={editTimeValue} mode="time" display={Platform.OS === "ios" ? "spinner" : "default"} onChange={pickNativeTime}/>{Platform.OS === "ios" ? <TouchableOpacity accessibilityRole="button" onPress={() => setShowNativeTimePicker(false)} style={styles.nativePickerDone}><Text style={styles.nativePickerDoneText}>Done</Text></TouchableOpacity> : null}</View> : null}<TextInput value={editText} onChangeText={setEditText} placeholder="What happened?" placeholderTextColor="#7F7582" multiline style={styles.editTextInput}/><View style={styles.editStyleRow}><TextInput value={editEmoji} onChangeText={(value) => setEditEmoji(value.slice(0, 4))} placeholder="✦" placeholderTextColor="#7F7582" maxLength={4} style={styles.editEmojiInput}/><TextInput value={editLabel} onChangeText={setEditLabel} placeholder="Event type" placeholderTextColor="#7F7582" maxLength={28} style={styles.editLabelInput}/></View><View style={styles.editColorRow}>{CUSTOM_COLORS.map((option) => <TouchableOpacity key={option.name} accessibilityRole="button" accessibilityLabel={`Use ${option.name} color for this event`} onPress={() => setEditColor(option.value)} style={[styles.editColorSwatch, { backgroundColor: option.value }, editColor === option.value && styles.colorSwatchActive]}><Text style={styles.colorSwatchLabel}>{editColor === option.value ? "✓" : ""}</Text></TouchableOpacity>)}</View><View style={styles.editActions}><TouchableOpacity accessibilityRole="button" onPress={() => { setEditingId(null); setShowNativeTimePicker(false); }} style={styles.cancelEditButton}><Text style={styles.cancelEditText}>Cancel</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => saveEdit(entry)} style={[styles.saveEditButton, { backgroundColor: author.color }]}><Text style={styles.saveEditText}>Save changes</Text></TouchableOpacity></View></View> : <><Text style={[styles.entryTitle, { color: author.color }]}>{entry.text}</Text><View style={styles.entryActions}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit ${entry.text}`} onPress={() => beginEdit(entry)} style={styles.editAction}><Text style={styles.editActionText}>EDIT</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Delete ${entry.text}`} onPress={() => confirmDelete(entry)} style={styles.deleteAction}><Text style={styles.deleteActionText}>DELETE</Text></TouchableOpacity></View></>}
         </View>;
       })}</View> : <View style={styles.empty}><Text style={styles.emptyMark}>+</Text><Text style={styles.emptyTitle}>Start the stream.</Text><Text style={styles.emptyCopy}>A moment, a plan, a feeling, a shower, or a little memory can go here whenever it happens.</Text></View>}
+      {logMedia.map((item) => { const author = PARTNERS[item.uploadedBy ?? "beans"]; const isGif = isAnimatedGif(item.mimeType, item.fileName, item.url); const height = mediaFrameHeight(mediaFrameWidth, mediaDimensions[item.id], 200, 640); const mine = item.uploadedBy === userId; return <View key={item.id} style={styles.logMediaEntry} onLayout={(event) => setMediaFrameWidth(Math.max(220, Math.round(event.nativeEvent.layout.width) - 28))}><View style={styles.entryMeta}><Text style={[styles.timePill, { color: author.color }]}>{dateTimeLabel(item.createdAt)}</Text><View style={[styles.category, { backgroundColor: `${author.color}55`, borderColor: author.color }]}><Text style={[styles.categoryText, { color: author.color }]}>▣ {isGif ? "GIF" : "PHOTO"}</Text></View><View style={[styles.partnerPill, { backgroundColor: author.soft, borderColor: author.color }]}><Text style={[styles.partnerPillText, { color: author.color }]}>{author.avatar} {author.name}</Text></View></View><View style={[styles.logMediaFrame, { height }]}><ExpoImage source={mediaUrl(item.url)} contentFit="contain" contentPosition="center" transition={0} onLoad={({ source }) => { if (!source.width || !source.height) return; setMediaDimensions((current) => current[item.id]?.width === source.width && current[item.id]?.height === source.height ? current : { ...current, [item.id]: { width: source.width, height: source.height } }); }} style={StyleSheet.absoluteFillObject} />{isGif ? <View style={styles.logMediaGifBadge}><Text style={styles.logMediaGifBadgeText}>GIF</Text></View> : null}</View>{mine ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Delete this Daily Log media" onPress={() => confirmDeleteDailyLogMedia(item)} disabled={deletingMediaId === item.id} style={styles.logMediaDelete}><Text style={styles.logMediaDeleteText}>{deletingMediaId === item.id ? "REMOVING…" : "REMOVE"}</Text></TouchableOpacity> : null}</View>; })}
     </View>
   </ScrollView></AppFrame>;
 }
@@ -241,6 +277,16 @@ function SavedStyleButton({ styleOption, isEditingColor, onPress, onToggleColor,
 }
 
 const styles = StyleSheet.create({
+  addMediaButton: { minHeight: 42, borderRadius: 11, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#8971A5", backgroundColor: "rgba(137,113,165,.16)" },
+  addMediaButtonText: { color: "#E8D9FA", fontSize: 12, fontWeight: "900", letterSpacing: .6 },
+  mediaError: { borderRadius: 10, padding: 10, borderWidth: 1, borderColor: "#A84261", backgroundColor: "#391825" },
+  mediaErrorText: { color: "#FFD9E2", fontSize: 11, lineHeight: 16, fontWeight: "700" },
+  logMediaEntry: { backgroundColor: "rgba(0,0,0,.12)", borderRadius: 15, padding: 14, borderWidth: 1, borderColor: "#000000", gap: 10 },
+  logMediaFrame: { borderRadius: 12, overflow: "hidden", backgroundColor: "#100D14", borderWidth: 1, borderColor: "#3A313E" },
+  logMediaGifBadge: { position: "absolute", left: 9, top: 9, borderRadius: 7, borderWidth: 1, borderColor: "#8A6030", backgroundColor: "rgba(55,39,23,.92)", paddingHorizontal: 7, paddingVertical: 3 },
+  logMediaGifBadgeText: { color: "#FFD88D", fontSize: 9, fontWeight: "900", letterSpacing: .7 },
+  logMediaDelete: { alignSelf: "flex-end", borderRadius: 8, borderWidth: 1, borderColor: "#864B59", paddingHorizontal: 10, paddingVertical: 6 },
+  logMediaDeleteText: { color: "#E69AAA", fontSize: 9, fontWeight: "900", letterSpacing: .7 },
   page: { padding: 18, paddingBottom: 38, gap: 16, backgroundColor: COLORS.blush },
   hero: { paddingTop: 12, paddingBottom: 5, flexDirection: "row", alignItems: "center", gap: 13 },
   heroMark: { color: COLORS.rose, fontSize: 38, lineHeight: 40 },

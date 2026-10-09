@@ -4,8 +4,7 @@ import { PrivateGate } from "@/components/together-access";
 import { getApiBaseUrl } from "@/constants/oauth";
 import { dailySparkFor } from "@/lib/daily-spark";
 import { COLORS as BASE_COLORS, TAB_CARD_PALETTES, asObject, localDateKey, prettyDate } from "@/lib/together";
-import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PARTNERS, type LocalMedia, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import * as ImagePicker from "expo-image-picker";
 import { pickedImageByteSize } from "@/lib/media-base64";
 import { imageMimeFromAsset, isAnimatedGif, maxStoredBytesForMedia } from "@/lib/media-upload-policy";
@@ -13,7 +12,7 @@ import { mediaFrameHeight } from "@/lib/gif-frame";
 import { formatActivityDuration } from "@/lib/app-usage";
 import { Image as ExpoImage } from "expo-image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, Platform, ScrollView, StyleSheet } from "react-native";
+import { AppState, ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const RELATIONSHIP_START = new Date(2019, 7, 9, 0, 0, 0);
@@ -78,16 +77,15 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCoverDirect, deleteDailyCover, customSubheadings, theme } = useLocalJournal();
+  const { ready, getDay, updateDay, uploadDailyCoverCarouselDirect, deleteDailyCoverCarouselItem, customSubheadings, theme } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [confirmRemoveSlot, setConfirmRemoveSlot] = useState<"first" | "second" | null>(null);
-  const [removingSlot, setRemovingSlot] = useState<"first" | "second" | null>(null);
+  const [removingCoverId, setRemovingCoverId] = useState<string | null>(null);
   const [quoteOffset, setQuoteOffset] = useState(0);
-  const [coverFrameWidths, setCoverFrameWidths] = useState<Record<"first" | "second", number>>({ first: 320, second: 320 });
-  const [coverDimensions, setCoverDimensions] = useState<Partial<Record<"first" | "second", { width: number; height: number }>>>({});
+  const [coverFrameWidth, setCoverFrameWidth] = useState(320);
+  const [coverDimensions, setCoverDimensions] = useState<Record<string, { width: number; height: number }>>({});
 
   const content = asObject(getDay(date));
   const cover = asObject(content.coverPhoto);
@@ -109,7 +107,6 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     setLoveDraft(savedLoveNote);
   }, [loveDraftKey, ready, savedLoveNote]);
 
-  const save = (patch: Record<string, unknown>) => updateDay(date, patch);
   const saveLoveNote = () => {
     const nextNotes = { ...loveNotes };
     const trimmed = loveDraft.trim();
@@ -118,69 +115,46 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     updateDay(date, { loveNotes: nextNotes }, "love-note");
   };
 
-  const saveCoverAsset = useCallback(async (slot: "first" | "second", asset: ImagePicker.ImagePickerAsset) => {
+  const saveCoverAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => {
+    const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
+    const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
+    if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 2.5 MB.");
+    return uploadDailyCoverCarouselDirect({ dailyDate: date, fileName: asset.fileName ?? `cover-${Date.now()}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize });
+  }, [date, uploadDailyCoverCarouselDirect]);
+
+  const selectCovers = async () => {
     setUploading(true);
     setUploadError("");
     try {
-      const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
-      const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
-      if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 2.5 MB.");
-      await uploadDailyCoverDirect({ dailyDate: date, slot, fileName: asset.fileName ?? `cover-${slot}-${date}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize, caption: "" });
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, allowsMultipleSelection: true, selectionLimit: 0, quality: 1, base64: false, preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current });
+      if (result.canceled || !result.assets.length) return;
+      for (const asset of result.assets) await saveCoverAsset(asset);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "The cover photo could not be saved. Please try again.");
     } finally {
       setUploading(false);
-      await AsyncStorage.removeItem("together-daily-pending-cover-slot");
     }
-  }, [date, uploadDailyCoverDirect]);
-
-  const selectCover = async (slot: "first" | "second") => {
-    await AsyncStorage.setItem("together-daily-pending-cover-slot", slot);
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 1, base64: false, preferredAssetRepresentationMode: Platform.OS === "ios" ? ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current : undefined });
-    if (result.canceled || !result.assets[0]) {
-      await AsyncStorage.removeItem("together-daily-pending-cover-slot");
-      return;
-    }
-    await saveCoverAsset(slot, result.assets[0]);
   };
 
-  useEffect(() => {
-    if (!ready) return;
-    let active = true;
-    void (async () => {
-      const result = await ImagePicker.getPendingResultAsync();
-      const slot = await AsyncStorage.getItem("together-daily-pending-cover-slot");
-      if (active && result && "assets" in result && !result.canceled && result.assets[0] && (slot === "first" || slot === "second")) await saveCoverAsset(slot, result.assets[0]);
-    })();
-    return () => { active = false; };
-  }, [ready, saveCoverAsset]);
-
-  const removeCover = async (slot: "first" | "second") => {
-    setRemovingSlot(slot);
+  const removeCover = async (coverId: string) => {
+    setRemovingCoverId(coverId);
     setUploadError("");
     try {
-      await deleteDailyCover({ dailyDate: date, slot });
-      setConfirmRemoveSlot(null);
+      await deleteDailyCoverCarouselItem({ dailyDate: date, mediaId: coverId });
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "The cover photo could not be removed. Please try again.");
     } finally {
-      setRemovingSlot(null);
+      setRemovingCoverId(null);
     }
-  };
-  const setCoverCaption = (slot: "first" | "second", partnerId: PartnerId, caption: string) => {
-    const current = slot === "first" ? cover : secondCover;
-    if (!current.url) return;
-    const captions = asObject(current.captions);
-    save(slot === "first"
-      ? { coverPhoto: { ...current, captions: { ...captions, [partnerId]: caption } } }
-      : { coverPhotoTwo: { ...current, captions: { ...captions, [partnerId]: caption } } });
   };
   const switchQuote = () => setQuoteOffset((offset) => offset + 1);
   const mediaUrl = (url: string) => url.startsWith("/") ? `${getApiBaseUrl()}${url}` : url;
 
   if (!ready) return <AppFrame><View style={styles.loading}><Text style={styles.muted}>Opening your daily journal…</Text></View></AppFrame>;
 
-  const covers = [{ key: "first" as const, cover, label: "DAILY COVER" }, { key: "second" as const, cover: secondCover, label: "SECOND COVER" }];
+  const covers = ([cover, secondCover, ...(Array.isArray(content.coverPhotos) ? content.coverPhotos.map(asObject) : [])]
+    .filter((item) => Boolean(item.url))
+    .filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index) as unknown) as LocalMedia[];
   const loveNotesSection = <View style={styles.card}><Text style={styles.cardKicker}>LOVE NOTES</Text><Text style={styles.cardTitle}>{getSubheading(customSubheadings, "loveNotes")}</Text><View style={styles.loveStack}>{(["beans", "princess"] as PartnerId[]).map((id) => { const person = PARTNERS[id]; const saved = String(loveNotes[id] ?? ""); const mine = id === userId; return <View key={id} style={[styles.loveCard, { borderColor: person.color }]}><View style={styles.loveHeader}><Text style={[styles.loveName, { color: textColor }]}>{person.avatar} {person.name}</Text><Text style={styles.loveState}>{saved ? "SAVED" : mine ? "YOUR NOTE" : "WAITING"}</Text></View>{mine ? <><TextInput value={loveDraft} onChangeText={setLoveDraft} multiline placeholder="Leave a little love note…" placeholderTextColor="#7F7582" style={styles.textArea} /><TouchableOpacity style={[styles.smallPrimary, { backgroundColor: person.color }]} onPress={saveLoveNote}><Text style={styles.smallPrimaryText}>{saved ? "Save changes" : "Save my note"}</Text></TouchableOpacity></> : saved ? <Text style={styles.loveSaved}>{saved}</Text> : <Text style={styles.loveWaiting}>This note space is waiting for {person.name}.</Text>}</View>; })}</View></View>;
   const activityByPartner = (["beans", "princess"] as PartnerId[]).map((id) => ({ id, person: PARTNERS[id], milliseconds: id === userId ? liveCurrentUserUsage.milliseconds : Math.max(0, Number(appUsage[id] ?? 0)) }));
   const sharedActivityMilliseconds = activityByPartner.reduce((total, entry) => total + entry.milliseconds, 0);
@@ -204,18 +178,14 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
     {loveNotesSection}
     {appActivitySection}
-    <View style={styles.coverGrid}>{covers.map(({ key, cover: coverSlot, label }) => {
-      const captions = asObject(coverSlot.captions);
-      const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);
-      const coverHeight = mediaFrameHeight(coverFrameWidths[key], coverDimensions[key], 155, 560);
-      return <View key={key} style={styles.coverSlot}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${coverSlot.url ? "Change" : "Add"} ${label.toLowerCase()}`} onLayout={(event) => { const width = Math.max(160, Math.round(event.nativeEvent.layout.width)); setCoverFrameWidths((current) => current[key] === width ? current : { ...current, [key]: width }); }} style={[styles.coverCard, coverSlot.url && { height: coverHeight }, { backgroundColor: "transparent", borderColor: "#000000" }]} onPress={() => selectCover(key)} disabled={uploading || removingSlot === key}>
-          {coverSlot.url ? <><ExpoImage source={mediaUrl(String(coverSlot.url))} contentFit="contain" contentPosition="center" transition={0} onLoad={({ source }) => { if (!source.width || !source.height) return; setCoverDimensions((current) => current[key]?.width === source.width && current[key]?.height === source.height ? current : { ...current, [key]: { width: source.width, height: source.height } }); }} style={StyleSheet.absoluteFillObject} />{coverIsGif ? <View style={styles.coverGifBadge}><Text style={styles.coverGifBadgeText}>GIF</Text></View> : null}</> : <><View style={[StyleSheet.absoluteFillObject, styles.coverShade]} /><View style={styles.coverContent}><Text style={styles.coverKicker}>{uploading ? "SAVING PHOTO" : label}</Text><Text style={styles.coverTitle}>Add a photo or GIF</Text><Text style={styles.coverCopy}>A visual little memory for today.</Text></View></>}
-          <View style={styles.coverAdd}><Text style={styles.coverAddText}>+</Text></View>
-        </TouchableOpacity>
-        {coverSlot.url ? <><View style={styles.coverActions}><TouchableOpacity onPress={() => selectCover(key)} disabled={uploading || removingSlot === key} style={styles.changeCoverButton}><Text style={styles.changeCoverText}>Change photo or GIF</Text></TouchableOpacity>{confirmRemoveSlot === key ? <><Text style={styles.removeCoverPrompt}>Remove this cover?</Text><TouchableOpacity onPress={() => setConfirmRemoveSlot(null)} disabled={removingSlot === key} style={styles.keepCoverButton}><Text style={styles.keepCoverText}>Keep</Text></TouchableOpacity><TouchableOpacity onPress={() => removeCover(key)} disabled={removingSlot === key} style={styles.removeCoverButton}><Text style={styles.removeCoverText}>{removingSlot === key ? "Removing…" : "Remove"}</Text></TouchableOpacity></> : <TouchableOpacity onPress={() => setConfirmRemoveSlot(key)} disabled={uploading || removingSlot === key} style={styles.removeCoverLink}><Text style={styles.removeCoverLinkText}>Remove photo or GIF</Text></TouchableOpacity>}</View><View style={styles.coverCaptionPanel}>{(["beans", "princess"] as PartnerId[]).map((partnerId) => { const person = PARTNERS[partnerId]; const mine = partnerId === userId; const caption = String(captions[partnerId] ?? ""); return <View key={partnerId} style={styles.coverCaptionRow}><Text style={[styles.coverCaptionName, { color: textColor }]}>{person.avatar} {person.name}</Text>{mine ? <TextInput value={caption} onChangeText={(value) => setCoverCaption(key, partnerId, value)} placeholder="Add a caption…" placeholderTextColor="#7F7582" maxLength={90} style={styles.coverCaptionInput} /> : <Text style={styles.coverCaptionPartnerText}>{caption || `Waiting for ${person.name}'s caption`}</Text>}</View>; })}</View></> : null}
-      </View>;
-    })}</View>
+    <View style={styles.coverCarousel} onLayout={(event) => setCoverFrameWidth(Math.max(220, Math.round(event.nativeEvent.layout.width)))}>
+      <View style={styles.coverCarouselHeader}><View><Text style={styles.cardKicker}>DAILY COVERS</Text><Text style={styles.coverCarouselTitle}>Your visual memories</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={[styles.coverCarouselAddButton, { backgroundColor: partner.color }]}><Text style={styles.coverCarouselAddText}>{uploading ? "Saving…" : "+ Add"}</Text></TouchableOpacity></View>
+      {covers.length ? <><ScrollView horizontal pagingEnabled decelerationRate="fast" showsHorizontalScrollIndicator={false} contentContainerStyle={styles.coverCarouselTrack}>{covers.map((coverSlot, index) => {
+        const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);
+        const coverHeight = mediaFrameHeight(coverFrameWidth, coverDimensions[coverSlot.id], 190, 560);
+        const mine = coverSlot.uploadedBy === userId;
+        return <View key={coverSlot.id || `${coverSlot.url}-${index}`} style={[styles.coverSlide, { width: coverFrameWidth, height: coverHeight }]}><ExpoImage source={mediaUrl(String(coverSlot.url))} contentFit="contain" contentPosition="center" transition={0} onLoad={({ source }) => { if (!source.width || !source.height || !coverSlot.id) return; setCoverDimensions((current) => current[coverSlot.id]?.width === source.width && current[coverSlot.id]?.height === source.height ? current : { ...current, [coverSlot.id]: { width: source.width, height: source.height } }); }} style={StyleSheet.absoluteFillObject} />{coverIsGif ? <View style={styles.coverGifBadge}><Text style={styles.coverGifBadgeText}>GIF</Text></View> : null}<View style={styles.coverPagePill}><Text style={styles.coverPagePillText}>{index + 1} / {covers.length}</Text></View>{mine && coverSlot.id ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove this cover" onPress={() => removeCover(coverSlot.id)} disabled={removingCoverId === coverSlot.id} style={styles.coverRemoveButton}><Text style={styles.coverRemoveText}>{removingCoverId === coverSlot.id ? "…" : "×"}</Text></TouchableOpacity> : null}</View>; })}</ScrollView><Text style={styles.coverCarouselHint}>Swipe left or right to see every cover. Add as many photos or GIFs as you want.</Text></> : <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={styles.coverEmpty}><Text style={styles.coverKicker}>{uploading ? "SAVING COVERS" : "NO COVERS YET"}</Text><Text style={styles.coverTitle}>Add photos or GIFs</Text><Text style={styles.coverCopy}>Pick one or several memories from your iPhone, then swipe through them here.</Text></TouchableOpacity>}
+    </View>
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
     <View style={styles.dailySparkGrid}>
       <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>QUOTE OF THE DAY</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch to another daily quote" onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>
@@ -226,6 +196,19 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 }
 
 const styles = StyleSheet.create({
+  coverCarousel: { gap: 10, backgroundColor: "rgba(18,13,29,.72)", borderRadius: 20, padding: 14, borderWidth: 1, borderColor: "#000000", overflow: "hidden" },
+  coverCarouselHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  coverCarouselTitle: { color: COLORS.plum, fontSize: 20, fontWeight: "900", fontStyle: "italic" },
+  coverCarouselAddButton: { minHeight: 38, borderRadius: 10, paddingHorizontal: 13, justifyContent: "center" },
+  coverCarouselAddText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
+  coverCarouselTrack: { alignItems: "flex-start" },
+  coverSlide: { borderRadius: 16, overflow: "hidden", backgroundColor: "#100D14", borderWidth: 1, borderColor: "#000000" },
+  coverPagePill: { position: "absolute", left: 11, bottom: 11, borderRadius: 8, backgroundColor: "rgba(10,8,13,.78)", borderWidth: 1, borderColor: "rgba(255,255,255,.22)", paddingHorizontal: 8, paddingVertical: 4 },
+  coverPagePillText: { color: "#FFFFFF", fontSize: 10, fontWeight: "900" },
+  coverRemoveButton: { position: "absolute", right: 10, bottom: 10, width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(130,35,59,.92)", borderWidth: 1, borderColor: "#FFB1C2", alignItems: "center", justifyContent: "center" },
+  coverRemoveText: { color: "#FFFFFF", fontSize: 19, lineHeight: 22, fontWeight: "900" },
+  coverCarouselHint: { color: COLORS.slate, fontSize: 11, lineHeight: 16, textAlign: "center", fontFamily: "monospace" },
+  coverEmpty: { minHeight: 178, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: "#6A5478", backgroundColor: "rgba(0,0,0,.14)", padding: 18, justifyContent: "center" },
   page: { padding: 18, paddingBottom: 36, gap: 14, backgroundColor: COLORS.blush }, loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.blush }, muted: { color: COLORS.slate, fontSize: 15 }, topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }, eyebrow: { fontSize: 10, letterSpacing: 1.2, fontWeight: "900", marginBottom: 4 }, title: { color: COLORS.plum, fontSize: 31, fontWeight: "900", fontStyle: "italic" }, avatar: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" }, avatarText: { color: "#FFFFFF", fontWeight: "900", fontSize: 17 },
   coverGrid: { gap: 12 }, coverSlot: { gap: 7 }, coverCard: { minHeight: 155, borderRadius: 20, overflow: "hidden", backgroundColor: COLORS.ink, borderWidth: 1, borderColor: "#56346C", padding: 17, justifyContent: "flex-end" }, coverShade: { backgroundColor: "rgba(8,6,10,.34)" }, coverContent: { zIndex: 2 }, coverKicker: { color: COLORS.gold, fontWeight: "900", fontSize: 10, letterSpacing: 1.2, marginBottom: 5 }, coverTitle: { color: COLORS.plum, fontSize: 22, fontWeight: "800", marginBottom: 2, fontStyle: "italic" }, coverCopy: { color: COLORS.slate, fontSize: 12 }, coverGifBadge: { position: "absolute", left: 13, top: 13, zIndex: 3, borderRadius: 7, borderWidth: 1, borderColor: "#8A6030", backgroundColor: "rgba(55,39,23,.92)", paddingHorizontal: 7, paddingVertical: 3 }, coverGifBadgeText: { color: "#FFD88D", fontSize: 9, fontWeight: "900", letterSpacing: .7 }, coverAdd: { position: "absolute", top: 13, right: 13, zIndex: 3, width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: "#4A4050", alignItems: "center", justifyContent: "center" }, coverAddText: { color: COLORS.gold, fontSize: 22, lineHeight: 25 }, coverActions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }, changeCoverButton: { borderRadius: 9, paddingVertical: 7, paddingHorizontal: 10, backgroundColor: COLORS.gold }, changeCoverText: { color: "#1D131F", fontSize: 10, fontWeight: "900" }, removeCoverLink: { paddingVertical: 7, paddingHorizontal: 3 }, removeCoverLinkText: { color: "#D98099", fontSize: 10, fontWeight: "900" }, removeCoverPrompt: { color: COLORS.slate, fontSize: 10, fontWeight: "800" }, keepCoverButton: { paddingVertical: 7, paddingHorizontal: 7 }, keepCoverText: { color: COLORS.slate, fontSize: 10, fontWeight: "900" }, removeCoverButton: { borderRadius: 9, paddingVertical: 7, paddingHorizontal: 10, backgroundColor: "#A84261" }, removeCoverText: { color: "#FFFFFF", fontSize: 10, fontWeight: "900" }, coverCaptionPanel: { gap: 7, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: "#43364A", backgroundColor: COLORS.ink }, coverCaptionRow: { gap: 4 }, coverCaptionName: { fontSize: 10, fontWeight: "900" }, coverCaptionInput: { minHeight: 36, borderRadius: 8, borderWidth: 1, borderColor: "#43364A", backgroundColor: "#120F14", color: COLORS.plum, paddingHorizontal: 10, fontSize: 12 }, coverCaptionPartnerText: { color: COLORS.slate, fontSize: 12, fontStyle: "italic", paddingVertical: 5 }, uploadError: { borderRadius: 12, padding: 12, backgroundColor: "#391825", borderWidth: 1, borderColor: "#A84261" }, uploadErrorText: { color: "#FFD9E2", fontSize: 12, lineHeight: 18, fontWeight: "700" },
   dailySparkGrid: { gap: 10 }, dailySparkCard: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 15, gap: 8, borderWidth: 2, borderColor: "#000000" }, dailySparkHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, dailySparkText: { fontSize: 14, lineHeight: 21, fontStyle: "italic" }, dailySparkWord: { color: "#FFFFFF", fontSize: 23, fontWeight: "900", fontStyle: "italic" }, dailySparkSwitch: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#6D5B77", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }, dailySparkSwitchText: { color: "#FFFFFF", fontSize: 10, fontWeight: "900" }, riddleAnswer: { marginTop: 4, borderRadius: 10, padding: 10, backgroundColor: "rgba(255,255,255,0.12)" }, riddleAnswerText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },

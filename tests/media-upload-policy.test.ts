@@ -33,11 +33,11 @@ describe("GIF media upload policy", () => {
 
     expect(today).toContain("allowsEditing: false");
     expect(today).toContain("<ExpoImage source={mediaUrl(String(coverSlot.url))}");
-    expect(today).toContain("uploadDailyCoverDirect");
+    expect(today).toContain("uploadDailyCoverCarouselDirect");
     expect(today).toContain("base64: false");
     expect(today).toContain("pickedImageByteSize(asset.uri, asset.fileSize)");
     expect(today).toContain('contentFit="contain" contentPosition="center"');
-    expect(today).toContain("mediaFrameHeight(coverFrameWidths[key], coverDimensions[key], 155, 560)");
+    expect(today).toContain("mediaFrameHeight(coverFrameWidth, coverDimensions[coverSlot.id], 190, 560)");
     expect(today).toContain("onLoad={({ source }) =>");
     expect(today).not.toContain("preparePickedImageForUpload");
     expect(steamy).toContain("isAnimatedGif(asset.mimeType, asset.fileName, asset.uri)");
@@ -50,10 +50,10 @@ describe("GIF media upload policy", () => {
     expect(server).toContain("maxStoredBytesForMedia(input.mimeType, \"cover\")");
     expect(server).toContain("maxBase64LengthForMedia(input.mimeType, \"private\")");
     expect(server).toContain(".max(84_000_000)");
-    expect(server).toContain("requestDailyCoverDirectUpload");
-    expect(server).toContain("confirmDailyCoverDirectUpload");
-    expect(journal).toContain("uploadDailyCoverDirect:async");
-    expect(journal).toContain("dailyCoverDirectRequest");
+    expect(server).toContain("requestDailyCoverCarouselDirectUpload");
+    expect(server).toContain("confirmDailyCoverCarouselDirectUpload");
+    expect(journal).toContain("uploadDailyCoverCarouselDirect:async");
+    expect(journal).toContain("dailyCoverCarouselDirectRequest");
   });
 
   it("uses direct signed storage for private GIFs instead of sending them inside JSON", () => {
