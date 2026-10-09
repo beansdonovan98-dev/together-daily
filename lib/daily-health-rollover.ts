@@ -5,6 +5,24 @@ export type CarriedHealthTask = {
   [key: string]: unknown;
 };
 
+/** Daily food entries are deliberately never carried into the next calendar day. */
+export function freshDailyFoodState() {
+  return {
+    meals: {
+      breakfast: "",
+      breakfastDone: false,
+      lunch: "",
+      lunchDone: false,
+      dinner: "",
+      dinnerDone: false,
+      prepGrocery: "",
+      prepGroceryDone: false,
+    },
+    mealMeta: {},
+    health: { snacks: [] as unknown[] },
+  };
+}
+
 export function carryDailyHealthTasks(days: Record<string, Record<string, unknown>>, date: string): CarriedHealthTask[] {
   const previousDate = Object.keys(days).filter((existingDate) => existingDate < date).sort().at(-1);
   const previousDay = previousDate ? days[previousDate] : undefined;

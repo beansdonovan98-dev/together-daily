@@ -2,7 +2,7 @@ import { AppFrame } from "@/components/app-frame";
 import { CompletionCelebration } from "@/components/completion-celebration";
 import { PrivateGate } from "@/components/together-access";
 import { WeightTrackerSections } from "@/components/weight-tracker-sections";
-import { COLORS, TAB_CARD_PALETTES, asObject, localDateKey } from "@/lib/together";
+import { COLORS, TAB_CARD_PALETTES, asObject } from "@/lib/together";
 import { cancelMedicineReminder, scheduleMedicineReminder } from "@/lib/medicine-reminders";
 import { PARTNERS, type PartnerId, useLocalJournal } from "@/lib/local-journal";
 import {
@@ -54,8 +54,7 @@ export default function HealthScreen() {
   );
 }
 function HealthContent({ userId }: { userId: PartnerId }) {
-  const today = localDateKey();
-  const { ready, ensureDay, getDay, updateDay, allDays, healthPeriodVisible, setHealthPeriodVisible } =
+  const { ready, today, ensureDay, getDay, updateDay, allDays, healthPeriodVisible, setHealthPeriodVisible } =
     useLocalJournal();
   const [taskDraft, setTaskDraft] = useState("");
   const [medicineDraft, setMedicineDraft] = useState("");

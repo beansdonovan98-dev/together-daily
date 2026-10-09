@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { carryDailyHealthTasks } from "../lib/daily-health-rollover";
+import { carryDailyHealthTasks, freshDailyFoodState } from "../lib/daily-health-rollover";
 
 describe("Daily Health carry-forward", () => {
   it("copies the most recent Health task list into a new day with clean completion marks", () => {
@@ -28,5 +28,22 @@ describe("Daily Health carry-forward", () => {
     const newTasks = carryDailyHealthTasks({}, "2026-09-01");
 
     expect(newTasks).toEqual([]);
+  });
+
+  it("starts every new day with blank meals, meal completion marks, and snack log", () => {
+    const food = freshDailyFoodState();
+
+    expect(food.meals).toEqual({
+      breakfast: "",
+      breakfastDone: false,
+      lunch: "",
+      lunchDone: false,
+      dinner: "",
+      dinnerDone: false,
+      prepGrocery: "",
+      prepGroceryDone: false,
+    });
+    expect(food.mealMeta).toEqual({});
+    expect(food.health).toEqual({ snacks: [] });
   });
 });

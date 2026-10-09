@@ -96,6 +96,8 @@ export function createEmptyDailyContent(date: string): JsonObject {
       prepGrocery: "",
       prepGroceryDone: false,
     },
+    mealMeta: {},
+    health: { snacks: [] },
     water: { slots: [], glassesLogged: 0, dailyGoalGlasses: 8 },
     notesList: [],
     timelineEvents: [],
