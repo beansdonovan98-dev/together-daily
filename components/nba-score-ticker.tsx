@@ -48,6 +48,24 @@ export default function NbaScoreTicker() {
   const translateX = useRef(new Animated.Value(0)).current;
   const contentWidth = useRef(0);
   const containerWidth = useRef(0);
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  const startAnimation = () => {
+    if (!contentWidth.current || !containerWidth.current) return;
+    if (animationRef.current) animationRef.current.stop();
+    const distance = contentWidth.current;
+    translateX.setValue(containerWidth.current);
+    const animation = Animated.loop(
+      Animated.timing(translateX, {
+        toValue: -distance,
+        duration: Math.max(12000, distance * 25),
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    animationRef.current = animation;
+    animation.start();
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -64,36 +82,28 @@ export default function NbaScoreTicker() {
     return () => {
       mounted = false;
       clearInterval(interval);
+      if (animationRef.current) animationRef.current.stop();
     };
   }, []);
 
   useEffect(() => {
-    if (!contentWidth.current || !containerWidth.current) return;
-    const distance = contentWidth.current;
-    translateX.setValue(containerWidth.current);
-    const animation = Animated.loop(
-      Animated.timing(translateX, {
-        toValue: -distance,
-        duration: Math.max(8000, distance * 30),
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [text, translateX]);
+    startAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, containerWidth.current, contentWidth.current]);
 
   return (
     <View
       style={styles.container}
       onLayout={(event) => {
         containerWidth.current = event.nativeEvent.layout.width;
+        startAnimation();
       }}
     >
       <Animated.View
         style={[styles.track, { transform: [{ translateX }] }]}
         onLayout={(event) => {
           contentWidth.current = event.nativeEvent.layout.width / 2;
+          startAnimation();
         }}
       >
         <Text style={styles.text}>{text}     •     {text}</Text>
