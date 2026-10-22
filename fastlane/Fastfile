@@ -35,12 +35,12 @@ platform :ios do
 
     update_project_team(
       path: "Together Daily.xcodeproj",
-      teamid: "YOUR_TEAM_ID"
+      teamid: "PKM33XZW3X"
     )
     update_code_signing_settings(
       path: "Together Daily.xcodeproj",
       use_automatic_signing: false,
-      team_id: "YOUR_TEAM_ID",
+      team_id: "PKM33XZW3X",
       code_sign_identity: "Apple Distribution",
       profile_name: "match AppStore com.app.togetherdaily"
     )
@@ -50,7 +50,7 @@ platform :ios do
       workspace: "Together Daily.xcworkspace",
       configuration: "Release",
       export_method: "app-store",
-      export_team_id: "YOUR_TEAM_ID",
+      export_team_id: "PKM33XZW3X",
       output_directory: "build",
       output_name: "Together Daily.ipa",
       build_path: "build",
@@ -59,7 +59,7 @@ platform :ios do
       disable_package_automatic_updates: true,
       export_options: {
         method: "app-store",
-        teamID: "YOUR_TEAM_ID",
+        teamID: "PKM33XZW3X",
         signingStyle: "manual",
         provisioningProfiles: {
           "com.app.togetherdaily" => "match AppStore com.app.togetherdaily"
