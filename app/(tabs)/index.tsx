@@ -87,6 +87,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const [coverFrameWidth, setCoverFrameWidth] = useState(320);
   const [coverDimensions, setCoverDimensions] = useState<Record<string, { width: number; height: number }>>({});
   const [coverCaptionDrafts, setCoverCaptionDrafts] = useState<Record<string, string>>({});
+  const [editingCoverCaptionId, setEditingCoverCaptionId] = useState<string | null>(null);
 
   const content = asObject(getDay(date));
   const cover = asObject(content.coverPhoto);
@@ -188,27 +189,39 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
     <View style={[styles.card, styles.trackerCard]}><Text style={styles.cardKicker}>RELATIONSHIP TRACKER</Text><Text style={styles.trackerTitle}>Together since August 9, 2019</Text><Text style={styles.trackerSub}>{getSubheading(customSubheadings, "relationshipTracker")}</Text><View style={styles.durationGrid}>{[[together.days, "DAYS"], [together.weeks, "WEEKS"], [together.months, "MONTHS"], [together.hours, "HOURS"]].map(([value, label]) => <View key={String(label)} style={styles.durationCell}><Text style={styles.durationNumber}>{Number(value).toLocaleString()}</Text><Text style={styles.durationLabel}>{label}</Text></View>)}</View><Text style={styles.trackerHint}>Started 08 / 09 / 19 · Updates automatically</Text></View>
     {loveNotesSection}
     {appActivitySection}
-    <View style={styles.coverCarousel} onLayout={(event) => setCoverFrameWidth(Math.max(220, Math.round(event.nativeEvent.layout.width)))}>
-      <View style={styles.coverCarouselHeader}><View><Text style={styles.cardKicker}>DAILY COVERS</Text><Text style={styles.coverCarouselTitle}>Your visual memories</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={[styles.coverCarouselAddButton, { backgroundColor: partner.color }]}><Text style={styles.coverCarouselAddText}>{uploading ? "Saving…" : "+ Add"}</Text></TouchableOpacity></View>
-      {covers.length ? <><ScrollView horizontal pagingEnabled decelerationRate="fast" showsHorizontalScrollIndicator={false} contentContainerStyle={styles.coverCarouselTrack}>{covers.map((coverSlot, index) => {
-        const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);
-        const coverHeight = mediaFrameHeight(coverFrameWidth, coverDimensions[coverSlot.id], 190, 560);
-        const mine = coverSlot.uploadedBy === userId;
-        return <View key={coverSlot.id || `${coverSlot.url}-${index}`} style={[styles.coverSlide, { width: coverFrameWidth, height: coverHeight }]}><ExpoImage source={mediaUrl(String(coverSlot.url))} contentFit="contain" contentPosition="center" transition={0} onLoad={({ source }) => { if (!source.width || !source.height || !coverSlot.id) return; setCoverDimensions((current) => current[coverSlot.id]?.width === source.width && current[coverSlot.id]?.height === source.height ? current : { ...current, [coverSlot.id]: { width: source.width, height: source.height } }); }} style={StyleSheet.absoluteFillObject} />{coverIsGif ? <View style={styles.coverGifBadge}><Text style={styles.coverGifBadgeText}>GIF</Text></View> : null}<View style={styles.coverPagePill}><Text style={styles.coverPagePillText}>{index + 1} / {covers.length}</Text></View>{mine && coverSlot.id ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove this cover" onPress={() => removeCover(coverSlot.id)} disabled={removingCoverId === coverSlot.id} style={styles.coverRemoveButton}><Text style={styles.coverRemoveText}>{removingCoverId === coverSlot.id ? "…" : "×"}</Text></TouchableOpacity> : null}</View>; })}</ScrollView><Text style={styles.coverCarouselHint}>Swipe left or right to see every cover. Add as many photos or GIFs as you want.</Text></> : <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={styles.coverEmpty}><Text style={styles.coverKicker}>{uploading ? "SAVING COVERS" : "NO COVERS YET"}</Text><Text style={styles.coverTitle}>Add photos or GIFs</Text><Text style={styles.coverCopy}>Pick one or several memories from your iPhone, then swipe through them here.</Text></TouchableOpacity>}
-    </View>
+    <View style={styles.coverCarouselHeader}><View><Text style={styles.cardKicker}>DAILY COVERS</Text><Text style={styles.coverCarouselTitle}>Your visual memories</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={[styles.coverCarouselAddButton, { backgroundColor: partner.color }]}><Text style={styles.coverCarouselAddText}>{uploading ? "Saving…" : "+ Add"}</Text></TouchableOpacity></View>
     {covers.length ? <View style={styles.coverGrid}>{covers.map((coverSlot) => {
       const captions = asObject(coverSlot.captions);
       const coverId = String(coverSlot.id ?? "");
-      return <View key={`cover-caption-${coverId || coverSlot.url}`} style={styles.coverCaptionPanel}>
-        {(["beans", "princess"] as PartnerId[]).map((id) => {
-          const person = PARTNERS[id];
-          const saved = String(captions[id] ?? "");
-          const mine = id === userId;
-          return <View key={id} style={styles.coverCaptionRow}>
-            <Text style={[styles.coverCaptionName, { color: person.color }]}>{person.avatar} {person.name}</Text>
-            {mine ? <TextInput value={coverCaptionDrafts[coverId] ?? saved} onChangeText={(text) => setCoverCaptionDrafts((current) => ({ ...current, [coverId]: text }))} onBlur={() => saveCoverCaption(coverId)} placeholder="Add your caption…" placeholderTextColor="#7F7582" style={styles.coverCaptionInput} /> : <Text style={styles.coverCaptionPartnerText}>{saved || "Waiting for a caption…"}</Text>}
-          </View>;
-        })}
+      const coverIsGif = isAnimatedGif(coverSlot.mimeType, coverSlot.fileName, coverSlot.url);
+      const isEditing = editingCoverCaptionId === coverId;
+      return <View key={coverId || coverSlot.url} style={styles.coverSlot}>
+        <View style={[styles.coverSlide, { height: 220 }]}>
+          <ExpoImage source={mediaUrl(String(coverSlot.url))} contentFit="contain" contentPosition="center" transition={0} style={StyleSheet.absoluteFillObject} />
+          {coverIsGif ? <View style={styles.coverGifBadge}><Text style={styles.coverGifBadgeText}>GIF</Text></View> : null}
+          {coverSlot.id ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove this cover" onPress={() => removeCover(coverSlot.id)} disabled={removingCoverId === coverSlot.id} style={styles.coverRemoveButton}><Text style={styles.coverRemoveText}>{removingCoverId === coverSlot.id ? "…" : "×"}</Text></TouchableOpacity> : null}
+        </View>
+        <View style={styles.coverCaptionPanel}>
+          {(["beans", "princess"] as PartnerId[]).map((id) => {
+            const person = PARTNERS[id];
+            const saved = String(captions[id] ?? "");
+            const mine = id === userId;
+            return <View key={id} style={styles.coverCaptionRow}>
+              <Text style={[styles.coverCaptionName, { color: person.color }]}>{person.avatar} {person.name}</Text>
+              {mine ? (isEditing ? (
+                <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                  <TextInput value={coverCaptionDrafts[coverId] ?? saved} onChangeText={(text) => setCoverCaptionDrafts((current) => ({ ...current, [coverId]: text }))} placeholder="Add your caption…" placeholderTextColor="#7F7582" style={styles.coverCaptionInput} />
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Save caption" onPress={async () => { await saveCoverCaption(coverId); setEditingCoverCaptionId(null); }} style={styles.changeCoverButton}><Text style={styles.changeCoverText}>Save</Text></TouchableOpacity>
+                </View>
+              ) : (
+                <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                  <Text style={styles.coverCaptionPartnerText}>{saved || "Add your caption…"}</Text>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit caption" onPress={() => { setCoverCaptionDrafts((current) => ({ ...current, [coverId]: saved })); setEditingCoverCaptionId(coverId); }} style={styles.keepCoverButton}><Text style={styles.keepCoverText}>Edit</Text></TouchableOpacity>
+                </View>
+              )) : <Text style={styles.coverCaptionPartnerText}>{saved || "Waiting for a caption…"}</Text>}
+            </View>;
+          })}
+        </View>
       </View>;
     })}</View> : null}
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
