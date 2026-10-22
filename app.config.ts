@@ -22,7 +22,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.app.togetherdaily",
-    buildNumber: "1.1.16",
+    buildNumber: "100",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSPhotoLibraryUsageDescription:
