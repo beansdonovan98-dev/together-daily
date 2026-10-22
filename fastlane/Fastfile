@@ -36,7 +36,8 @@ platform :ios do
       api_key: api_key
     )
 
-    profile_name = JSON.parse(ENV["MATCH_PROVISIONING_PROFILE_MAPPING"])["com.app.togetherdaily"]
+    profile_mapping = lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]
+    profile_name = profile_mapping["com.app.togetherdaily"]
 
     update_project_team(
       path: "TogetherDaily.xcodeproj",
