@@ -1,3 +1,5 @@
+require 'json'
+
 default_platform(:ios)
 
 platform :ios do
@@ -30,8 +32,11 @@ platform :ios do
 
     match(
       type: "appstore",
-      readonly: true
+      readonly: true,
+      api_key: api_key
     )
+
+    profile_name = JSON.parse(ENV["MATCH_PROVISIONING_PROFILE_MAPPING"])["com.app.togetherdaily"]
 
     update_project_team(
       path: "TogetherDaily.xcodeproj",
@@ -42,7 +47,7 @@ platform :ios do
       use_automatic_signing: false,
       team_id: "PKM33XZW3X",
       code_sign_identity: "Apple Distribution",
-      profile_name: "match AppStore com.app.togetherdaily"
+      profile_name: profile_name
     )
 
     build_app(
@@ -62,7 +67,7 @@ platform :ios do
         teamID: "PKM33XZW3X",
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.app.togetherdaily" => "match AppStore com.app.togetherdaily"
+          "com.app.togetherdaily" => profile_name
         }
       }
     )
