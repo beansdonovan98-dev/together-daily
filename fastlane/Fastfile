@@ -34,11 +34,11 @@ platform :ios do
     )
 
     update_project_team(
-      path: "Together Daily.xcodeproj",
+      path: "TogetherDaily.xcodeproj",
       teamid: "PKM33XZW3X"
     )
     update_code_signing_settings(
-      path: "Together Daily.xcodeproj",
+      path: "TogetherDaily.xcodeproj",
       use_automatic_signing: false,
       team_id: "PKM33XZW3X",
       code_sign_identity: "Apple Distribution",
@@ -46,13 +46,13 @@ platform :ios do
     )
 
     build_app(
-      scheme: "Together Daily",
-      workspace: "Together Daily.xcworkspace",
+      scheme: "TogetherDaily",
+      workspace: "TogetherDaily.xcworkspace",
       configuration: "Release",
       export_method: "app-store",
       export_team_id: "PKM33XZW3X",
       output_directory: "build",
-      output_name: "Together Daily.ipa",
+      output_name: "TogetherDaily.ipa",
       build_path: "build",
       derived_data_path: "build/DerivedData",
       clean: true,
