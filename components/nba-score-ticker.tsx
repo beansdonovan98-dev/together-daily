@@ -106,7 +106,7 @@ export default function NbaScoreTicker() {
           startAnimation();
         }}
       >
-        <Text style={styles.text}>{text}     •     {text}</Text>
+        <Text style={styles.text} numberOfLines={1}>{text}     •     {text}</Text>
       </Animated.View>
     </View>
   );
@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   track: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
   },
   text: {
     color: "#FFFFFF",
