@@ -1,0 +1,76 @@
+name: iOS Build and TestFlight
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+
+      - name: Install system dependencies
+        run: |
+          brew install cocoapods
+          gem install cocoapods
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Bump iOS build number
+        run: node scripts/set-build-number.mjs ${{ github.run_number }}
+
+      - name: Generate iOS native project
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Copy Fastlane configuration
+        run: |
+          mkdir -p ios/fastlane
+          cp -r fastlane/* ios/fastlane/
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Install Fastlane
+        run: |
+          cd ios
+          bundle init
+          bundle add fastlane
+          bundle install
+
+      - name: Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.ASC_AUTH_KEY }}" > ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+
+      - name: Build and Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: |
+          cd ios
+          bundle exec fastlane beta
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Together-Daily-ipa
+          path: ios/build/*.ipa
+          retention-days: 7

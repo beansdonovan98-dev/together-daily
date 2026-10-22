@@ -199,6 +199,7 @@ export const appRouter = router({
           fileName,
           mimeType: input.mimeType,
           caption: input.caption ?? "",
+          captions: { beans: input.partnerId === "beans" ? (input.caption ?? "") : "", princess: input.partnerId === "princess" ? (input.caption ?? "") : "" },
           createdAt: new Date().toISOString(),
           dailyDate: input.dailyDate,
           uploadedBy: input.partnerId,
@@ -227,6 +228,7 @@ export const appRouter = router({
           fileName: safeFileName(input.fileName),
           mimeType: input.mimeType,
           caption: input.caption ?? "",
+          captions: { beans: input.partnerId === "beans" ? (input.caption ?? "") : "", princess: input.partnerId === "princess" ? (input.caption ?? "") : "" },
           createdAt: new Date().toISOString(),
           dailyDate: input.dailyDate,
           uploadedBy: input.partnerId,
@@ -247,7 +249,7 @@ export const appRouter = router({
         const coverPrefix = `guest-rooms/${roomCode}/covers/${input.dailyDate}/`;
         if (!input.storageKey.startsWith(coverPrefix)) throw new Error("This cover upload does not belong to your shared room.");
         const stored = await storageGet(input.storageKey);
-        const media = { id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, kind: "cover", url: stored.url, storageKey: stored.key, fileName: safeFileName(input.fileName), mimeType: input.mimeType, caption: "", createdAt: new Date().toISOString(), dailyDate: input.dailyDate, uploadedBy: input.partnerId };
+        const media = { id: `media-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, kind: "cover", url: stored.url, storageKey: stored.key, fileName: safeFileName(input.fileName), mimeType: input.mimeType, caption: "", captions: { beans: "", princess: "" }, createdAt: new Date().toISOString(), dailyDate: input.dailyDate, uploadedBy: input.partnerId };
         return db.addGuestRoomDailyCoverCarouselItem({ roomCode, partnerId: input.partnerId, dailyDate: input.dailyDate, media });
       }),
     requestDailyLogMediaDirectUpload: publicProcedure
@@ -273,6 +275,9 @@ export const appRouter = router({
     deleteDailyCoverCarouselItem: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, mediaId: z.string().trim().min(1).max(120) }))
       .mutation(({ input }) => db.deleteGuestRoomDailyCoverCarouselItem(input)),
+    updateDailyCoverCaption: publicProcedure
+      .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, mediaId: z.string().trim().min(1).max(120), caption: z.string().trim().max(500) }))
+      .mutation(({ input }) => db.updateGuestRoomDailyCoverCaption(input)),
     deleteDailyLogMedia: publicProcedure
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, mediaId: z.string().trim().min(1).max(120) }))
       .mutation(({ input }) => db.deleteGuestRoomDailyLogMedia(input)),

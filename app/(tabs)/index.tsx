@@ -77,7 +77,7 @@ export default function TodayScreen() {
 
 function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; memberName: string; coupleName: string }) {
   const date = localDateKey();
-  const { ready, getDay, updateDay, uploadDailyCoverCarouselDirect, deleteDailyCoverCarouselItem, customSubheadings, theme } = useLocalJournal();
+  const { ready, getDay, updateDay, uploadDailyCoverCarouselDirect, deleteDailyCoverCarouselItem, updateDailyCoverCaption, customSubheadings, theme } = useLocalJournal();
   const [loveDraft, setLoveDraft] = useState("");
   const loveLoadedKey = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -86,6 +86,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const [quoteOffset, setQuoteOffset] = useState(0);
   const [coverFrameWidth, setCoverFrameWidth] = useState(320);
   const [coverDimensions, setCoverDimensions] = useState<Record<string, { width: number; height: number }>>({});
+  const [coverCaptionDrafts, setCoverCaptionDrafts] = useState<Record<string, string>>({});
 
   const content = asObject(getDay(date));
   const cover = asObject(content.coverPhoto);
@@ -147,6 +148,15 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
       setRemovingCoverId(null);
     }
   };
+  const saveCoverCaption = async (coverId: string) => {
+    if (!coverId) return;
+    setUploadError("");
+    try {
+      await updateDailyCoverCaption({ dailyDate: date, mediaId: coverId, caption: coverCaptionDrafts[coverId] ?? "" });
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "The cover caption could not be saved. Please try again.");
+    }
+  };
   const switchQuote = () => setQuoteOffset((offset) => offset + 1);
   const mediaUrl = (url: string) => url.startsWith("/") ? `${getApiBaseUrl()}${url}` : url;
 
@@ -186,6 +196,21 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
         const mine = coverSlot.uploadedBy === userId;
         return <View key={coverSlot.id || `${coverSlot.url}-${index}`} style={[styles.coverSlide, { width: coverFrameWidth, height: coverHeight }]}><ExpoImage source={mediaUrl(String(coverSlot.url))} contentFit="contain" contentPosition="center" transition={0} onLoad={({ source }) => { if (!source.width || !source.height || !coverSlot.id) return; setCoverDimensions((current) => current[coverSlot.id]?.width === source.width && current[coverSlot.id]?.height === source.height ? current : { ...current, [coverSlot.id]: { width: source.width, height: source.height } }); }} style={StyleSheet.absoluteFillObject} />{coverIsGif ? <View style={styles.coverGifBadge}><Text style={styles.coverGifBadgeText}>GIF</Text></View> : null}<View style={styles.coverPagePill}><Text style={styles.coverPagePillText}>{index + 1} / {covers.length}</Text></View>{mine && coverSlot.id ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove this cover" onPress={() => removeCover(coverSlot.id)} disabled={removingCoverId === coverSlot.id} style={styles.coverRemoveButton}><Text style={styles.coverRemoveText}>{removingCoverId === coverSlot.id ? "…" : "×"}</Text></TouchableOpacity> : null}</View>; })}</ScrollView><Text style={styles.coverCarouselHint}>Swipe left or right to see every cover. Add as many photos or GIFs as you want.</Text></> : <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add cover photos or GIFs" onPress={selectCovers} disabled={uploading} style={styles.coverEmpty}><Text style={styles.coverKicker}>{uploading ? "SAVING COVERS" : "NO COVERS YET"}</Text><Text style={styles.coverTitle}>Add photos or GIFs</Text><Text style={styles.coverCopy}>Pick one or several memories from your iPhone, then swipe through them here.</Text></TouchableOpacity>}
     </View>
+    {covers.length ? <View style={styles.coverGrid}>{covers.map((coverSlot) => {
+      const captions = asObject(coverSlot.captions);
+      const coverId = String(coverSlot.id ?? "");
+      return <View key={`cover-caption-${coverId || coverSlot.url}`} style={styles.coverCaptionPanel}>
+        {(["beans", "princess"] as PartnerId[]).map((id) => {
+          const person = PARTNERS[id];
+          const saved = String(captions[id] ?? "");
+          const mine = id === userId;
+          return <View key={id} style={styles.coverCaptionRow}>
+            <Text style={[styles.coverCaptionName, { color: person.color }]}>{person.avatar} {person.name}</Text>
+            {mine ? <TextInput value={coverCaptionDrafts[coverId] ?? saved} onChangeText={(text) => setCoverCaptionDrafts((current) => ({ ...current, [coverId]: text }))} onBlur={() => saveCoverCaption(coverId)} placeholder="Add your caption…" placeholderTextColor="#7F7582" style={styles.coverCaptionInput} /> : <Text style={styles.coverCaptionPartnerText}>{saved || "Waiting for a caption…"}</Text>}
+          </View>;
+        })}
+      </View>;
+    })}</View> : null}
     {uploadError ? <View style={styles.uploadError}><Text style={styles.uploadErrorText}>{uploadError}</Text></View> : null}
     <View style={styles.dailySparkGrid}>
       <View style={styles.dailySparkCard}><View style={styles.dailySparkHeader}><Text style={[styles.cardKicker, { color: textColor }]}>QUOTE OF THE DAY</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch to another daily quote" onPress={switchQuote} style={styles.dailySparkSwitch}><Text style={styles.dailySparkSwitchText}>Switch</Text></TouchableOpacity></View><Text style={[styles.dailySparkText, { color: textColor }]}>“{displayedQuote}”</Text></View>

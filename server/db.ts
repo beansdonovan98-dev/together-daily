@@ -787,6 +787,63 @@ export async function deleteGuestRoomDailyCoverCarouselItem(input: { roomCode: s
   return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
 }
 
+export async function updateGuestRoomDailyCoverCaption(input: { roomCode: string; partnerId: GuestRoomMemberId; dailyDate: string; mediaId: string; caption: string }) {
+  const db = requireDb(await getDb());
+  const roomCode = input.roomCode.trim().toUpperCase();
+  const existing = await db.select().from(guestRooms).where(eq(guestRooms.roomCode, roomCode)).limit(1);
+  if (!existing[0]) throw new Error("That shared room code was not found.");
+  const memberIds = parseGuestRoomMembers(existing[0].memberIds);
+  if (!memberIds.includes(input.partnerId)) throw new Error("Join this shared room before editing a cover caption.");
+
+  const journalState = parseObject(existing[0].journalState);
+  const days = journalState.days && typeof journalState.days === "object" && !Array.isArray(journalState.days) ? journalState.days as JsonObject : {};
+  const currentDay = days[input.dailyDate] && typeof days[input.dailyDate] === "object" && !Array.isArray(days[input.dailyDate]) ? days[input.dailyDate] as JsonObject : null;
+  if (!currentDay) throw new Error("That cover photo is no longer available.");
+
+  const updateCover = (cover: unknown) => {
+    if (!cover || typeof cover !== "object") return cover;
+    const current = cover as JsonObject;
+    if (current.id !== input.mediaId) return cover;
+    const existingCaptions = current.captions && typeof current.captions === "object" && !Array.isArray(current.captions) ? current.captions as JsonObject : {};
+    return { ...current, captions: { ...existingCaptions, [input.partnerId]: input.caption } };
+  };
+
+  let updated = false;
+  const nextDay = { ...currentDay };
+  if (Array.isArray(currentDay.coverPhotos)) {
+    nextDay.coverPhotos = currentDay.coverPhotos.map((cover) => {
+      const next = updateCover(cover);
+      if (next !== cover) updated = true;
+      return next;
+    });
+  }
+  if (currentDay.coverPhoto && typeof currentDay.coverPhoto === "object") {
+    const next = updateCover(currentDay.coverPhoto);
+    if (next !== currentDay.coverPhoto) { updated = true; nextDay.coverPhoto = next; }
+  }
+  if (currentDay.coverPhotoTwo && typeof currentDay.coverPhotoTwo === "object") {
+    const next = updateCover(currentDay.coverPhotoTwo);
+    if (next !== currentDay.coverPhotoTwo) { updated = true; nextDay.coverPhotoTwo = next; }
+  }
+
+  const existingMedia = Array.isArray(journalState.media) ? journalState.media : [];
+  const nextMedia = existingMedia.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const current = item as JsonObject;
+    if (current.id !== input.mediaId || current.kind !== "cover") return item;
+    const existingCaptions = current.captions && typeof current.captions === "object" && !Array.isArray(current.captions) ? current.captions as JsonObject : {};
+    updated = true;
+    return { ...current, captions: { ...existingCaptions, [input.partnerId]: input.caption } };
+  });
+
+  if (!updated) throw new Error("That cover photo is no longer available.");
+
+  const nextState = { ...journalState, days: { ...days, [input.dailyDate]: nextDay }, media: nextMedia };
+  await db.update(guestRooms).set({ journalState: JSON.stringify(nextState) }).where(eq(guestRooms.roomCode, roomCode));
+  await notifyGuestRoomPartner(roomCode, input.partnerId, "daily-log");
+  return { roomCode, journalState: nextState, memberIds, updatedAt: new Date() };
+}
+
 /** Removes only Daily Log media uploaded by the requesting partner. */
 export async function deleteGuestRoomDailyLogMedia(input: { roomCode: string; partnerId: GuestRoomMemberId; mediaId: string }) {
   const db = requireDb(await getDb());

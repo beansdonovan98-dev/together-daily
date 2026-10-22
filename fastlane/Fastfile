@@ -1,0 +1,76 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Create or refresh App Store signing assets in the match repo"
+
+  lane :bootstrap_match do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_PATH"]
+    )
+
+    match(
+      type: "appstore",
+      readonly: false,
+      api_key: api_key
+    )
+  end
+
+  desc "Build and upload to TestFlight"
+
+  lane :beta do
+    setup_ci if ENV["CI"]
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_PATH"]
+    )
+
+    match(
+      type: "appstore",
+      readonly: true
+    )
+
+    update_project_team(
+      path: "Together Daily.xcodeproj",
+      teamid: "YOUR_TEAM_ID"
+    )
+    update_code_signing_settings(
+      path: "Together Daily.xcodeproj",
+      use_automatic_signing: false,
+      team_id: "YOUR_TEAM_ID",
+      code_sign_identity: "Apple Distribution",
+      profile_name: "match AppStore com.app.togetherdaily"
+    )
+
+    build_app(
+      scheme: "Together Daily",
+      workspace: "Together Daily.xcworkspace",
+      configuration: "Release",
+      export_method: "app-store",
+      export_team_id: "YOUR_TEAM_ID",
+      output_directory: "build",
+      output_name: "Together Daily.ipa",
+      build_path: "build",
+      derived_data_path: "build/DerivedData",
+      clean: true,
+      disable_package_automatic_updates: true,
+      export_options: {
+        method: "app-store",
+        teamID: "YOUR_TEAM_ID",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.app.togetherdaily" => "match AppStore com.app.togetherdaily"
+        }
+      }
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+  end
+end

@@ -1,0 +1,44 @@
+name: Bootstrap Match (one-time)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+
+      - name: Install system dependencies
+        run: |
+          brew install cocoapods
+          gem install cocoapods fastlane
+
+      - name: Copy Fastlane configuration
+        run: |
+          mkdir -p ios/fastlane
+          cp -r fastlane/* ios/fastlane/
+
+      - name: Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.ASC_AUTH_KEY }}" > ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+
+      - name: Bootstrap match
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: |
+          cd ios
+          bundle init
+          bundle add fastlane
+          bundle install
+          bundle exec fastlane bootstrap_match
