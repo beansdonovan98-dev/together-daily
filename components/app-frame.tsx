@@ -37,12 +37,12 @@ import { resolveThemeBackdrop } from "@/lib/theme-gradients";
 import { DYNAMIC_GRADIENT_MOTION, dynamicThemeForDate, isAnimatedTheme, isHalloweenMonth } from "@/lib/dynamic-theme";
 import { type FontPlatform, fontFamilyFor, normalizeGlobalBorderColor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor } from "@/lib/typography";
 import { PageContentReset } from "@/components/page-content-reset";
-import NbaScoreTicker from "@/components/nba-score-ticker";
 
 const NAVIGATION = [
   { id: "today", href: "/", label: "Today", glyph: "✦" },
   { id: "log", href: "/log", label: "Daily Log", glyph: "☰" },
   { id: "health", href: "/health", label: "Health", glyph: "✚" },
+  { id: "nba", href: "/nba", label: "NBA", glyph: "🏀" },
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },
@@ -695,7 +695,6 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
         <View style={[styles.content, pageSurfaceStyle, { paddingBottom: Math.max(insets.bottom, 12) }, isLaptopLayout && styles.contentLaptop]}>
           {styledChildren}
         </View>
-        <NbaScoreTicker />
       </View>
     </ScreenContainer>
   );
