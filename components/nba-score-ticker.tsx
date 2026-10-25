@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, ScrollView, StyleSheet, Text } from "react-native";
 
 type NbaGame = {
   away: string;
@@ -92,7 +92,10 @@ export default function NbaScoreTicker() {
   }, [text, containerWidth.current, contentWidth.current]);
 
   return (
-    <View
+    <ScrollView
+      horizontal
+      scrollEnabled={false}
+      showsHorizontalScrollIndicator={false}
       style={styles.container}
       onLayout={(event) => {
         containerWidth.current = event.nativeEvent.layout.width;
@@ -106,9 +109,9 @@ export default function NbaScoreTicker() {
           startAnimation();
         }}
       >
-        <Text style={[styles.text, { maxWidth: 100000, whiteSpace: "nowrap" } as any]} numberOfLines={1}>{text}     •     {text}</Text>
+        <Text style={[styles.text, { whiteSpace: "nowrap" } as any]}>{text}     •     {text}</Text>
       </Animated.View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -122,12 +125,9 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(255,255,255,0.15)",
   },
   track: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    alignSelf: "flex-start",
   },
   text: {
     color: "#FFFFFF",
