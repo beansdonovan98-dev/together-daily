@@ -97,19 +97,20 @@ export default function NbaScoreTicker() {
       scrollEnabled={false}
       showsHorizontalScrollIndicator={false}
       style={styles.container}
+      contentContainerStyle={styles.track}
       onLayout={(event) => {
         containerWidth.current = event.nativeEvent.layout.width;
         startAnimation();
       }}
     >
       <Animated.View
-        style={[styles.track, { transform: [{ translateX }] }]}
+        style={{ transform: [{ translateX }] }}
         onLayout={(event) => {
           contentWidth.current = event.nativeEvent.layout.width / 2;
           startAnimation();
         }}
       >
-        <Text style={[styles.text, { whiteSpace: "nowrap" } as any]}>{text}     •     {text}</Text>
+        <Text style={styles.text} numberOfLines={1}>{text}     •     {text}</Text>
       </Animated.View>
     </ScrollView>
   );
