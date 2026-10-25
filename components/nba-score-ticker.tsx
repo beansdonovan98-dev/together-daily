@@ -106,7 +106,7 @@ export default function NbaScoreTicker() {
           startAnimation();
         }}
       >
-        <Text style={[styles.text, { whiteSpace: "nowrap" } as any]}>{text}     •     {text}</Text>
+        <Text style={[styles.text, { maxWidth: 100000, whiteSpace: "nowrap" } as any]} numberOfLines={1}>{text}     •     {text}</Text>
       </Animated.View>
     </View>
   );
@@ -122,9 +122,12 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(255,255,255,0.15)",
   },
   track: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
+    justifyContent: "center",
   },
   text: {
     color: "#FFFFFF",
