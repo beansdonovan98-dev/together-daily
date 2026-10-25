@@ -131,5 +131,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     paddingHorizontal: 12,
+    // Allow the full score line to measure beyond the ticker viewport.
+    // numberOfLines={1} caps maxWidth to 100% by default, which truncates
+    // the text to roughly two games.
+    maxWidth: 100000,
+    flexShrink: 0,
   },
 });
