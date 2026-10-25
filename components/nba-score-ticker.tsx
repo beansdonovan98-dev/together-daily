@@ -106,7 +106,7 @@ export default function NbaScoreTicker() {
           startAnimation();
         }}
       >
-        <Text style={styles.text} numberOfLines={1}>{text}     •     {text}</Text>
+        <Text style={[styles.text, { whiteSpace: "nowrap" } as any]}>{text}     •     {text}</Text>
       </Animated.View>
     </View>
   );
