@@ -33,11 +33,11 @@ export function maxBase64LengthForMedia(mimeType: SupportedImageMimeType, target
   // amount of headroom so the app's preflight check and the server agree.
   if (mimeType === "image/gif") return 84_000_000;
   if (target === "private") return 6_700_000;
-  return 2_400_000;
+  return 6_700_000;
 }
 
 export function maxStoredBytesForMedia(mimeType: SupportedImageMimeType, target: MediaUploadTarget) {
   if (mimeType === "image/gif") return 60 * 1024 * 1024;
   if (target === "private") return 5 * 1024 * 1024;
-  return 2.5 * 1024 * 1024;
+  return 5 * 1024 * 1024;
 }

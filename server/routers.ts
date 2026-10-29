@@ -90,7 +90,7 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const bytes = Buffer.from(input.base64, "base64");
-        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a GIF smaller than 60 MB." : "Please choose a photo smaller than 2.5 MB.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a GIF smaller than 60 MB." : "Please choose a photo smaller than 5 MB.");
         const log = await db.getDailyLogForUser(ctx.user.id, input.date);
         const fileName = safeFileName(input.fileName);
         const storageKey = `couples/${log.coupleId}/photos/${Date.now()}-${fileName}`;
@@ -150,7 +150,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const bytes = Buffer.from(input.base64, "base64");
         if (input.base64.length > maxBase64LengthForMedia(input.mimeType, "cover")) throw new Error("Please choose a smaller Calendar image or GIF.");
-        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a Calendar GIF smaller than 60 MB." : "Please choose a Calendar background smaller than 2.5 MB.");
+        if (bytes.byteLength > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a Calendar GIF smaller than 60 MB." : "Please choose a Calendar background smaller than 5 MB.");
         const fileName = safeFileName(input.fileName);
         const stored = await storagePut(`guest-rooms/${input.roomCode.trim().toUpperCase()}/calendar/${Date.now()}-${fileName}`, bytes, input.mimeType);
         const background = { id: `calendar-background-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, kind: "calendar", url: stored.url, storageKey: stored.key, fileName, mimeType: input.mimeType, caption: "", width: input.width, height: input.height, createdAt: new Date().toISOString(), dailyDate: "calendar", uploadedBy: input.partnerId };
@@ -210,7 +210,7 @@ export const appRouter = router({
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, slot: z.enum(["first", "second"]), fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, byteSize: z.number().int().positive().max(60 * 1024 * 1024) }))
       .mutation(async ({ input }) => {
         const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
-        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a cover photo smaller than 2.5 MB.");
+        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a cover photo smaller than 5 MB.");
         return storageCreateDirectUpload(`guest-rooms/${roomCode}/covers/${input.dailyDate}/${Date.now()}-${safeFileName(input.fileName)}`);
       }),
     confirmDailyCoverDirectUpload: publicProcedure
@@ -239,7 +239,7 @@ export const appRouter = router({
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), partnerId: guestMemberIdSchema, dailyDate: dateSchema, fileName: z.string().min(1).max(255), mimeType: imageMimeTypeSchema, byteSize: z.number().int().positive().max(60 * 1024 * 1024) }))
       .mutation(async ({ input }) => {
         const roomCode = await db.assertGuestRoomMember(input.roomCode, input.partnerId);
-        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a cover photo smaller than 2.5 MB.");
+        if (input.byteSize > maxStoredBytesForMedia(input.mimeType, "cover")) throw new Error(input.mimeType === "image/gif" ? "Please choose a cover GIF smaller than 60 MB." : "Please choose a cover photo smaller than 5 MB.");
         return storageCreateDirectUpload(`guest-rooms/${roomCode}/covers/${input.dailyDate}/${Date.now()}-${safeFileName(input.fileName)}`);
       }),
     confirmDailyCoverCarouselDirectUpload: publicProcedure

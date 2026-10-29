@@ -79,6 +79,9 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
 
     const text = await response.text();
     console.log("[API] Text response received");
+    if (text.trim().startsWith("<")) {
+      throw new Error("Server returned an HTML error page instead of JSON. The server may need to be redeployed or the endpoint is unavailable.");
+    }
     return (text ? JSON.parse(text) : {}) as T;
   } catch (error) {
     console.error("[API] Request failed:", error);
