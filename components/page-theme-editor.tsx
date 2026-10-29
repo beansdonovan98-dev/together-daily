@@ -20,7 +20,7 @@ export function PageThemeEditor() {
   const activeBorderColor = normalizeGlobalBorderColor(theme.borderColor);
   const halloweenMonth = isHalloweenMonth(localDateKey());
   const dailyPreset = theme.dailyGradientRotation ? dailyThemePreset(localDateKey()) : null;
-  const preview = useMemo(() => halloweenMonth ? HALLOWEEN_MONTH_THEME.backgroundGradient : dailyPreset?.gradient ?? draft.gradient, [dailyPreset, draft, halloweenMonth]);
+  const preview = useMemo(() => halloweenMonth ? (HALLOWEEN_MONTH_THEME.backgroundGradient ?? [HALLOWEEN_MONTH_THEME.backgroundColor]) : dailyPreset?.gradient ?? draft.gradient, [dailyPreset, draft, halloweenMonth]);
   const previewAcrossPages = (preset: ReadyMadeTheme) => {
     setDraft(preset);
     setTheme({ accentColor: preset.accent, backgroundColor: preset.background, backgroundGradient: [...preset.gradient] });

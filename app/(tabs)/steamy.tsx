@@ -8,7 +8,6 @@ import { getApiBaseUrl } from "@/constants/oauth";
 import * as ImagePicker from "expo-image-picker";
 import {
   pickedImageByteSize,
-  preparePickedImageForUpload,
 } from "@/lib/media-base64";
 import {
   imageMimeFromAsset,
@@ -166,36 +165,13 @@ function SteamyContent() {
         );
       }
 
-      // GIFs use direct S3 uploads, keeping their animation intact and avoiding JSON parser/body-size failures.
-      if (selectedMimeType === "image/gif") {
-        const saved = await uploadPrivateMediaDirect({
-          dailyDate: date,
-          fileName,
-          mimeType: selectedMimeType,
-          uri: asset.uri,
-          byteSize,
-          caption: "",
-          width: asset.width,
-          height: asset.height,
-        });
-        if (!saved?.id)
-          throw new Error(
-            "The shared room did not confirm this GIF upload. Please try again.",
-          );
-        setUploadSuccess("GIF saved privately for both of you.");
-        return;
-      }
-
-      const prepared = await preparePickedImageForUpload({
-        uri: asset.uri,
-        base64: asset.base64,
-        mimeType: selectedMimeType,
-      });
-      const saved = await uploadPrivateMedia({
+      // Use direct S3 uploads for all private media so photos and GIFs avoid JSON/body-size parser failures.
+      const saved = await uploadPrivateMediaDirect({
         dailyDate: date,
         fileName,
-        mimeType: prepared.mimeType,
-        base64: prepared.base64,
+        mimeType: selectedMimeType,
+        uri: asset.uri,
+        byteSize,
         caption: "",
         width: asset.width,
         height: asset.height,

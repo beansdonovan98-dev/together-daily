@@ -16,13 +16,13 @@ const ROTATING_THEMES: readonly ReadyMadeTheme[] = [...SAVED_THEMES, ...PASTEL_T
 /** A shared seasonal look that automatically surrounds every page during October. */
 export const HALLOWEEN_MONTH_THEME = {
   name: "Haunted Together",
-  accentColor: "#FF9D1C",
-  backgroundColor: "#243A7A",
-  backgroundGradient: ["#1E356C", "#3A529B", "#704A9C", "#C05774", "#FF9D45"],
-  fontColor: "#FFF4D8",
-  borderColor: "#FF9D1C",
+  accentColor: "#A855F7",
+  backgroundColor: "#1A0B2E",
+  backgroundGradient: undefined,
+  fontColor: "#F3E8FF",
+  borderColor: "#A855F7",
   fontId: "serif",
-  animatedGradient: true,
+  animatedGradient: false,
 } as const;
 
 /** Deliberately visible motion while keeping the backdrop comfortably behind journal content. */
@@ -60,7 +60,10 @@ export function dynamicThemeForDate<T extends DynamicThemeSettings>(theme: T, da
     return {
       ...theme,
       ...HALLOWEEN_MONTH_THEME,
-      backgroundGradient: [...HALLOWEEN_MONTH_THEME.backgroundGradient],
+      backgroundGradient: HALLOWEEN_MONTH_THEME.backgroundGradient
+        ? [...HALLOWEEN_MONTH_THEME.backgroundGradient]
+        : undefined,
+      animatedGradient: false,
     } as T;
   }
   if (!theme.dailyGradientRotation) return theme;
