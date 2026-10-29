@@ -43,6 +43,7 @@ const NAVIGATION = [
   { id: "log", href: "/log", label: "Daily Log", glyph: "☰" },
   { id: "health", href: "/health", label: "Health", glyph: "✚" },
   { id: "nba", href: "/nba", label: "NBA", glyph: "🏀" },
+  { id: "halloweenEditor", href: "/halloween-editor", label: "Halloween Editor", glyph: "🎃" },
   { id: "steamy", href: "/steamy", label: "Steamy", glyph: "♥" },
   { id: "purchase", href: "/purchases", label: "Purchase", glyph: "▤" },
   { id: "cleaning", href: "/cleaning", label: "Cleaning", glyph: "✦" },

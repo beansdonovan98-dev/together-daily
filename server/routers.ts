@@ -306,6 +306,60 @@ export const appRouter = router({
       .input(z.object({ roomCode: z.string().trim().min(8).max(16), journalState: jsonObjectSchema, actorId: guestMemberIdSchema.optional(), notificationType: partnerNotificationTypeSchema.optional() }))
       .mutation(({ input }) => db.updateGuestRoom(input.roomCode, input.journalState, input.actorId, input.notificationType)),
   }),
+  ai: router({
+    editHalloweenPhoto: publicProcedure
+      .input(
+        z.object({
+          base64: z.string().min(1).max(12_000_000),
+          mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+          promptHint: z.string().trim().max(240).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) throw new Error("Gemini API key is not configured.");
+
+        const scenes = [
+          "a haunted Victorian mansion with fog, glowing jack-o-lanterns, bats, and a purple moon",
+          "a spooky graveyard at midnight with mist, tombstones, and ghostly wisps",
+          "a witch's cottage in an enchanted forest with floating candles and black cats",
+          "a gothic castle with lightning, gargoyles, and a blood-red sky",
+          "a pumpkin patch at dusk with scarecrows, ravens, and orange lanterns",
+        ];
+        const costumes = [
+          "vampire with fangs and a black cape",
+          "witch with a pointed hat and green glow",
+          "ghost with a translucent sheet and hollow eyes",
+          "skeleton with glowing bones",
+          "zombie with tattered clothes and pale skin",
+        ];
+        const scene = scenes[Math.floor(Math.random() * scenes.length)];
+        const costume = costumes[Math.floor(Math.random() * costumes.length)];
+        const prompt = `Edit this entire photo for Halloween: transform every person in the image into a ${costume} and replace the background with ${scene}. Keep each person's face recognizable but make them spooky and Halloween-themed. Apply the scene, lighting, colors, and atmosphere to the whole image, not just the subject. Cinematic lighting, dramatic shadows, purple-orange color grade. High quality, detailed, photorealistic. ${input.promptHint ?? ""}`;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: input.mimeType, data: input.base64 } }] }],
+              generationConfig: { responseModalities: ["IMAGE"] },
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Gemini request failed: ${text.slice(0, 300)}`);
+        }
+
+        const data = (await response.json()) as any;
+        const part = data?.candidates?.[0]?.content?.parts?.find((item: any) => item?.inlineData?.data);
+        if (!part?.inlineData?.data) throw new Error("Gemini did not return an image.");
+        return { base64: part.inlineData.data as string, mimeType: (part.inlineData.mimeType as string) || "image/png" };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
