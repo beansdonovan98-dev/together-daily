@@ -19,11 +19,13 @@ import {
 import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
 import { trpc, createTRPCClient } from "@/lib/trpc";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { LocalJournalProvider, useLocalJournal } from "@/lib/local-journal";
 import { BUNDLED_FONT_RESOURCES } from "@/lib/font-resources";
 import { partnerNotificationPathFromData, type PartnerNotificationPath } from "@/lib/notification-navigation";
 import { activeGlobalFontFamily, activeGlobalTextColor, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor, type FontPlatform } from "@/lib/typography";
+import { initCrashLogging } from "@/lib/crash-log";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -86,10 +88,13 @@ function JournalRoutes() {
   const selectedFont = normalizeGlobalFont(theme.fontId ?? customSubheadings.globalFont);
   setActiveGlobalTextColor(normalizeGlobalTextColor(theme.fontColor));
   setActiveGlobalFont(selectedFont, fontFamilyFor(selectedFont, Platform.OS as FontPlatform));
-  return <Stack key={`${theme.fontColor ?? "white"}:${theme.fontId ?? customSubheadings.globalFont ?? "classic"}`} screenOptions={{ headerShown: false }}><Stack.Screen name="(tabs)" /><Stack.Screen name="oauth/callback" /></Stack>;
+  return <ErrorBoundary><Stack key={`${theme.fontColor ?? "white"}:${theme.fontId ?? customSubheadings.globalFont ?? "classic"}`} screenOptions={{ headerShown: false }}><Stack.Screen name="(tabs)" /><Stack.Screen name="oauth/callback" /></Stack></ErrorBoundary>;
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    initCrashLogging();
+  }, []);
   const [fontsLoaded, fontError] = useFonts(BUNDLED_FONT_RESOURCES);
   usePartnerNotificationNavigation(fontsLoaded || Boolean(fontError));
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
