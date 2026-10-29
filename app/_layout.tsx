@@ -24,7 +24,6 @@ import { LocalJournalProvider, useLocalJournal } from "@/lib/local-journal";
 import { BUNDLED_FONT_RESOURCES } from "@/lib/font-resources";
 import { partnerNotificationPathFromData, type PartnerNotificationPath } from "@/lib/notification-navigation";
 import { activeGlobalFontFamily, activeGlobalTextColor, fontFamilyFor, normalizeGlobalFont, normalizeGlobalTextColor, setActiveGlobalFont, setActiveGlobalTextColor, type FontPlatform } from "@/lib/typography";
-import { initializeCrashTracker } from "@/services/crashTracker";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -91,9 +90,6 @@ function JournalRoutes() {
 }
 
 export default function RootLayout() {
-  useEffect(() => {
-    initializeCrashTracker();
-  }, []);
   const [fontsLoaded, fontError] = useFonts(BUNDLED_FONT_RESOURCES);
   usePartnerNotificationNavigation(fontsLoaded || Boolean(fontError));
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
