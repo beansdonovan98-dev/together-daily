@@ -8,6 +8,7 @@ export default function TabLayout() {
     <Tabs.Screen name="health" options={{title:"Health",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
   <Tabs.Screen name="nba" options={{title:"NBA",tabBarIcon:({color})=><IconSymbol size={24} name="sportscourt.fill" color={color}/>}} />
   <Tabs.Screen name="halloween-editor" options={{title:"Halloween Editor",tabBarIcon:({color})=><IconSymbol size={24} name="camera.fill" color={color}/>}} />
+  <Tabs.Screen name="crashes" options={{title:"Crash Reports",tabBarIcon:({color})=><IconSymbol size={24} name="exclamationmark.triangle.fill" color={color}/>}} />
     <Tabs.Screen name="connect" options={{href:null}} />
     <Tabs.Screen name="steamy" options={{title:"Steamy",tabBarIcon:({color})=><IconSymbol size={24} name="heart.fill" color={color}/>}} />
     <Tabs.Screen name="memories" options={{href:null}} />
