@@ -72,9 +72,17 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
 
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      console.log("[API] JSON response received");
-      return data as T;
+      const text = await response.text();
+      if (text.trim().startsWith("<")) {
+        throw new Error("Server returned an HTML error page instead of JSON. The server may need to be redeployed or the endpoint is unavailable.");
+      }
+      try {
+        const data = JSON.parse(text);
+        console.log("[API] JSON response received");
+        return data as T;
+      } catch {
+        throw new Error("Server returned invalid JSON. The server may need to be redeployed.");
+      }
     }
 
     const text = await response.text();
