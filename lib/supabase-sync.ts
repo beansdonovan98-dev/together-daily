@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { supabase, isSupabaseConfigured, type GuestRoomRow } from "./supabase";
 import type { JournalState } from "./local-journal";
 
@@ -55,13 +56,26 @@ export async function updateGuestRoom(roomCode: string, journalState: JournalSta
 
 export async function uploadToSupabaseStorage(uri: string, path: string, mimeType: string): Promise<string> {
   if (!isSupabaseConfigured) throw new Error("Supabase is not configured.");
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  const { data, error } = await supabase.storage.from("media").upload(path, blob, {
+
+  let body: Blob | Uint8Array;
+  if (Platform.OS === "web") {
+    const response = await fetch(uri);
+    body = await response.blob();
+  } else {
+    const FileSystem = require("expo-file-system/legacy");
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    body = bytes;
+  }
+
+  const { data, error } = await supabase.storage.from("media").upload(path, body, {
     contentType: mimeType,
     upsert: true,
   });
   if (error) throw new Error(error.message);
+  if (!data?.path) throw new Error("Supabase did not return a storage path.");
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(data.path);
   if (!urlData?.publicUrl) throw new Error("Supabase did not return a public URL for the uploaded file.");
   return urlData.publicUrl;
