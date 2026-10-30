@@ -65,3 +65,7 @@ export async function uploadToSupabaseStorage(uri: string, path: string, mimeTyp
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(data.path);
   return urlData.publicUrl;
 }
+
+export function makeMediaId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
