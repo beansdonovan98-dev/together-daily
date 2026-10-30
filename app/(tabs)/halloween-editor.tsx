@@ -1,10 +1,10 @@
 import { AppFrame } from "@/components/app-frame";
 import { COLORS } from "@/lib/together";
-import { readPickedImageAsBase64 } from "@/lib/media-base64";
+
 import { resizeImageIfNeeded } from "@/lib/image-resize";
 import { imageMimeFromAsset } from "@/lib/media-upload-policy";
 import * as ImagePicker from "expo-image-picker";
-import { Image } from "react-native";
+import { Image, Platform } from "react-native";
 import { ScrollView, StyleSheet, ActivityIndicator, View, Text } from "react-native";
 import { useState } from "react";
 import { VisualText, VisualTouchableOpacity } from "@/components/visual-primitives";
@@ -12,7 +12,7 @@ import { VisualText, VisualTouchableOpacity } from "@/components/visual-primitiv
 const MAX_BYTES = 2 * 1024 * 1024;
 
 export default function HalloweenEditorScreen() {
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
   const [originalUri, setOriginalUri] = useState<string | null>(null);
   const [editedBase64, setEditedBase64] = useState<string | null>(null);
   const [editedMime, setEditedMime] = useState("image/png");
@@ -32,15 +32,13 @@ export default function HalloweenEditorScreen() {
     const asset = result.assets[0];
     setOriginalUri(asset.uri);
     if (!apiKey) {
-      setError("Missing EXPO_PUBLIC_GEMINI_API_KEY.");
+      setError("Missing EXPO_PUBLIC_OPENAI_API_KEY.");
       return;
     }
     setLoading(true);
     try {
       const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
       const resizedUri = await resizeImageIfNeeded(asset.uri, mimeType);
-      const base64 = await readPickedImageAsBase64(resizedUri, null);
-      const cleaned = base64.includes(",") ? base64.split(",").pop() ?? base64 : base64;
       const scenes = [
         "a haunted Victorian mansion with fog, glowing jack-o-lanterns, bats, and a purple moon",
         "a spooky graveyard at midnight with mist, tombstones, and ghostly wisps",
@@ -59,26 +57,32 @@ export default function HalloweenEditorScreen() {
       const costume = costumes[Math.floor(Math.random() * costumes.length)];
       const prompt = `Edit this entire photo for Halloween: transform every person in the image into a ${costume} and replace the background with ${scene}. Keep each person's face recognizable but make them spooky and Halloween-themed. Apply the scene, lighting, colors, and atmosphere to the whole image. Cinematic lighting, dramatic shadows, purple-orange color grade. High quality, detailed, photorealistic.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: cleaned } }] }],
-            generationConfig: { responseModalities: ["IMAGE"] },
-          }),
-        },
-      );
+      const form = new FormData();
+      form.append("model", "gpt-image-2.5-sunburst");
+      form.append("prompt", prompt);
+      form.append("size", "1024x1024");
+      form.append("quality", "medium");
+      if (Platform.OS === "web") {
+        const blob = await (await fetch(resizedUri)).blob();
+        form.append("image", blob, "photo.jpg");
+      } else {
+        form.append("image", { uri: resizedUri, name: "photo.jpg", type: mimeType } as any);
+      }
+
+      const response = await fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: form,
+      });
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(text.slice(0, 300) || "Gemini request failed.");
+        throw new Error(text.slice(0, 300) || "OpenAI request failed.");
       }
       const data = (await response.json()) as any;
-      const part = data?.candidates?.[0]?.content?.parts?.find((item: any) => item?.inlineData?.data);
-      if (!part?.inlineData?.data) throw new Error("Gemini did not return an image.");
-      setEditedBase64(part.inlineData.data);
-      setEditedMime(part.inlineData.mimeType || "image/png");
+      const b64 = data?.data?.[0]?.b64_json;
+      if (!b64) throw new Error("OpenAI did not return an image.");
+      setEditedBase64(b64);
+      setEditedMime("image/png");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Halloween edit failed.");
     } finally {
@@ -92,7 +96,7 @@ export default function HalloweenEditorScreen() {
         <View>
           <Text style={styles.eyebrow}>HALLOWEEN</Text>
           <Text style={styles.hero}>AI Photo Editor</Text>
-          <Text style={styles.copy}>Upload a photo and get a unique AI Halloween edit. (Client-side Gemini; images auto-resized to ~2MB.)</Text>
+          <Text style={styles.copy}>Upload a photo and get a unique AI Halloween edit. (OpenAI; images auto-resized to ~2MB.)</Text>
         </View>
         <VisualTouchableOpacity onPress={pickAndEdit} disabled={loading} style={styles.button}>
           <Text style={styles.buttonText}>{loading ? "Summoning spirits…" : "Choose a photo"}</Text>
