@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { createGuestRoom as sbCreateRoom, getGuestRoom as sbGetRoom, joinGuestRoom as sbJoinRoom, updateGuestRoom as sbUpdateRoom, uploadToSupabaseStorage } from "@/lib/supabase-sync";
 import { uploadPickedImageDirect } from "@/lib/media-base64";
 import { localDateKey } from "@/lib/together";
 import { clearPurchasedGroceriesFromPreviousDays } from "@/lib/purchase-utils";
@@ -108,10 +110,32 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<JournalState>({ days:{}, records:[], media:[] }); const [prefs, setPrefs] = useState<RoomPrefs>({ roomCode:null, memberId:null }); const [roomMembers, setRoomMembers] = useState<PartnerId[]>([]); const [ready, setReady] = useState(false); const [syncError, setSyncError] = useState<string|null>(null); const [today, setToday] = useState(() => localDateKey()); const pendingSharedState = useRef<string | null>(null); const stateRef = useRef(state); const prefsRef = useRef(prefs); const localWriteAtRef = useRef(0); const syncInFlightRef = useRef(false); const queuedSharedStateRef = useRef<{ state: JournalState; serialized: string; notificationType?: PartnerNotificationType } | null>(null);
   stateRef.current = state; prefsRef.current = prefs;
   const create = trpc.guestRoom.create.useMutation(); const join = trpc.guestRoom.join.useMutation(); const sync = trpc.guestRoom.update.useMutation(); const weeklyCleaningTaskAdd = trpc.guestRoom.addWeeklyCleaningTask.useMutation(); const appUsageRecord = trpc.guestRoom.recordAppUsage.useMutation(); const registerPush = trpc.guestRoom.registerPushToken.useMutation(); const dailyCoverUpload = trpc.guestRoom.uploadDailyCover.useMutation(); const dailyCoverDirectRequest = trpc.guestRoom.requestDailyCoverDirectUpload.useMutation(); const dailyCoverDirectConfirm = trpc.guestRoom.confirmDailyCoverDirectUpload.useMutation(); const dailyCoverCarouselDirectRequest = trpc.guestRoom.requestDailyCoverCarouselDirectUpload.useMutation(); const dailyCoverCarouselDirectConfirm = trpc.guestRoom.confirmDailyCoverCarouselDirectUpload.useMutation(); const dailyCoverDelete = trpc.guestRoom.deleteDailyCover.useMutation(); const dailyCoverCarouselDelete = trpc.guestRoom.deleteDailyCoverCarouselItem.useMutation(); const dailyCoverCaptionUpdate = trpc.guestRoom.updateDailyCoverCaption.useMutation(); const dailyLogMediaDirectRequest = trpc.guestRoom.requestDailyLogMediaDirectUpload.useMutation(); const dailyLogMediaDirectConfirm = trpc.guestRoom.confirmDailyLogMediaDirectUpload.useMutation(); const dailyLogMediaDelete = trpc.guestRoom.deleteDailyLogMedia.useMutation(); const privateMediaUpload = trpc.guestRoom.uploadPrivateMedia.useMutation(); const privateMediaDirectRequest = trpc.guestRoom.requestPrivateMediaDirectUpload.useMutation(); const privateMediaDirectConfirm = trpc.guestRoom.confirmPrivateMediaDirectUpload.useMutation(); const privateMediaDelete = trpc.guestRoom.deletePrivateMedia.useMutation(); const privateMediaCaptionUpdate = trpc.guestRoom.updatePrivateMediaCaption.useMutation(); const privateMediaCommentCreate = trpc.guestRoom.addPrivateMediaComment.useMutation(); const privateMediaCommentDelete = trpc.guestRoom.deletePrivateMediaComment.useMutation(); const privateMediaCommentViewed = trpc.guestRoom.markPrivateMediaCommentsViewed.useMutation(); const calendarBackgroundUpload = trpc.guestRoom.uploadCalendarBackground.useMutation(); const calendarBackgroundDelete = trpc.guestRoom.deleteCalendarBackground.useMutation();
-  const syncMutationRef = useRef(sync.mutateAsync); syncMutationRef.current = sync.mutateAsync;
+  const syncMutationRef = useRef<(input: { roomCode: string; journalState: JournalState; actorId?: string; notificationType?: string }) => Promise<void>>(async (input) => {
+    if (isSupabaseConfigured) {
+      await sbUpdateRoom(input.roomCode, input.journalState);
+      return;
+    }
+    await sync.mutateAsync({ roomCode: input.roomCode, journalState: input.journalState, actorId: input.actorId as any, notificationType: input.notificationType as any });
+  });
+  syncMutationRef.current = syncMutationRef.current;
   const appUsageRecordRef = useRef(appUsageRecord.mutateAsync);
   appUsageRecordRef.current = appUsageRecord.mutateAsync;
-  const remote = trpc.guestRoom.get.useQuery({ roomCode:prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval:3_000, retry:1 });
+  // Supabase polling for remote room state (replaces trpc.guestRoom.get.useQuery)
+  const [remoteData, setRemoteData] = useState<{ journalState: JournalState; memberIds: string[] } | null>(null);
+  useEffect(() => {
+    if (!isSupabaseConfigured || !ready || !prefs.roomCode) return;
+    let active = true;
+    const poll = async () => {
+      const room = await sbGetRoom(prefs.roomCode!);
+      if (active && room) setRemoteData(room);
+    };
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => { active = false; clearInterval(interval); };
+  }, [ready, prefs.roomCode]);
+  const remote = isSupabaseConfigured
+    ? { data: remoteData ? { journalState: remoteData.journalState, memberIds: remoteData.memberIds } : undefined, isFetching: false, refetch: () => {} }
+    : trpc.guestRoom.get.useQuery({ roomCode: prefs.roomCode ?? "" }, { enabled: ready && Boolean(prefs.roomCode), refetchInterval: 3_000, retry: 1 });
   const partnerAlertReadiness = trpc.guestRoom.getPushStatus.useQuery({ roomCode:prefs.roomCode ?? "", partnerId:prefs.memberId ?? "beans" }, { enabled: ready && Boolean(prefs.roomCode) && Boolean(prefs.memberId), refetchInterval:8_000, retry:1 });
   const testPartnerAlert = trpc.guestRoom.sendTestPartnerAlert.useMutation();
   const saveLocalState = (next: JournalState) => { stateRef.current = next; setState(next); AsyncStorage.setItem(STATE_KEY, JSON.stringify(next)).catch(() => undefined); };
@@ -141,7 +165,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
   useEffect(()=>{if(!remote.data) return; const next=normalizeJournalState(remote.data.journalState); const current=JSON.stringify(stateRef.current); const incoming=JSON.stringify(next); if(pendingSharedState.current===incoming) pendingSharedState.current=null; if(shouldApplySharedRoomSnapshot({localSerialized:current,incomingSerialized:incoming,hasPendingLocalWrite:Boolean(pendingSharedState.current)||syncInFlightRef.current||Boolean(queuedSharedStateRef.current),lastLocalWriteAt:localWriteAtRef.current}))saveLocalState(next); const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
   const savePrefs=(next:RoomPrefs)=>{setPrefs(next); AsyncStorage.setItem(ROOM_KEY,JSON.stringify(next)).catch(()=>undefined);};
   const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{saveLocalState(next); const serialized=JSON.stringify(next); localWriteAtRef.current=Date.now(); if(prefs.roomCode){pendingSharedState.current=serialized; queuedSharedStateRef.current={state:next,serialized,notificationType}; flushSharedState();}};
-  const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};
+  const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;if(isSupabaseConfigured){const result=await sbJoinRoom(prefs.roomCode,prefs.memberId);setRoomMembers(normalizedRoomMembers(result.memberIds));return;}const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};
   useEffect(() => {
     let midnightTimer: ReturnType<typeof setTimeout> | undefined;
     const refreshToday = () => setToday((current) => {
@@ -263,8 +287,8 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     healthPeriodVisible:state.healthPeriodVisible!==false,
     setHealthPeriodVisible:(visible)=>persist({...state,healthPeriodVisible:visible}),
     resetPersonalization:()=>{const resetState=withSharedTheme({...state,customSubheadings:{}},{});persist(resetState);},
-    createRoom:async(partnerId)=>{setSyncError(null);const result=await create.mutateAsync({journalState:state,memberId:partnerId});setRoomMembers(normalizedRoomMembers(result.memberIds));savePrefs({roomCode:result.roomCode,memberId:partnerId});},
-    joinRoom:async(roomCode,partnerId)=>{setSyncError(null);const result=await join.mutateAsync({roomCode:roomCode.trim().toUpperCase(),memberId:partnerId});const next=result.journalState as JournalState;setState(next);setRoomMembers(normalizedRoomMembers(result.memberIds));AsyncStorage.setItem(STATE_KEY,JSON.stringify(next)).catch(()=>undefined);savePrefs({roomCode:result.roomCode,memberId:partnerId});},
+    createRoom:async(partnerId)=>{setSyncError(null);if(isSupabaseConfigured){const result=await sbCreateRoom(state,partnerId);setRoomMembers(normalizedRoomMembers(result.memberIds));savePrefs({roomCode:result.roomCode,memberId:partnerId});return;}const result=await create.mutateAsync({journalState:state,memberId:partnerId});setRoomMembers(normalizedRoomMembers(result.memberIds));savePrefs({roomCode:result.roomCode,memberId:partnerId});},
+    joinRoom:async(roomCode,partnerId)=>{setSyncError(null);const normalizedCode=roomCode.trim().toUpperCase();if(isSupabaseConfigured){const result=await sbJoinRoom(normalizedCode,partnerId);const room=await sbGetRoom(normalizedCode);if(room){const next=normalizeJournalState(room.journalState);setState(next);AsyncStorage.setItem(STATE_KEY,JSON.stringify(next)).catch(()=>undefined);}setRoomMembers(normalizedRoomMembers(result.memberIds));savePrefs({roomCode:normalizedCode,memberId:partnerId});return;}const result=await join.mutateAsync({roomCode:normalizedCode,memberId:partnerId});const next=result.journalState as JournalState;setState(next);setRoomMembers(normalizedRoomMembers(result.memberIds));AsyncStorage.setItem(STATE_KEY,JSON.stringify(next)).catch(()=>undefined);savePrefs({roomCode:result.roomCode,memberId:partnerId});},
     registerPushToken:async(token,platform)=>{if(!prefs.roomCode||!prefs.memberId)return;await registerPush.mutateAsync({roomCode:prefs.roomCode,partnerId:prefs.memberId,token,platform});await partnerAlertReadiness.refetch();}, sendTestPartnerAlert:async()=>{if(!prefs.roomCode||!prefs.memberId)return {recipientCount:0,acceptedCount:0,invalidTokens:[],message:"Open your shared room before testing alerts."};return testPartnerAlert.mutateAsync({roomCode:prefs.roomCode,partnerId:prefs.memberId});},
   }),[ready,today,prefs,state,roomMembers,sync.isPending,remote.isFetching,syncError,partnerAlertReadiness.data,create,join,weeklyCleaningTaskAdd,registerPush,testPartnerAlert,dailyCoverUpload,dailyCoverDelete,dailyCoverCaptionUpdate,privateMediaUpload,privateMediaDirectRequest,privateMediaDirectConfirm,privateMediaDelete,privateMediaCaptionUpdate,privateMediaCommentCreate,privateMediaCommentDelete,calendarBackgroundUpload,calendarBackgroundDelete]);
   return <JournalContext.Provider value={value}>{children}</JournalContext.Provider>;
