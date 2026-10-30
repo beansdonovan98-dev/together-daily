@@ -34,6 +34,15 @@ export function createTRPCClient() {
           return fetch(url, {
             ...options,
             credentials: "include",
+          }).then(async (response) => {
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.includes("application/json")) {
+              const text = await response.text();
+              if (text.trim().startsWith("<")) {
+                throw new Error("Server returned an HTML error page. The backend may be down or not deployed.");
+              }
+            }
+            return response;
           });
         },
       }),
