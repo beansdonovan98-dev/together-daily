@@ -63,6 +63,7 @@ export async function uploadToSupabaseStorage(uri: string, path: string, mimeTyp
   });
   if (error) throw new Error(error.message);
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(data.path);
+  if (!urlData?.publicUrl) throw new Error("Supabase did not return a public URL for the uploaded file.");
   return urlData.publicUrl;
 }
 
