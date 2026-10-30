@@ -126,11 +126,15 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured || !ready || !prefs.roomCode) return;
     let active = true;
     const poll = async () => {
-      const room = await sbGetRoom(prefs.roomCode!);
-      if (active && room) setRemoteData(room);
+      try {
+        const room = await sbGetRoom(prefs.roomCode!);
+        if (active && room) setRemoteData(room);
+      } catch (err) {
+        console.error("[Supabase poll] failed:", err);
+      }
     };
     poll();
-    const interval = setInterval(poll, 3000);
+    const interval = setInterval(poll, 2000);
     return () => { active = false; clearInterval(interval); };
   }, [ready, prefs.roomCode]);
   const remote = isSupabaseConfigured
@@ -162,7 +166,7 @@ export function LocalJournalProvider({ children }: { children: ReactNode }) {
       .finally(() => { syncInFlightRef.current = false; flushSharedState(); });
   };
   useEffect(()=>{Promise.all([AsyncStorage.getItem(STATE_KEY),AsyncStorage.getItem(ROOM_KEY)]).then(([storedState,storedPrefs])=>{if(storedState){try{setState(normalizeJournalState(JSON.parse(storedState)))}catch{}} if(storedPrefs){try{const parsed=JSON.parse(storedPrefs);setPrefs({roomCode:typeof parsed.roomCode==="string"?parsed.roomCode:null,memberId:parsed.memberId==="beans"||parsed.memberId==="princess"?parsed.memberId:null})}catch{}}}).finally(()=>setReady(true));},[]);
-  useEffect(()=>{if(!remote.data) return; const next=normalizeJournalState(remote.data.journalState); const current=JSON.stringify(stateRef.current); const incoming=JSON.stringify(next); if(pendingSharedState.current===incoming) pendingSharedState.current=null; if(shouldApplySharedRoomSnapshot({localSerialized:current,incomingSerialized:incoming,hasPendingLocalWrite:Boolean(pendingSharedState.current)||syncInFlightRef.current||Boolean(queuedSharedStateRef.current),lastLocalWriteAt:localWriteAtRef.current}))saveLocalState(next); const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
+  useEffect(()=>{if(!remote.data) return; const next=normalizeJournalState(remote.data.journalState); const current=JSON.stringify(stateRef.current); const incoming=JSON.stringify(next); if(pendingSharedState.current===incoming) pendingSharedState.current=null; const hasPending=Boolean(pendingSharedState.current)||syncInFlightRef.current||Boolean(queuedSharedStateRef.current); const shouldApply=isSupabaseConfigured ? (current !== incoming && !hasPending) : shouldApplySharedRoomSnapshot({localSerialized:current,incomingSerialized:incoming,hasPendingLocalWrite:hasPending,lastLocalWriteAt:localWriteAtRef.current}); if(shouldApply)saveLocalState(next); const nextMembers=normalizedRoomMembers(remote.data.memberIds);setRoomMembers(currentMembers=>currentMembers.length===nextMembers.length&&currentMembers.every(member=>nextMembers.includes(member))?currentMembers:nextMembers);},[remote.data]);
   const savePrefs=(next:RoomPrefs)=>{setPrefs(next); AsyncStorage.setItem(ROOM_KEY,JSON.stringify(next)).catch(()=>undefined);};
   const persist=(next:JournalState,notificationType?:PartnerNotificationType)=>{saveLocalState(next); const serialized=JSON.stringify(next); localWriteAtRef.current=Date.now(); if(prefs.roomCode){pendingSharedState.current=serialized; queuedSharedStateRef.current={state:next,serialized,notificationType}; flushSharedState();}};
   const ensureRoomMembership=async()=>{if(!prefs.roomCode||!prefs.memberId||roomMembers.includes(prefs.memberId))return;if(isSupabaseConfigured){const result=await sbJoinRoom(prefs.roomCode,prefs.memberId);setRoomMembers(normalizedRoomMembers(result.memberIds));return;}const result=await join.mutateAsync({roomCode:prefs.roomCode,memberId:prefs.memberId});setRoomMembers(normalizedRoomMembers(result.memberIds));};

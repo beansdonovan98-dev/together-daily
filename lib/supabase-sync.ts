@@ -28,7 +28,11 @@ export async function getGuestRoom(roomCode: string): Promise<{ journalState: Jo
     .select("journal_state, members")
     .eq("room_code", roomCode)
     .single();
-  if (error || !data) return null;
+  if (error) {
+    console.error("[Supabase getGuestRoom] error:", error.message);
+    return null;
+  }
+  if (!data) return null;
   return { journalState: data.journal_state as JournalState, memberIds: data.members as string[] };
 }
 
@@ -51,7 +55,10 @@ export async function updateGuestRoom(roomCode: string, journalState: JournalSta
     .from("guest_rooms")
     .update({ journal_state: journalState, updated_at: new Date().toISOString() })
     .eq("room_code", roomCode);
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[Supabase updateGuestRoom] error:", error.message);
+    throw new Error(error.message);
+  }
 }
 
 export async function uploadToSupabaseStorage(uri: string, path: string, mimeType: string): Promise<string> {
