@@ -84,3 +84,14 @@ export async function uploadToSupabaseStorage(uri: string, path: string, mimeTyp
 export function makeMediaId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
+
+export async function deleteFromSupabaseStorage(url: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  // Extract storage path from public URL: .../storage/v1/object/public/media/<path>
+  const marker = "/storage/v1/object/public/media/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) return;
+  const path = url.slice(idx + marker.length);
+  if (!path) return;
+  await supabase.storage.from("media").remove([path]);
+}
