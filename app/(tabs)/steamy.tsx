@@ -14,6 +14,7 @@ import {
   isAnimatedGif,
   maxStoredBytesForMedia,
 } from "@/lib/media-upload-policy";
+import { resizeImageIfNeeded } from "@/lib/image-resize";
 import {
   intimateEntriesForDate,
   intimateEntryDateTimeLabel,
@@ -166,12 +167,14 @@ function SteamyContent() {
       }
 
       // Use direct S3 uploads for all private media so photos and GIFs avoid JSON/body-size parser failures.
+      const resizedUri = await resizeImageIfNeeded(asset.uri, selectedMimeType);
+      const resizedByteSize = await pickedImageByteSize(resizedUri, byteSize);
       const saved = await uploadPrivateMediaDirect({
         dailyDate: date,
         fileName,
         mimeType: selectedMimeType,
-        uri: asset.uri,
-        byteSize,
+        uri: resizedUri,
+        byteSize: resizedByteSize,
         caption: "",
         width: asset.width,
         height: asset.height,

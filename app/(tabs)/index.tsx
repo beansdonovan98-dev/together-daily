@@ -8,6 +8,7 @@ import { PARTNERS, type LocalMedia, type PartnerId, useLocalJournal } from "@/li
 import * as ImagePicker from "expo-image-picker";
 import { pickedImageByteSize } from "@/lib/media-base64";
 import { imageMimeFromAsset, isAnimatedGif, maxStoredBytesForMedia } from "@/lib/media-upload-policy";
+import { resizeImageIfNeeded } from "@/lib/image-resize";
 import { mediaFrameHeight } from "@/lib/gif-frame";
 import { formatActivityDuration } from "@/lib/app-usage";
 import { Image as ExpoImage } from "expo-image";
@@ -119,9 +120,10 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
 
   const saveCoverAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => {
     const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
-    const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
+    const resizedUri = await resizeImageIfNeeded(asset.uri, mimeType);
+    const byteSize = await pickedImageByteSize(resizedUri, asset.fileSize);
     if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 2.5 MB.");
-    return uploadDailyCoverCarouselDirect({ dailyDate: date, fileName: asset.fileName ?? `cover-${Date.now()}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize });
+    return uploadDailyCoverCarouselDirect({ dailyDate: date, fileName: asset.fileName ?? `cover-${Date.now()}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: resizedUri, byteSize });
   }, [date, uploadDailyCoverCarouselDirect]);
 
   const selectCovers = async () => {
