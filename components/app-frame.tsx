@@ -459,19 +459,6 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
           <Animated.Text style={[styles.halloweenWerewolf, { transform: [{ translateY: ghostShiftY }] }]}>🐺</Animated.Text><Animated.Text style={[styles.halloweenWitch, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧙‍♀️</Animated.Text><Animated.Text style={[styles.halloweenVampire, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text><Animated.Text style={[styles.halloweenVampireTwo, { transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }] }]}>🧛</Animated.Text>
           <Animated.Text style={[styles.halloweenStarOne, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarTwo, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarThree, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarFour, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarFive, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarSix, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text><Animated.Text style={[styles.halloweenStarSeven, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✧</Animated.Text><Animated.Text style={[styles.halloweenStarEight, { opacity: starGlow, transform: [{ scale: starScale }] }]}>✦</Animated.Text>
           <Animated.View style={[styles.halloweenFog, { transform: [{ translateX: mistShiftX }, { rotate: "-8deg" }] }]} />
-          <Animated.Text style={{ position: "absolute", bottom: 12, left: 18, fontSize: 24, opacity: ghostGlow }}>🎃</Animated.Text>
-          <Animated.Text style={{ position: "absolute", bottom: 12, right: 18, fontSize: 24, opacity: ghostGlow }}>🕷️</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 96, left: 14, fontSize: 22, opacity: starGlow }}>🕸️</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 96, right: 14, fontSize: 22, opacity: starGlow }}>🦇</Animated.Text>
-          <Animated.Text style={{ position: "absolute", bottom: 52, left: 150, fontSize: 20, opacity: moonGlow }}>💀</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 140, left: 40, fontSize: 18, opacity: starGlow, transform: [{ translateY: ghostShiftY }] }}>🎃</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 140, right: 40, fontSize: 18, opacity: starGlow, transform: [{ translateY: ghostShiftY }] }}>🎃</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 220, left: 90, fontSize: 16, opacity: ghostGlow, transform: [{ rotate: ghostTilt }] }}>👻</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 220, right: 90, fontSize: 16, opacity: ghostGlow, transform: [{ rotate: ghostTilt }] }}>👻</Animated.Text>
-          <Animated.Text style={{ position: "absolute", bottom: 90, left: 70, fontSize: 16, opacity: starGlow, transform: [{ translateX: mistShiftX }] }}>🕷️</Animated.Text>
-          <Animated.Text style={{ position: "absolute", bottom: 90, right: 70, fontSize: 16, opacity: starGlow, transform: [{ translateX: mistShiftX }] }}>🕷️</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 300, left: "8%", fontSize: 14, opacity: moonGlow, transform: [{ translateX: batShiftX }] }}>🦇</Animated.Text>
-          <Animated.Text style={{ position: "absolute", top: 300, right: "8%", fontSize: 14, opacity: moonGlow, transform: [{ translateX: batShiftX }] }}>🦇</Animated.Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the second floating ghost" onPress={() => triggerSpookyCreature("ghost")} style={({ pressed }) => [styles.halloweenGhostTwoHitArea, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenCreatureGlyphSmall, { opacity: ghostGlow, transform: [{ translateY: ghostShiftY }, { rotate: ghostTilt }, { scale: spookyCreatureScale }] }]}>👻</Animated.Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Play with the flying bats" onPress={() => triggerSpookyCreature("bat")} style={({ pressed }) => [styles.halloweenBatHitArea, { transform: [{ translateX: batShiftX }, { translateY: batShiftY }] }, pressed && styles.halloweenCreaturePressed]}><Animated.Text style={[styles.halloweenCreatureGlyph, styles.halloweenBatGlyph, { transform: [{ rotate: "-10deg" }, { scale: spookyCreatureScale }] }]}>🦇</Animated.Text></Pressable>
@@ -719,28 +706,7 @@ const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
   animatedGradient: { ...StyleSheet.absoluteFillObject, left: -112, right: -112, top: -82, bottom: -82 },
   halloweenAtmosphere: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
-  halloweenFullPageAura: { position: "absolute", top: "24%", left: -160, right: -160, height: 780, borderRadius: 380, backgroundColor: "rgba(81, 28, 126, 0.16)" },
   halloweenSkyGlow: { position: "absolute", left: -150, right: -150, top: "28%", height: 440, borderRadius: 240, backgroundColor: "rgba(255, 190, 112, 0.12)" },
-  halloweenMistMiddle: { position: "absolute", top: "42%", left: -150, right: -150, height: 260, borderRadius: 150, backgroundColor: "rgba(235, 175, 255, 0.09)" },
-  halloweenMistLower: { position: "absolute", top: "69%", left: -150, right: -150, height: 260, borderRadius: 150, backgroundColor: "rgba(255, 164, 84, 0.09)" },
-  halloweenMoon: { position: "absolute", top: 30, right: -10, color: "rgba(255, 241, 198, 0.28)", fontSize: 104, lineHeight: 112, fontWeight: "300" },
-  halloweenGhost: { position: "absolute", top: 192, right: 30, fontSize: 28, opacity: 0.56 },
-  halloweenGhostTwo: { position: "absolute", top: 310, left: 22, fontSize: 25, opacity: 0.52 },
-  halloweenBat: { position: "absolute", top: 118, left: 54, fontSize: 22, opacity: 0.45 },
-  halloweenBatTwo: { position: "absolute", top: 164, left: -88, fontSize: 20, opacity: 0.55 },
-  halloweenBatThree: { position: "absolute", top: 84, left: -148, fontSize: 17, opacity: 0.48 },
-  halloweenWerewolf: { position: "absolute", bottom: 22, left: 18, fontSize: 25, opacity: 0.34 },
-  halloweenWitch: { position: "absolute", bottom: 154, right: 35, fontSize: 25, opacity: 0.45 },
-  halloweenVampire: { position: "absolute", bottom: 84, right: 19, fontSize: 23, opacity: 0.37 },
-  halloweenVampireTwo: { position: "absolute", bottom: 210, left: 15, fontSize: 21, opacity: 0.4 },
-  halloweenStarOne: { position: "absolute", top: 88, right: 102, color: "rgba(255, 220, 143, 0.8)", fontSize: 15, lineHeight: 17 },
-  halloweenStarTwo: { position: "absolute", top: 148, left: 26, color: "rgba(255, 193, 102, 0.56)", fontSize: 11, lineHeight: 13 },
-  halloweenStarThree: { position: "absolute", top: "41%", right: 24, color: "rgba(255, 240, 183, 0.75)", fontSize: 17, lineHeight: 20 },
-  halloweenStarFour: { position: "absolute", top: "63%", left: 38, color: "rgba(255, 224, 150, 0.68)", fontSize: 14, lineHeight: 17 },
-  halloweenStarFive: { position: "absolute", bottom: 76, right: "34%", color: "rgba(255, 244, 197, 0.76)", fontSize: 16, lineHeight: 19 },
-  halloweenStarSix: { position: "absolute", top: "53%", left: "18%", color: "rgba(255, 240, 183, 0.76)", fontSize: 15, lineHeight: 18 },
-  halloweenStarSeven: { position: "absolute", top: "71%", right: "19%", color: "rgba(255, 213, 132, 0.7)", fontSize: 18, lineHeight: 21 },
-  halloweenStarEight: { position: "absolute", bottom: "11%", left: "45%", color: "rgba(255, 248, 205, 0.72)", fontSize: 14, lineHeight: 17 },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(168, 85, 247, 0.16)", transform: [{ rotate: "-8deg" }] },
   halloweenGraveyard: { position: "absolute", left: -18, right: -18, bottom: -2, height: 138, overflow: "hidden" },
   halloweenRosebedShadow: { position: "absolute", left: 0, right: 0, bottom: 0, height: 35, backgroundColor: "rgba(8, 4, 16, 0.78)" },
@@ -750,22 +716,12 @@ const styles = StyleSheet.create({
   halloweenRoseShort: { height: 84 },
   halloweenRoseBloom: { color: "rgba(5, 3, 11, 0.98)", fontSize: 28, lineHeight: 27, fontWeight: "900", textShadowColor: "rgba(255, 181, 236, 0.24)", textShadowRadius: 5 },
   halloweenRoseStem: { width: 3, flex: 1, minHeight: 40, marginTop: -1, backgroundColor: "rgba(5, 3, 11, 0.98)" },
-  halloweenRoseLeaf: { position: "absolute", bottom: 18, left: 3, color: "rgba(5, 3, 11, 0.98)", fontSize: 21, lineHeight: 20, transform: [{ rotate: "-34deg" }] },
-  halloweenGhostHitArea: { position: "absolute", top: 180, right: 17, width: 58, height: 58, alignItems: "center", justifyContent: "center" },
-  halloweenGhostTwoHitArea: { position: "absolute", top: 298, left: 8, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
-  halloweenGhostThreeHitArea: { position: "absolute", top: "49%", right: 24, width: 55, height: 55, alignItems: "center", justifyContent: "center" },
-  halloweenBatHitArea: { position: "absolute", top: 102, left: 47, width: 48, height: 44, alignItems: "center", justifyContent: "center" },
-  halloweenBatTwoHitArea: { position: "absolute", top: 150, left: -94, width: 48, height: 44, alignItems: "center", justifyContent: "center" },
-  halloweenBatThreeHitArea: { position: "absolute", top: 70, left: -154, width: 44, height: 40, alignItems: "center", justifyContent: "center" },
-  halloweenBatFourHitArea: { position: "absolute", top: "58%", left: -92, width: 48, height: 44, alignItems: "center", justifyContent: "center" },
-  halloweenBatFiveHitArea: { position: "absolute", top: "78%", left: -150, width: 44, height: 40, alignItems: "center", justifyContent: "center" },
   halloweenCreatureGlyph: { fontSize: 28, lineHeight: 35, opacity: 0.68 },
   halloweenCreatureGlyphSmall: { fontSize: 25, lineHeight: 31 },
   halloweenBatGlyph: { fontSize: 22, lineHeight: 28, opacity: 0.62 },
   halloweenBatGlyphSmall: { fontSize: 20, lineHeight: 26, opacity: 0.68 },
   halloweenBatGlyphTiny: { fontSize: 17, lineHeight: 23, opacity: 0.62 },
   halloweenCreaturePressed: { opacity: 0.72, transform: [{ scale: 0.94 }] },
-  halloweenCreatureMessage: { position: "absolute", top: 238, right: 45, minWidth: 64, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(28, 11, 36, 0.86)", borderWidth: 1, borderColor: "#A855F7", alignItems: "center" },
   halloweenCreatureMessageText: { color: "#FFF0CE", fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   frame: { flex: 1, backgroundColor: COLORS.blush, overflow: "hidden" },
   topbar: {
