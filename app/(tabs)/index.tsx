@@ -120,7 +120,7 @@ function TodayContent({ userId, memberName, coupleName }: { userId: PartnerId; m
   const saveCoverAsset = useCallback(async (asset: ImagePicker.ImagePickerAsset) => {
     const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
     const byteSize = await pickedImageByteSize(asset.uri, asset.fileSize);
-    if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 5 MB.");
+    if (byteSize > maxStoredBytesForMedia(mimeType, "cover")) throw new Error(mimeType === "image/gif" ? "This cover GIF is too large. Choose a GIF under 60 MB." : "This cover photo is too large. Choose a photo under 2.5 MB.");
     return uploadDailyCoverCarouselDirect({ dailyDate: date, fileName: asset.fileName ?? `cover-${Date.now()}.${mimeType === "image/gif" ? "gif" : "jpg"}`, mimeType, uri: asset.uri, byteSize });
   }, [date, uploadDailyCoverCarouselDirect]);
 
