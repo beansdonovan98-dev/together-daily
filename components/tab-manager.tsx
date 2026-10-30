@@ -1,23 +1,17 @@
-import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
-import { VisualText as Text, VisualTextInput as TextInput, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
-
-import { COLORS } from "@/lib/together";
-import { useLocalJournal } from "@/lib/local-journal";
-import { normalizeGlobalBorderColor, normalizeGlobalTextColor } from "@/lib/typography";
-
 const TABS = [
-  { id: "today", label: "Today", glyph: "✦" },
-  { id: "log", label: "Daily Log", glyph: "☰" },
-  { id: "health", label: "Health", glyph: "✚" },
-  { id: "steamy", label: "Steamy", glyph: "♥" },
-  { id: "purchase", label: "Purchase", glyph: "▤" },
-  { id: "cleaning", label: "Cleaning", glyph: "✦" },
-  { id: "calendar", label: "Calendar", glyph: "♥" },
-  { id: "themes", label: "Themes", glyph: "◐" },
-  { id: "pastDays", label: "Past Days", glyph: "▤" },
+  { id: "today", label: "Today", glyph: "🏠" },
+  { id: "log", label: "Daily Log", glyph: "📋" },
+  { id: "health", label: "Health", glyph: "❤️" },
+  { id: "nba", label: "NBA", glyph: "🏀" },
+  { id: "halloweenEditor", label: "Halloween Editor", glyph: "🎃" },
+  { id: "crashReports", label: "Crash Reports", glyph: "🐛" },
+  { id: "steamy", label: "Steamy", glyph: "♥️" },
+  { id: "purchase", label: "Purchase", glyph: "🛒" },
+  { id: "cleaning", label: "Cleaning", glyph: "🧹" },
+  { id: "calendar", label: "Calendar", glyph: "📅" },
+  { id: "themes", label: "Themes", glyph: "🎨" },
+  { id: "pastDays", label: "Past Days", glyph: "📖" },
 ];
-
 export function TabManager() {
   const { tabLabels, tabGlyphs, setTabCustomizations, tabOrder, theme } = useLocalJournal();
   const accentColor = theme.accentColor ?? COLORS.orchid;
@@ -30,7 +24,7 @@ export function TabManager() {
   const [glyphs, setGlyphs] = useState<Record<string, string>>({});
   const sorted = [...order].map((id) => TABS.find((tab) => tab.id === id)!).filter(Boolean);
 
-  useEffect(() => { if (!open) { const stored = tabOrder; setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels(tabLabels); setGlyphs(tabGlyphs); } }, [open, tabLabels, tabGlyphs, tabOrder]);
+  useEffect(() => { if (open) { const stored = tabOrder; setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels({ ...tabLabels }); setGlyphs({ ...tabGlyphs }); } }, [open]);
   const move = (id: string, direction: -1 | 1) => { const index = order.indexOf(id); const target = index + direction; if (target < 0 || target >= order.length) return; const next = [...order]; [next[index], next[target]] = [next[target], next[index]]; setOrder(next); };
   const save = () => { setTabCustomizations({ labels, glyphs, order }); setOpen(false); };
 
