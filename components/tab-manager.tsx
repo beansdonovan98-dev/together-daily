@@ -24,7 +24,7 @@ export function TabManager() {
   const [glyphs, setGlyphs] = useState<Record<string, string>>({});
   const sorted = [...order].map((id) => TABS.find((tab) => tab.id === id)!).filter(Boolean);
 
-  useEffect(() => { if (open) { const stored = tabOrder; setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels({ ...tabLabels }); setGlyphs({ ...tabGlyphs }); } }, [open]);
+  useEffect(() => { if (open) { const stored = Array.isArray(tabOrder) ? tabOrder : []; setOrder([...stored.filter((id) => TABS.some((tab) => tab.id === id)), ...TABS.map((tab) => tab.id).filter((id) => !stored.includes(id))]); setLabels({ ...tabLabels }); setGlyphs({ ...tabGlyphs }); } }, [open]);
   const move = (id: string, direction: -1 | 1) => { const index = order.indexOf(id); const target = index + direction; if (target < 0 || target >= order.length) return; const next = [...order]; [next[index], next[target]] = [next[target], next[index]]; setOrder(next); };
   const save = () => { setTabCustomizations({ labels, glyphs, order }); setOpen(false); };
 

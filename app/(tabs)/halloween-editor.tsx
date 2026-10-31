@@ -37,8 +37,11 @@ export default function HalloweenEditorScreen() {
     }
     setLoading(true);
     try {
-      const mimeType = imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri);
-      const resizedUri = await resizeImageIfNeeded(asset.uri, mimeType);
+      const ext = (asset.fileName ?? asset.uri).toLowerCase();
+      const isSupported = /\.(jpe?g|png|webp)$/i.test(ext);
+      const mimeType = isSupported ? imageMimeFromAsset(asset.mimeType, asset.fileName, asset.uri) : "image/jpeg";
+      const convertMime = isSupported ? mimeType : "image/heic";
+      const resizedUri = await resizeImageIfNeeded(asset.uri, convertMime);
       const scenes = [
         "a haunted Victorian mansion with fog, glowing jack-o-lanterns, bats, and a purple moon",
         "a spooky graveyard at midnight with mist, tombstones, and ghostly wisps",
