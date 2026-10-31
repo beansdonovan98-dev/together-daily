@@ -8,26 +8,26 @@ import { ScrollView, StyleSheet } from "react-native";
 import { VisualText as Text, VisualTouchableOpacity as TouchableOpacity, VisualView as View } from "@/components/visual-primitives";
 
 const THEMES = [
-  { name: "Midnight Purple", bg: "#1A0B2E", accent: "#A855F7", font: "#F3E8FF", border: "#7C3AED" },
-  { name: "Deep Ocean", bg: "#0B1A2E", accent: "#3B82F6", font: "#E0F2FE", border: "#1E40AF" },
-  { name: "Forest Night", bg: "#0B2E1A", accent: "#22C55E", font: "#DCFCE7", border: "#166534" },
-  { name: "Rose Dark", bg: "#2E0B1A", accent: "#EC4899", font: "#FCE7F3", border: "#9D174D" },
-  { name: "Warm Ember", bg: "#2E1A0B", accent: "#F97316", font: "#FFF7ED", border: "#9A3412" },
-  { name: "Slate Gray", bg: "#1F2937", accent: "#9CA3AF", font: "#F9FAFB", border: "#374151" },
-  { name: "Classic Dark", bg: "#120F14", accent: "#C6A04C", font: "#FFFFFF", border: "#3A313E" },
-  { name: "Soft Lavender", bg: "#2D1B4E", accent: "#C084FC", font: "#F3E8FF", border: "#7C3AED" },
-  { name: "Crimson Night", bg: "#2E0B0B", accent: "#EF4444", font: "#FEE2E2", border: "#991B1B" },
-  { name: "Teal Depths", bg: "#0B2E2E", accent: "#14B8A6", font: "#CCFBF1", border: "#0F766E" },
-  { name: "Golden Hour", bg: "#2E2A0B", accent: "#EAB308", font: "#FEF9C3", border: "#854D0E" },
-  { name: "Ice Blue", bg: "#0B1F2E", accent: "#0EA5E9", font: "#E0F2FE", border: "#0369A1" },
-  { name: "Magenta Dusk", bg: "#2E0B2E", accent: "#D946EF", font: "#FAE8FF", border: "#86198F" },
-  { name: "Earth Brown", bg: "#2E1F0B", accent: "#D97706", font: "#FEF3C7", border: "#92400E" },
-  { name: "Mint Fresh", bg: "#0B2E1F", accent: "#10B981", font: "#D1FAE5", border: "#065F46" },
-  { name: "Steel Blue", bg: "#0F172A", accent: "#64748B", font: "#F1F5F9", border: "#334155" },
-  { name: "Cherry Blossom", bg: "#2E0B1F", accent: "#F472B6", font: "#FCE7F3", border: "#BE185D" },
-  { name: "Amber Glow", bg: "#2E230B", accent: "#FBBF24", font: "#FFFBEB", border: "#B45309" },
-  { name: "Arctic White", bg: "#1E293B", accent: "#38BDF8", font: "#F0F9FF", border: "#0284C7" },
-  { name: "Volcanic", bg: "#1C0A00", accent: "#FF4500", font: "#FFF7ED", border: "#9A3412" },
+  { name: "Midnight Purple", bg: "#1A0B2E", accent: "#A855F7", font: "#F3E8FF", border: "#7C3AED", gradient: ["#1A0B2E", "#2D1B4E", "#4C1D95", "#7C3AED"] },
+  { name: "Deep Ocean", bg: "#0B1A2E", accent: "#3B82F6", font: "#E0F2FE", border: "#1E40AF", gradient: ["#0B1A2E", "#1E3A5F", "#2563EB", "#3B82F6"] },
+  { name: "Forest Night", bg: "#0B2E1A", accent: "#22C55E", font: "#DCFCE7", border: "#166534", gradient: ["#0B2E1A", "#14532D", "#16A34A", "#22C55E"] },
+  { name: "Rose Dark", bg: "#2E0B1A", accent: "#EC4899", font: "#FCE7F3", border: "#9D174D", gradient: ["#2E0B1A", "#831843", "#DB2777", "#EC4899"] },
+  { name: "Warm Ember", bg: "#2E1A0B", accent: "#F97316", font: "#FFF7ED", border: "#9A3412", gradient: ["#2E1A0B", "#7C2D12", "#EA580C", "#F97316"] },
+  { name: "Slate Gray", bg: "#1F2937", accent: "#9CA3AF", font: "#F9FAFB", border: "#374151", gradient: ["#1F2937", "#374151", "#6B7280", "#9CA3AF"] },
+  { name: "Classic Dark", bg: "#120F14", accent: "#C6A04C", font: "#FFFFFF", border: "#3A313E", gradient: ["#120F14", "#1F1A24", "#3A313E", "#5A4A6A"] },
+  { name: "Soft Lavender", bg: "#2D1B4E", accent: "#C084FC", font: "#F3E8FF", border: "#7C3AED", gradient: ["#2D1B4E", "#4C1D95", "#7C3AED", "#C084FC"] },
+  { name: "Crimson Night", bg: "#2E0B0B", accent: "#EF4444", font: "#FEE2E2", border: "#991B1B", gradient: ["#2E0B0B", "#7F1D1D", "#DC2626", "#EF4444"] },
+  { name: "Teal Depths", bg: "#0B2E2E", accent: "#14B8A6", font: "#CCFBF1", border: "#0F766E", gradient: ["#0B2E2E", "#134E4A", "#0D9488", "#14B8A6"] },
+  { name: "Golden Hour", bg: "#2E2A0B", accent: "#EAB308", font: "#FEF9C3", border: "#854D0E", gradient: ["#2E2A0B", "#713F12", "#CA8A04", "#EAB308"] },
+  { name: "Ice Blue", bg: "#0B1F2E", accent: "#0EA5E9", font: "#E0F2FE", border: "#0369A1", gradient: ["#0B1F2E", "#1E3A5F", "#0284C7", "#0EA5E9"] },
+  { name: "Magenta Dusk", bg: "#2E0B2E", accent: "#D946EF", font: "#FAE8FF", border: "#86198F", gradient: ["#2E0B2E", "#701A75", "#C026D3", "#D946EF"] },
+  { name: "Earth Brown", bg: "#2E1F0B", accent: "#D97706", font: "#FEF3C7", border: "#92400E", gradient: ["#2E1F0B", "#78350F", "#B45309", "#D97706"] },
+  { name: "Mint Fresh", bg: "#0B2E1F", accent: "#10B981", font: "#D1FAE5", border: "#065F46", gradient: ["#0B2E1F", "#064E3B", "#059669", "#10B981"] },
+  { name: "Steel Blue", bg: "#0F172A", accent: "#64748B", font: "#F1F5F9", border: "#334155", gradient: ["#0F172A", "#1E293B", "#475569", "#64748B"] },
+  { name: "Cherry Blossom", bg: "#2E0B1F", accent: "#F472B6", font: "#FCE7F3", border: "#BE185D", gradient: ["#2E0B1F", "#831843", "#DB2777", "#F472B6"] },
+  { name: "Amber Glow", bg: "#2E230B", accent: "#FBBF24", font: "#FFFBEB", border: "#B45309", gradient: ["#2E230B", "#78350F", "#D97706", "#FBBF24"] },
+  { name: "Arctic White", bg: "#1E293B", accent: "#38BDF8", font: "#F0F9FF", border: "#0284C7", gradient: ["#1E293B", "#0C4A6E", "#0284C7", "#38BDF8"] },
+  { name: "Volcanic", bg: "#1C0A00", accent: "#FF4500", font: "#FFF7ED", border: "#9A3412", gradient: ["#1C0A00", "#7C2D12", "#C2410C", "#FF4500"] },
 ];
 
 export default function ThemesScreen() {
@@ -56,7 +56,7 @@ function ThemesContent() {
               <TouchableOpacity
                 key={t.name}
                 accessibilityRole="button"
-                onPress={() => setTheme({ accentColor: t.accent, backgroundColor: t.bg, fontColor: t.font, borderColor: t.border, backgroundGradient: undefined, animatedGradient: false, dailyGradientRotation: false })}
+                onPress={() => setTheme({ accentColor: t.accent, backgroundColor: t.bg, fontColor: t.font, borderColor: t.border, backgroundGradient: t.gradient, animatedGradient: true, dailyGradientRotation: false })}
                 style={[styles.themeCard, { backgroundColor: t.bg, borderColor: theme.backgroundColor === t.bg ? t.accent : "#4C1D95" }]}
               >
                 <Text style={[styles.themeName, { color: t.font }]}>{t.name}</Text>
