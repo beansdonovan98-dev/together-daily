@@ -1,6 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { TabManager } from "@/components/tab-manager";
-import { GradientCreator } from "@/components/gradient-creator";
+
 import { PrivateGate } from "@/components/together-access";
 import { COLORS } from "@/lib/together";
 import { useLocalJournal } from "@/lib/local-journal";
@@ -130,7 +130,6 @@ export default function ThemesScreen() {
           </View>
         </View>
 
-        <GradientCreator />
         <TabManager />
       </ScrollView>
     </AppFrame>
