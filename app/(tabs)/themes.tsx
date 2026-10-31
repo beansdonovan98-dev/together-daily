@@ -1,5 +1,6 @@
 import { AppFrame } from "@/components/app-frame";
 import { PrivateGate } from "@/components/together-access";
+import { TabManager } from "@/components/tab-manager";
 
 import { useLocalJournal } from "@/lib/local-journal";
 import { FONT_OPTIONS, FONT_COLOR_OPTIONS, BORDER_COLOR_OPTIONS, fontFamilyFor } from "@/lib/typography";
@@ -44,6 +45,7 @@ function ThemesContent() {
           ))}
         </View>
 
+      <TabManager />
       </ScrollView>
     </AppFrame>
   );
