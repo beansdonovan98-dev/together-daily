@@ -488,9 +488,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
             <View>
               <Text style={[styles.brand, { fontFamily, color: textColor }]}>Together Daily</Text>
               <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>
-                {PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} +{" "}
-                {PARTNERS.princess.avatar}{" "}
-                {PARTNERS.princess.name.toUpperCase()}
+                Daddy, Princess
               </Text>
               <Text style={[styles.brandDate, { fontFamily, color: textColor }]}>{headerDate}</Text>
             </View>
