@@ -93,6 +93,28 @@ export default function HalloweenEditorScreen() {
     }
   };
 
+  const saveEdited = async () => {
+    if (!editedBase64) return;
+    try {
+      if (Platform.OS === "web") {
+        const link = document.createElement("a");
+        link.href = `data:${editedMime};base64,${editedBase64}`;
+        link.download = "halloween-edit.png";
+        link.click();
+        return;
+      }
+      const FileSystem = require("expo-file-system/legacy");
+      const Sharing = require("expo-sharing");
+      const fileUri = `${FileSystem.cacheDirectory}halloween-edit.png`;
+      await FileSystem.writeAsStringAsync(fileUri, editedBase64, { encoding: FileSystem.EncodingType.Base64 });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save image.");
+    }
+  };
+
   return (
     <AppFrame>
       <ScrollView contentContainerStyle={styles.page}>
@@ -116,6 +138,9 @@ export default function HalloweenEditorScreen() {
           <View style={styles.card}>
             <Text style={styles.label}>Halloween edit</Text>
             <Image source={{ uri: `data:${editedMime};base64,${editedBase64}` }} style={styles.image} resizeMode="contain" />
+            <TouchableOpacity onPress={saveEdited} style={styles.saveButton}>
+              <Text style={styles.saveButtonText}>Save / Share</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
       </ScrollView>
@@ -134,4 +159,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 14, borderWidth: 1, borderColor: "#4C1D95", padding: 12, gap: 8 },
   label: { color: "#D8B4FE", fontSize: 10, fontWeight: "900", letterSpacing: 1 },
   image: { width: "100%", height: 320, borderRadius: 10 },
+  saveButton: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#A855F7", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: "rgba(168,85,247,0.15)" },
+  saveButtonText: { color: "#F3E8FF", fontSize: 11, fontWeight: "900", letterSpacing: 0.7 },
 });
