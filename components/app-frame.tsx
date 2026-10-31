@@ -158,6 +158,12 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     month: "short",
     day: "numeric",
   });
+  const relationshipStart = new Date(2019, 7, 9, 0, 0, 0).getTime();
+  const togetherMs = Math.max(0, Date.now() - relationshipStart);
+  const togetherDays = Math.floor(togetherMs / 86_400_000);
+  const togetherWeeks = Math.floor(togetherDays / 7);
+  const togetherMonths = Math.max(0, (new Date().getFullYear() - 2019) * 12 + new Date().getMonth() - 7 - (new Date().getDate() < 9 ? 1 : 0));
+  const togetherHours = Math.floor(togetherMs / 3_600_000);
   const isLaptopLayout = width >= 900;
   const {
     roomCode,
@@ -487,12 +493,13 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
             <Text style={[styles.brandMark, { color: textColor }]}>♥</Text>
             <View>
               <Text style={[styles.brand, { fontFamily, color: textColor }]}>Together Daily</Text>
-              <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>
-                {PARTNERS.beans.avatar} {PARTNERS.beans.name.toUpperCase()} +{" "}
-                {PARTNERS.princess.avatar}{" "}
-                {PARTNERS.princess.name.toUpperCase()}
-              </Text>
               <Text style={[styles.brandDate, { fontFamily, color: textColor }]}>{headerDate}</Text>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
+                <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>{togetherDays}d</Text>
+                <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>{togetherWeeks}w</Text>
+                <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>{togetherMonths}m</Text>
+                <Text style={[styles.brandSub, { fontFamily, color: textColor }]}>{togetherHours}h</Text>
+              </View>
             </View>
           </View>
           <View style={styles.liveStatus}>
