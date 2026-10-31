@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { useLocalJournal } from "@/lib/local-journal";
 
-const COLOR_CHOICES = ["#FF3D9A", "#FF2D95", "#F700FF", "#B955FF", "#7C3AED", "#5146D9", "#3B82F6", "#00D8FF", "#00B8D9", "#00E6AE", "#00C781", "#76D900", "#B7ED4B", "#FFD54F", "#FFB703", "#FF7A00", "#FF6B35", "#FF8A80", "#FF406C", "#D94A65", "#CEBFFF", "#98E8CF", "#B8E1FF", "#F7C8E0"];
+const COLOR_CHOICES = ["#FF3D9A", "#FF2D95", "#F700FF", "#B955FF", "#7C3AED", "#5146D9", "#3B82F6", "#00D8FF", "#00B8D9", "#00E6AE", "#00C781", "#76D900", "#B7ED4B", "#FFD54F", "#FFB703", "#FF7A00", "#FF6B35", "#FF8A80", "#FF406C", "#D94A65", "#CEBFFF", "#98E8CF", "#B8E1FF", "#F7C8E0", "#FFFFFF"];
 
 export function GradientCreator() {
   const { theme, setTheme } = useLocalJournal();
