@@ -1,4 +1,3 @@
-import re
 content = open('components/tab-manager.tsx', 'r', encoding='utf-8').read()
 end = content.index('export function TabManager')
 emojis = ['\U0001F3E0','\U0001F4CB','\u2764\uFE0F','\U0001F3C0','\U0001F383','\U0001F41B','\u2665\uFE0F','\U0001F6D2','\U0001F9F9','\U0001F4C5','\U0001F3A8','\U0001F4D6']
