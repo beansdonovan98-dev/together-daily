@@ -27,11 +27,11 @@ export const HALLOWEEN_MONTH_THEME = {
 
 /** Deliberately visible motion while keeping the backdrop comfortably behind journal content. */
 export const DYNAMIC_GRADIENT_MOTION = {
-  legDuration: 3_600,
-  horizontalTravel: 108,
-  verticalTravel: 52,
-  baseScale: 1.08,
-  peakScale: 1.2,
+  legDuration: 2_800,
+  horizontalTravel: 220,
+  verticalTravel: 120,
+  baseScale: 1.12,
+  peakScale: 1.35,
 } as const;
 
 function utcDayNumber(dateKey: string) {

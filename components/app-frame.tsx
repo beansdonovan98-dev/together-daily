@@ -450,6 +450,19 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
     <ScreenContainer containerClassName="bg-black" className="flex-1">
       <View style={[styles.frame, { backgroundColor: backgroundGradient ? "transparent" : backgroundColor }]}>
         {backgroundGradient ? <View pointerEvents="none" style={styles.themeGradient}>{animatedGradient ? <Animated.View style={[styles.animatedGradient, { transform: [{ translateX: gradientShiftX }, { translateY: gradientShiftY }, { scale: gradientScale }] }]}><LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} /></Animated.View> : <LinearGradient colors={backgroundGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeGradient} />}</View> : null}
+        {renderedTheme?.pattern ? <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+          <Animated.Text style={{ position: "absolute", top: 80, left: 30, fontSize: 18, opacity: 0.35, transform: [{ translateY: ghostShiftY }] }}>✦</Animated.Text>
+          <Animated.Text style={{ position: "absolute", top: 160, right: 40, fontSize: 16, opacity: 0.3, transform: [{ translateY: ghostShiftY }] }}>✦</Animated.Text>
+          <Animated.Text style={{ position: "absolute", bottom: 120, left: 60, fontSize: 20, opacity: 0.3, transform: [{ translateX: mistShiftX }] }}>✧</Animated.Text>
+          <Animated.Text style={{ position: "absolute", bottom: 200, right: 30, fontSize: 14, opacity: 0.25, transform: [{ translateX: mistShiftX }] }}>✦</Animated.Text>
+        </View> : null}
+        {renderedTheme?.particles ? <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+          <Animated.Text style={{ position: "absolute", top: 60, left: 20, fontSize: 12, opacity: 0.4, transform: [{ translateY: ghostShiftY }] }}>✨</Animated.Text>
+          <Animated.Text style={{ position: "absolute", top: 130, right: 30, fontSize: 10, opacity: 0.35, transform: [{ translateY: ghostShiftY }] }}>✨</Animated.Text>
+          <Animated.Text style={{ position: "absolute", top: 210, left: 50, fontSize: 14, opacity: 0.3, transform: [{ translateX: mistShiftX }] }}>⭐</Animated.Text>
+          <Animated.Text style={{ position: "absolute", bottom: 150, right: 20, fontSize: 12, opacity: 0.4, transform: [{ translateX: mistShiftX }] }}>✨</Animated.Text>
+          <Animated.Text style={{ position: "absolute", bottom: 80, left: 80, fontSize: 10, opacity: 0.3, transform: [{ translateY: ghostShiftY }] }}>⭐</Animated.Text>
+        </View> : null}
         {halloweenMonth ? <View testID="halloween-month-atmosphere" pointerEvents="box-none" style={styles.halloweenAtmosphere}>
           <Animated.View pointerEvents="none" style={[styles.halloweenFullPageAura, { opacity: starGlow, transform: [{ translateY: ghostShiftY }, { scale: starScale }] }]} />
           <Animated.View style={[styles.halloweenSkyGlow, { opacity: starGlow, transform: [{ translateX: mistShiftX }, { scale: starScale }] }]} />
