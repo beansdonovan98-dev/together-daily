@@ -42,8 +42,7 @@ function utcDayNumber(dateKey: string) {
 
 /** Uses the phone's local calendar key, so both partners see the seasonal look throughout October. */
 export function isHalloweenMonth(dateKey: string) {
-  const [, month] = dateKey.split("-").map(Number);
-  return month === 10;
+  return false;
 }
 
 /** Picks one deterministic shared preset for a calendar date, without saving a daily mutation. */

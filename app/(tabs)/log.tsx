@@ -66,6 +66,13 @@ const CUSTOM_COLORS = [
   { name: "Cobalt", value: "#3B82F6" },
   { name: "Royal", value: "#5146D9" },
   { name: "Amethyst", value: "#7C3AED" },
+  { name: "Brown", value: "#8B5A2B" },
+  { name: "Pink", value: "#FF69B4" },
+  { name: "Magenta", value: "#FF00FF" },
+  { name: "Navy", value: "#1E3A8A" },
+  { name: "Gray", value: "#6B7280" },
+  { name: "Black", value: "#000000" },
+  { name: "White", value: "#FFFFFF" },
 ];
 
 function getEventStyle(entry: TimelineEntry): EventStyle {
