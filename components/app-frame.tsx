@@ -717,7 +717,7 @@ export function AppFrame({ children, showAutomaticPageReset = true }: { children
 
 const styles = StyleSheet.create({
   themeGradient: { ...StyleSheet.absoluteFillObject },
-  animatedGradient: { ...StyleSheet.absoluteFillObject, left: -112, right: -112, top: -82, bottom: -82 },
+  animatedGradient: { ...StyleSheet.absoluteFillObject, left: -260, right: -260, top: -160, bottom: -160 },
   halloweenAtmosphere: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
   halloweenSkyGlow: { position: "absolute", left: -150, right: -150, top: "28%", height: 440, borderRadius: 240, backgroundColor: "rgba(255, 190, 112, 0.12)" },
   halloweenFog: { position: "absolute", left: -84, right: -84, bottom: -148, height: 280, borderRadius: 160, backgroundColor: "rgba(168, 85, 247, 0.16)", transform: [{ rotate: "-8deg" }] },
